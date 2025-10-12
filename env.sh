@@ -43,6 +43,7 @@ for SRC in "${!FILES_TO_COPY[@]}"; do
     DST=${FILES_TO_COPY[$SRC]}
     FULL_SRC="$TEMP_DIR/$SRC"
     if [ -f "$FULL_SRC" ]; then
+        mkdir -p "$(dirname "$DST")"
         cp "$FULL_SRC" "$DST"
         echo -e "${GREEN}✅ Đã copy $DST${NC}"
     else

@@ -34,28 +34,34 @@ Write-Info "Cloning secrets repository..."
 git -c credential.helper= clone $RepoUrl $TempDir 2>$null
 
 if ($LASTEXITCODE -ne 0 -or -not (Test-Path $TempDir)) {
-    Write-ErrorMsg "Clone failed. Kiểm tra GitHub token hoặc quyền truy cập vào repo."
+    Write-ErrorMsg "❌ Clone failed. Kiểm tra GitHub token hoặc quyền truy cập vào repo."
     exit 1
 }
 
-Write-Success "Repository cloned successfully to '$TempDir'"
+Write-Success "✅ Repository cloned successfully to '$TempDir'"
 
 # Copy mapped files
-Write-Info "Copying environment configuration files..."
+Write-Info "📂 Copying environment configuration files..."
 foreach ($src in $Mappings.Keys) {
     $dst = $Mappings[$src]
     $fullSrc = Join-Path $TempDir $src
+    $dstDir = Split-Path $dst -Parent
+
     if (Test-Path $fullSrc) {
+        if (-not (Test-Path $dstDir)) {
+            New-Item -ItemType Directory -Path $dstDir -Force | Out-Null
+        }
+
         Copy-Item $fullSrc -Destination $dst -Force
-        Write-Success "Copied $dst"
+        Write-Success "✅ Copied $dst"
     } else {
-        Write-WarningMsg "$src not found in repository."
+        Write-WarningMsg "⚠️ $src not found in repository."
     }
 }
 
 # Cleanup
 Remove-Item -Recurse -Force $TempDir
-Write-Info "Temporary folder removed."
+Write-Info "🧹 Temporary folder removed."
 
 # Done
-Write-Success "✅ All secrets imported successfully!"
+Write-Success "🎉 All secrets imported successfully!"
