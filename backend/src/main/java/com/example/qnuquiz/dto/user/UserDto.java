@@ -1,4 +1,4 @@
-package com.example.qnuquiz.dto;
+package com.example.qnuquiz.dto.user;
 
 import java.sql.Timestamp;
 import java.util.UUID;
