@@ -4,6 +4,8 @@ package com.example.qnuquiz.entity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
@@ -27,7 +29,6 @@ public class Questions implements java.io.Serializable {
     private Users users;
     private String content;
     private String type;
-    private String difficulty;
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private Set<ExamAnswers> examAnswerses = new HashSet<ExamAnswers>(0);
@@ -38,25 +39,23 @@ public class Questions implements java.io.Serializable {
     public Questions() {
     }
 
-    public Questions(long id, String content, String type, String difficulty, Timestamp createdAt,
+    public Questions(long id, String content, String type, Timestamp createdAt,
             Timestamp updatedAt) {
         this.id = id;
         this.content = content;
         this.type = type;
-        this.difficulty = difficulty;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
     public Questions(long id, QuestionCategories questionCategories, Users users, String content, String type,
-            String difficulty, Timestamp createdAt, Timestamp updatedAt, Set<ExamAnswers> examAnswerses,
+            Timestamp createdAt, Timestamp updatedAt, Set<ExamAnswers> examAnswerses,
             Set<QuestionOptions> questionOptionses, Set<ExamQuestions> examQuestionses, Set<Feedbacks> feedbackses) {
         this.id = id;
         this.questionCategories = questionCategories;
         this.users = users;
         this.content = content;
         this.type = type;
-        this.difficulty = difficulty;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.examAnswerses = examAnswerses;
@@ -66,7 +65,7 @@ public class Questions implements java.io.Serializable {
     }
 
     @Id
-
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique = true, nullable = false)
     public long getId() {
         return this.id;
@@ -112,15 +111,6 @@ public class Questions implements java.io.Serializable {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    @Column(name = "difficulty", nullable = false)
-    public String getDifficulty() {
-        return this.difficulty;
-    }
-
-    public void setDifficulty(String difficulty) {
-        this.difficulty = difficulty;
     }
 
     @Temporal(TemporalType.TIMESTAMP)

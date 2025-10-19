@@ -4,6 +4,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.qnuquiz.entity.Feedbacks;
 
-public interface FeedbacksRepository extends JpaRepository<Feedbacks, Long> {
+public interface FeedbackRepository extends JpaRepository<Feedbacks, Long> {
 
 }

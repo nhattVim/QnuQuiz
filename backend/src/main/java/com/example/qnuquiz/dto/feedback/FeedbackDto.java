@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class FeedbacksDto {
+public class FeedbackDto {
 
     private Long id;
     private String questionContent;

@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class FaqsDto {
+public class FaqDto {
 
     private long id;
     private String question;

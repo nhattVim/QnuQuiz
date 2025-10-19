@@ -5,16 +5,16 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.example.qnuquiz.dto.feedback.FeedbacksDto;
+import com.example.qnuquiz.dto.feedback.FeedbackDto;
 import com.example.qnuquiz.entity.Feedbacks;
 
 @Mapper(componentModel = "spring")
-public interface FeedbacksMapper {
+public interface FeedbackMapper {
 
     @Mapping(source = "questions.content", target = "questionContent")
     @Mapping(source = "usersByUserId.username", target = "userName")
     @Mapping(source = "usersByReviewedBy.username", target = "reviewedBy")
-    FeedbacksDto toDto(Feedbacks feedback);
+    FeedbackDto toDto(Feedbacks feedback);
 
-    List<FeedbacksDto> toDtoList(List<Feedbacks> feedbacks);
+    List<FeedbackDto> toDtoList(List<Feedbacks> feedbacks);
 }

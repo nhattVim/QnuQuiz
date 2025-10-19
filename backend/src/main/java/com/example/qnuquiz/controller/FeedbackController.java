@@ -7,20 +7,20 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.qnuquiz.dto.teacher.TeacherDto;
-import com.example.qnuquiz.service.TeacherService;
+import com.example.qnuquiz.dto.feedback.FeedbackDto;
+import com.example.qnuquiz.service.FeedbackService;
 
 import lombok.RequiredArgsConstructor;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/teachers")
-public class TeacherController {
+@RequestMapping("/api/feedbacks")
+public class FeedbackController {
 
-    private final TeacherService teacherService;
+    private final FeedbackService feedbackService;
 
     @GetMapping
-    public ResponseEntity<List<TeacherDto>> getAllTeachers() {
-        return ResponseEntity.ok(teacherService.getAllTeachers());
+    public ResponseEntity<List<FeedbackDto>> getAllFeedbacks() {
+        return ResponseEntity.ok(feedbackService.getAllFeedbacks());
     }
 }

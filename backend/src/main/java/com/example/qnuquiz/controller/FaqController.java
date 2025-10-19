@@ -7,9 +7,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.qnuquiz.dto.faqs.FaqsDto;
-import com.example.qnuquiz.entity.Faqs;
-import com.example.qnuquiz.mapper.FaqsMapper;
+import com.example.qnuquiz.dto.faqs.FaqDto;
 import com.example.qnuquiz.service.FaqsService;
 
 import lombok.RequiredArgsConstructor;
@@ -17,15 +15,12 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/faqs")
-public class FaqsController {
+public class FaqController {
 
-    private final FaqsService faqsService;
-    private final FaqsMapper faqsMapper;
+    private final FaqsService faqService;
 
     @GetMapping
-    public ResponseEntity<List<FaqsDto>> getAllFaqs() {
-        List<Faqs> faqs = faqsService.getAllFaqs();
-        List<FaqsDto> dtoList = faqsMapper.toDtoList(faqs);
-        return ResponseEntity.ok(dtoList);
+    public ResponseEntity<List<FaqDto>> getAllFaqs() {
+        return ResponseEntity.ok(faqService.getAllFaqs());
     }
 }

@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.qnuquiz.dto.student.StudentDto;
-import com.example.qnuquiz.entity.Students;
-import com.example.qnuquiz.mapper.StudentMapper;
 import com.example.qnuquiz.service.StudentService;
 
 import lombok.RequiredArgsConstructor;
@@ -17,15 +15,12 @@ import lombok.RequiredArgsConstructor;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/students")
-public class StudenController {
+public class StudentController {
 
     private final StudentService studentService;
-    private final StudentMapper studentMapper;
 
     @GetMapping
     public ResponseEntity<List<StudentDto>> getAllStudents() {
-        List<Students> students = studentService.getAllStudents();
-        List<StudentDto> dtoList = studentMapper.toDtoList(students);
-        return ResponseEntity.ok(dtoList);
+        return ResponseEntity.ok(studentService.getAllStudents());
     }
 }

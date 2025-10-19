@@ -2,24 +2,12 @@ package com.example.qnuquiz.service;
 
 import java.util.List;
 
-import org.springframework.stereotype.Service;
+import com.example.qnuquiz.dto.user.UserCreateDto;
+import com.example.qnuquiz.dto.user.UserDto;
 
-import com.example.qnuquiz.entity.Users;
-import com.example.qnuquiz.repository.UserRepository;
+public interface UserService {
 
-import lombok.RequiredArgsConstructor;
+    UserDto register(UserCreateDto dto);
 
-@Service
-@RequiredArgsConstructor
-public class UserService {
-
-    private final UserRepository userRepository;
-
-    public Users register(Users user) {
-        return userRepository.save(user);
-    }
-
-    public List<Users> getAllUsers() {
-        return userRepository.findAll();
-    }
+    List<UserDto> getAllUsers();
 }

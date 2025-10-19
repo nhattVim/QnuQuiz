@@ -9,6 +9,7 @@ import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -81,12 +82,22 @@ public class Users implements java.io.Serializable {
         this.feedbacksesForReviewedBy = feedbacksesForReviewedBy;
     }
 
+    // Hibernate để DB tự sinh UUID bằng uuid_generate_v4() với extension uuid-ossp
     @Id
-
+    @GeneratedValue
     @Column(name = "id", unique = true, nullable = false)
     public UUID getId() {
         return this.id;
     }
+
+    // Hibernate sinh UUID rồi lưu vào DB không cần extension uuid-ossp của DB
+    // @Id
+    // @GeneratedValue(generator = "UUID")
+    // @GenericGenerator(name = "UUID", strategy = "org.hibernate.id.UUIDGenerator")
+    // @Column(name = "id", unique = true, nullable = false)
+    // public UUID getId() {
+    // return this.id;
+    // }
 
     public void setId(UUID id) {
         this.id = id;
