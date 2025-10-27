@@ -8,6 +8,7 @@
 
     ```powershell
     ### Windows
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
     .\env-sync.ps1
     ```
 
