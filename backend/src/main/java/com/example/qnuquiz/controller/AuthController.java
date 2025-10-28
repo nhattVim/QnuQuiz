@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.qnuquiz.dto.user.UserCreateDto;
+import com.example.qnuquiz.dto.user.UserRegisterDto;
 import com.example.qnuquiz.dto.user.UserDto;
 import com.example.qnuquiz.dto.user.UserLoginDto;
 import com.example.qnuquiz.security.JwtUtil;
@@ -43,7 +43,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserDto> register(@RequestBody UserCreateDto dto) {
+    public ResponseEntity<UserDto> register(@RequestBody UserRegisterDto dto) {
         return ResponseEntity.ok(userService.register(dto));
     }
 }

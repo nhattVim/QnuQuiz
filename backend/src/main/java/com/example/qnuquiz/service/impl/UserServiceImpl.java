@@ -6,7 +6,7 @@ import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.qnuquiz.dto.user.UserCreateDto;
+import com.example.qnuquiz.dto.user.UserRegisterDto;
 import com.example.qnuquiz.dto.user.UserDto;
 import com.example.qnuquiz.entity.Users;
 import com.example.qnuquiz.mapper.UserMapper;
@@ -24,17 +24,25 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
-    public UserDto register(UserCreateDto dto) {
+    public UserDto register(UserRegisterDto dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new RuntimeException("Username already exists");
         }
 
         Users user = userMapper.toEntity(dto);
         user.setStatus("ACTIVE");
-        user.setRole("USER");
         user.setPasswordHash(passwordEncoder.encode(dto.getPassword()));
         user.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+
+        if (dto.getRole() != null && !dto.getRole().isBlank()) {
+            if (dto.getRole().equalsIgnoreCase("ADMIN")) {
+                throw new RuntimeException("Cannot assign ADMIN role through register API");
+            }
+            user.setRole(dto.getRole().toUpperCase());
+        } else {
+            user.setRole("STUDENT");
+        }
 
         Users saved = userRepository.save(user);
         return userMapper.toDto(saved);

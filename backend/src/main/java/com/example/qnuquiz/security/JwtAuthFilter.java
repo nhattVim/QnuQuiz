@@ -2,6 +2,8 @@ package com.example.qnuquiz.security;
 
 import jakarta.servlet.*;
 import jakarta.servlet.http.*;
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.*;
@@ -11,15 +13,11 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 
 @Component
+@RequiredArgsConstructor
 public class JwtAuthFilter extends OncePerRequestFilter {
 
     private final JwtUtil jwtUtil;
     private final CustomUserDetailsService userDetailsService;
-
-    public JwtAuthFilter(JwtUtil jwtUtil, CustomUserDetailsService uds) {
-        this.jwtUtil = jwtUtil;
-        this.userDetailsService = uds;
-    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
