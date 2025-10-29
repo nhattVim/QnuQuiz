@@ -6,5 +6,4 @@ import com.example.qnuquiz.entity.Questions;
 
 public interface QuestionRepository extends JpaRepository<Questions, Long> {
 
-    
 }
