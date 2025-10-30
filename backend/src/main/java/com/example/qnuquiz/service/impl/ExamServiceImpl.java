@@ -20,7 +20,7 @@ import com.example.qnuquiz.repository.ExamAnswerRepository;
 import com.example.qnuquiz.repository.ExamAttemptRepository;
 import com.example.qnuquiz.repository.ExamQuestionRepository;
 import com.example.qnuquiz.repository.ExamRepository;
-import com.example.qnuquiz.repository.QuestionOptionRepository;
+import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.service.ExamService;
 
@@ -33,7 +33,7 @@ public class ExamServiceImpl implements ExamService {
     private final ExamRepository examRepo;
     private final ExamAttemptRepository attemptRepo;
     private final ExamAnswerRepository answerRepo;
-    private final QuestionOptionRepository optionRepo;
+    private final QuestionOptionsRepository optionRepo;
     private final QuestionRepository questionRepo;
     private final ExamQuestionRepository examQuestionRepo;
 
