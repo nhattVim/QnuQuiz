@@ -9,6 +9,9 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.example.qnuquiz.dto.exam.AnswerResultDto;
+import com.example.qnuquiz.dto.exam.ExamAttemptDto;
+import com.example.qnuquiz.dto.exam.QuestionExamDto;
 import com.example.qnuquiz.entity.ExamAnswers;
 import com.example.qnuquiz.entity.ExamAttempts;
 import com.example.qnuquiz.entity.ExamQuestions;
@@ -16,6 +19,7 @@ import com.example.qnuquiz.entity.Exams;
 import com.example.qnuquiz.entity.QuestionOptions;
 import com.example.qnuquiz.entity.Questions;
 import com.example.qnuquiz.entity.Students;
+import com.example.qnuquiz.mapper.ExamMapper;
 import com.example.qnuquiz.repository.ExamAnswerRepository;
 import com.example.qnuquiz.repository.ExamAttemptRepository;
 import com.example.qnuquiz.repository.ExamQuestionRepository;
@@ -25,6 +29,7 @@ import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.service.ExamService;
 
 import lombok.AllArgsConstructor;
+
 
 @Service
 @AllArgsConstructor
@@ -36,24 +41,13 @@ public class ExamServiceImpl implements ExamService {
     private final QuestionOptionsRepository optionRepo;
     private final QuestionRepository questionRepo;
     private final ExamQuestionRepository examQuestionRepo;
+    
+    private final ExamMapper examMapper;
 
 
-
-    @Override
-    public ExamAttempts startExam(Long examId, Long studentId) {
-        ExamAttempts attempt = new ExamAttempts();
-        attempt.setExams(examRepo.findById(examId).orElseThrow());
-        Students student = new Students();
-        student.setId(studentId);
-        attempt.setStudents(student);
-        attempt.setStartTime(new Timestamp(System.currentTimeMillis()));
-        attempt.setSubmitted(false);
-        
-        return attemptRepo.save(attempt);
-    }
 	
     @Override
-    public ExamAnswers submitAnswer(Long attemptId, Long questionId, Long optionId) {
+    public void submitAnswer(Long attemptId, Long questionId, Long optionId) {
         ExamAttempts attempt = attemptRepo.findById(attemptId).orElseThrow();
         QuestionOptions option = optionRepo.findById(optionId).orElseThrow();
 
@@ -62,11 +56,10 @@ public class ExamServiceImpl implements ExamService {
         answer.setQuestions(option.getQuestions());
         answer.setQuestionOptions(option);
         answer.setIsCorrect(option.isIsCorrect());
-
-        return answerRepo.save(answer);
+        answerRepo.save(answer);
     }
     @Override
-    public ExamAnswers submitEssay(Long attemptId, Long questionId, String answerText) {
+    public void submitEssay(Long attemptId, Long questionId, String answerText) {
         ExamAttempts attempt = attemptRepo.findById(attemptId).orElseThrow();
         Questions question = questionRepo.findById(questionId).orElseThrow();
 
@@ -76,7 +69,7 @@ public class ExamServiceImpl implements ExamService {
         answer.setAnswerText(answerText);
         answer.setIsCorrect(null); // chưa chấm
 
-        return answerRepo.save(answer);
+        answerRepo.save(answer);
     }
 
     @Override
@@ -96,19 +89,61 @@ public class ExamServiceImpl implements ExamService {
         return attemptRepo.save(attempt);
     }
 
-    public List<Questions> getQuestionsForExam(Long examId) {
+    @Override
+    public List<QuestionExamDto> getQuestionsForExam(Long examId, Long attemptId) {
         Exams exam = examRepo.findById(examId).orElseThrow();
         List<ExamQuestions> eqs = examQuestionRepo.findByExams_IdOrderByOrderingAsc(examId);
-        List<Questions> questions = eqs.stream()
-                                       .map(ExamQuestions::getQuestions)
-                                       .collect(Collectors.toList());
+        List<ExamAnswers> answers = answerRepo.findByExamAttempts_Id(attemptId);
 
-        if (exam.isIsRandom()) {
-            Collections.shuffle(questions);
-        }
+        List<QuestionExamDto> dtos = eqs.stream().map(eq -> {
+            Questions q = eq.getQuestions();
+            List<QuestionOptions> options = optionRepo.findByQuestions_Id(q.getId());
+            ExamAnswers ans = answers.stream()
+            		.filter(a -> a.getQuestions().getId() == q.getId())
+                    .findFirst().orElse(null);
 
-        return questions;
+            String studentAnswer = null;
+            if (ans != null) {
+            	studentAnswer = (ans.getQuestionOptions() != null)
+            	        ? String.valueOf(ans.getQuestionOptions().getId())
+            	        : ans.getAnswerText();
+
+            }
+            return examMapper.toQuestionDto(q, options, studentAnswer);
+        }).collect(Collectors.toList());
+
+        if (exam.isIsRandom()) Collections.shuffle(dtos);
+        return dtos;
     }
 
-    
+    @Override
+    public List<AnswerResultDto> getResultForAttempt(Long attemptId) {
+        ExamAttempts attempt = attemptRepo.findById(attemptId).orElseThrow();
+        List<ExamQuestions> eqs = examQuestionRepo.findByExams_IdOrderByOrderingAsc(attempt.getExams().getId());
+        List<ExamAnswers> answers = answerRepo.findByExamAttempts_Id(attemptId);
+
+        return eqs.stream().map(eq -> {
+            Questions q = eq.getQuestions();
+            ExamAnswers ans = answers.stream()
+            		.filter(a -> a.getQuestions().getId() == q.getId())
+                    .findFirst().orElse(null);
+            List<QuestionOptions> options = optionRepo.findByQuestions_Id(q.getId());
+            return examMapper.toAnswerResultDto(q, ans, options, eq.getPoints());
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    public ExamAttemptDto startExam(Long examId, Long studentId) {
+        ExamAttempts attempt = new ExamAttempts();
+        attempt.setExams(examRepo.findById(examId).orElseThrow());
+        Students student = new Students();
+        student.setId(studentId);
+        attempt.setStudents(student);
+        attempt.setStartTime(new Timestamp(System.currentTimeMillis()));
+        attempt.setSubmitted(false);
+        
+        return examMapper.toDto(attemptRepo.save(attempt));
+    }
+
+
 }
