@@ -28,11 +28,6 @@ class MyApp extends ConsumerWidget {
           debugShowCheckedModeBanner: false,
           title: 'Flutter Riverpod App',
           theme: ThemeData(primarySwatch: Colors.blue),
-          routes: {
-            '/': (context) => const HomeScreen(),
-            '/login': (context) => const LoginScreen(),
-            '/splash': (context) => const SplashScreen(),
-          },
           home: startupAsync.when(
             loading: () => const SplashScreen(),
             error: (_, __) => const SplashScreen(),
