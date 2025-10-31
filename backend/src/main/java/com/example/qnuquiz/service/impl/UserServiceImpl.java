@@ -3,6 +3,7 @@ package com.example.qnuquiz.service.impl;
 import java.sql.Timestamp;
 import java.util.List;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -49,6 +50,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Cacheable("allUsers")
     public List<UserDto> getAllUsers() {
         return userMapper.toDtoList(userRepository.findAll());
     }
