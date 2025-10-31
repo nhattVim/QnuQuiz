@@ -4,8 +4,12 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 
+import jakarta.persistence.PersistenceException;
+import lombok.extern.slf4j.Slf4j;
+
 import java.util.*;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -21,5 +25,13 @@ public class GlobalExceptionHandler {
         Map<String, Object> body = new LinkedHashMap<>();
         body.put("message", "Internal server error");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
+
+    @ExceptionHandler(PersistenceException.class)
+    public ResponseEntity<?> handleDbError(Exception ex) {
+        log.error("Database connection failed", ex);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "error", "Database connection failed",
+                "message", ex.getMessage()));
     }
 }
