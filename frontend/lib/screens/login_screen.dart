@@ -16,12 +16,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _studentIdController = TextEditingController();
   final _passwordController = TextEditingController();
+  final _studentIdFocus = FocusNode();
+  final _passwordFocus = FocusNode();
   bool _rememberMe = false;
 
   @override
   void dispose() {
     _studentIdController.dispose();
     _passwordController.dispose();
+    _studentIdFocus.dispose();
+    _passwordFocus.dispose();
     super.dispose();
   }
 
@@ -37,7 +41,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
 
-    // Tự động chuyển hướng khi đã đăng nhập
+    // Auto redirect after login
     if (authState == AuthState.authenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
@@ -49,7 +53,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       });
     }
 
-    // Hiển thị lỗi
+    // Display error
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next == AuthState.error && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -64,143 +68,139 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: authState == AuthState.loading
-            ? const Center(child: CircularProgressIndicator())
-            : Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  padding: EdgeInsets.symmetric(
-                    horizontal: 36.w,
-                    vertical: 24.h,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Logo
-                      Center(
-                        child: Image.asset(
-                          'assets/images/login.png',
-                          width: 280.w,
-                          height: 280.h,
-                          fit: BoxFit.contain,
-                        ),
-                      ),
-                      SizedBox(height: 40.h),
-
-                      // Title
-                      Text(
-                        'Đăng nhập',
-                        style: TextStyle(
-                          fontSize: 32.sp,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.black87,
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-
-                      // Student ID
-                      TextFormField(
-                        controller: _studentIdController,
-                        validator: (v) =>
-                            v!.isEmpty ? 'Vui lòng nhập mã sinh viên' : null,
-                        decoration: InputDecoration(
-                          labelText: 'Mã số sinh viên',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          prefixIcon: Icon(Icons.person_outline, size: 20.sp),
-                        ),
-                      ),
-                      SizedBox(height: 20.h),
-
-                      // Password
-                      TextFormField(
-                        controller: _passwordController,
-                        obscureText: true,
-                        validator: (v) =>
-                            v!.length < 6 ? 'Mật khẩu ít nhất 6 ký tự' : null,
-                        decoration: InputDecoration(
-                          labelText: 'Mật khẩu',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12.r),
-                          ),
-                          prefixIcon: Icon(Icons.lock_outline, size: 20.sp),
-                        ),
-                      ),
-                      SizedBox(height: 16.h),
-
-                      // Remember Me + Forgot Password
-                      Row(
-                        children: [
-                          _buildRememberMe(),
-                          const Spacer(),
-                          LinkText(
-                            text: 'Quên mật khẩu?',
-                            onPressed: () {
-                              // TODO: Navigate
-                            },
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16.h),
-
-                      // Login Button
-                      SizedBox(
-                        width: double.infinity,
-                        height: 56.h,
-                        child: ElevatedButton(
-                          onPressed: authState == AuthState.loading
-                              ? null
-                              : _handleLogin,
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12.r),
-                            ),
-                          ),
-                          child: authState == AuthState.loading
-                              ? SizedBox(
-                                  width: 20.w,
-                                  height: 20.h,
-                                  child: const CircularProgressIndicator(
-                                    color: Colors.white,
-                                    strokeWidth: 2,
-                                  ),
-                                )
-                              : Text(
-                                  'Đăng nhập',
-                                  style: TextStyle(
-                                    fontSize: 18.sp,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                        ),
-                      ),
-                      SizedBox(height: 24.h),
-
-                      // Register
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            'Chưa có tài khoản? ',
-                            style: TextStyle(
-                              fontSize: 14.sp,
-                              color: Colors.grey,
-                            ),
-                          ),
-                          LinkText(
-                            text: 'Đăng ký',
-                            onPressed: () {
-                              // TODO: Navigate
-                            },
-                          ),
-                        ],
-                      ),
-                    ],
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            padding: EdgeInsets.symmetric(horizontal: 36.w, vertical: 24.h),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Logo
+                Center(
+                  child: Image.asset(
+                    'assets/images/login.png',
+                    width: 280.w,
+                    height: 280.h,
+                    fit: BoxFit.contain,
                   ),
                 ),
-              ),
+                SizedBox(height: 40.h),
+
+                // Title
+                Text(
+                  'Đăng nhập',
+                  style: TextStyle(
+                    fontSize: 32.sp,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black87,
+                  ),
+                ),
+                SizedBox(height: 16.h),
+
+                // Student ID
+                TextFormField(
+                  controller: _studentIdController,
+                  focusNode: _studentIdFocus,
+                  textInputAction: TextInputAction.next,
+                  validator: (v) =>
+                      v!.isEmpty ? 'Vui lòng nhập tên đăng nhập' : null,
+                  decoration: InputDecoration(
+                    labelText: 'Tên đăng nhập',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    prefixIcon: Icon(Icons.person_outline, size: 20.sp),
+                  ),
+                ),
+                SizedBox(height: 20.h),
+
+                // Password
+                TextFormField(
+                  controller: _passwordController,
+                  focusNode: _passwordFocus,
+                  textInputAction: TextInputAction.done,
+                  obscureText: true,
+                  validator: (v) =>
+                      v!.length < 6 ? 'Mật khẩu ít nhất 6 ký tự' : null,
+                  decoration: InputDecoration(
+                    labelText: 'Mật khẩu',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.r),
+                    ),
+                    prefixIcon: Icon(Icons.lock_outline, size: 20.sp),
+                  ),
+                ),
+                SizedBox(height: 16.h),
+
+                // Remember Me + Forgot Password
+                Row(
+                  children: [
+                    _buildRememberMe(),
+                    const Spacer(),
+                    LinkText(
+                      text: 'Quên mật khẩu?',
+                      onPressed: () {
+                        // TODO: Navigate
+                      },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16.h),
+
+                // Login Button
+                SizedBox(
+                  width: double.infinity,
+                  height: 56.h,
+                  child: ElevatedButton(
+                    onPressed: authState == AuthState.loading
+                        ? null
+                        : _handleLogin,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                      ),
+                    ),
+                    child: authState == AuthState.loading
+                        ? SizedBox(
+                            width: 20.w,
+                            height: 20.h,
+                            child: const CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Text(
+                            'Đăng nhập',
+                            style: TextStyle(
+                              fontSize: 18.sp,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ),
+                SizedBox(height: 24.h),
+
+                // Register
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Chưa có tài khoản? ',
+                      style: TextStyle(fontSize: 14.sp, color: Colors.grey),
+                    ),
+                    LinkText(
+                      text: 'Đăng ký',
+                      onPressed: () {
+                        // TODO: Navigate
+                      },
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

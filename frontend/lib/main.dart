@@ -26,7 +26,7 @@ class MyApp extends ConsumerWidget {
       builder: (context, child) {
         return MaterialApp(
           debugShowCheckedModeBanner: false,
-          title: 'Flutter Riverpod App',
+          title: 'QnuQuiz',
           theme: ThemeData(primarySwatch: Colors.blue),
           home: startupAsync.when(
             loading: () => const SplashScreen(),
