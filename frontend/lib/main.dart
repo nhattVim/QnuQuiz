@@ -1,20 +1,22 @@
+import 'dart:io' show Platform;
+
 import 'package:device_preview/device_preview.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
-import 'screens/splash_screen.dart';
+import 'providers/app_startup_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
-import 'providers/app_startup_provider.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   
   runApp(
     DevicePreview(
-      enabled: !kReleaseMode,
+      enabled: !kReleaseMode && (kIsWeb || Platform.isWindows || Platform.isLinux || Platform.isMacOS),
       builder: (constext) => const ProviderScope(child: MyApp()),
     ),
   );
