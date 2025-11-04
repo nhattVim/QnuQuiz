@@ -1,3 +1,5 @@
+import 'package:device_preview/device_preview.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -9,7 +11,13 @@ import 'providers/app_startup_provider.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  runApp(const ProviderScope(child: MyApp()));
+  
+  runApp(
+    DevicePreview(
+      enabled: !kReleaseMode,
+      builder: (constext) => const ProviderScope(child: MyApp()),
+    ),
+  );
 }
 
 class MyApp extends ConsumerWidget {
@@ -23,14 +31,19 @@ class MyApp extends ConsumerWidget {
       designSize: const Size(375, 812),
       minTextAdapt: true,
       splitScreenMode: true,
+      useInheritedMediaQuery: true,
       builder: (context, child) {
+        ScreenUtil.configure(data: MediaQuery.of(context));
         return MaterialApp(
+          builder: (context, child) {
+            return DevicePreview.appBuilder(context, child!);
+          },
           debugShowCheckedModeBanner: false,
           title: 'QnuQuiz',
           theme: ThemeData(primarySwatch: Colors.blue),
           home: startupAsync.when(
             loading: () => const SplashScreen(),
-            error: (_, __) => const SplashScreen(),
+            error: (_, _) => const SplashScreen(),
             data: (result) {
               switch (result.state) {
                 case AppStartupState.serverDown:
