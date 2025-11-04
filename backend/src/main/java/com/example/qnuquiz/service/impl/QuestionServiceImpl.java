@@ -2,6 +2,7 @@ package com.example.qnuquiz.service.impl;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.UUID;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -11,10 +12,14 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.qnuquiz.entity.Exams;
 import com.example.qnuquiz.entity.QuestionOptions;
 import com.example.qnuquiz.entity.Questions;
+import com.example.qnuquiz.entity.Users;
+import com.example.qnuquiz.repository.ExamRepository;
 import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
+import com.example.qnuquiz.repository.UserRepository;
 import com.example.qnuquiz.service.QuestionService;
 
 import lombok.RequiredArgsConstructor;
@@ -25,10 +30,22 @@ public class QuestionServiceImpl implements QuestionService {
 
     private final QuestionRepository questionsRepository;
     private final QuestionOptionsRepository questionOptionsRepository;
+    private final UserRepository userRepository;
+    private final ExamRepository examRepository;
 
     @Override
-    public void importQuestionsFromExcel(MultipartFile file) throws IOException {
+    public void importQuestionsFromExcel(MultipartFile file, UUID userId, Long examId) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
+
+            Users user = userRepository.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+            Exams exam = examRepository.findById(examId)
+                    .orElseThrow(() -> new RuntimeException("Exam not found"));
+
+            if (!exam.getUsers().getId().equals(userId)) {
+                throw new RuntimeException("You are not allowed to add questions to this exam");
+            }
+
             Sheet sheet = workbook.getSheetAt(0);
             int rowCount = 0;
 
@@ -44,7 +61,10 @@ public class QuestionServiceImpl implements QuestionService {
                 int correct = (int) row.getCell(5).getNumericCellValue();
 
                 Questions question = new Questions();
+                question.setExams(exam);
+                question.setUsers(user);
                 question.setContent(content);
+                question.setOrdering(rowCount - 1);
                 question.setType("MULTIPLE_CHOICE");
                 question.setCreatedAt(new Timestamp(System.currentTimeMillis()));
                 question.setUpdatedAt(new Timestamp(System.currentTimeMillis()));

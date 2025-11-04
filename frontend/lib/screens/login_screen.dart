@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter_svg/svg.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/link_text.dart';
 import 'home_screen.dart';
@@ -77,10 +78,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               children: [
                 // Logo
                 Center(
-                  child: Image.asset(
-                    'assets/images/login.png',
-                    width: 280.w,
-                    height: 280.h,
+                  child: SvgPicture.asset(
+                    'assets/images/login.svg',
                     fit: BoxFit.contain,
                   ),
                 ),

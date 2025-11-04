@@ -1,5 +1,8 @@
 package com.example.qnuquiz.entity;
-// Generated Oct 12, 2025, 7:49:47 PM by Hibernate Tools 7.1.3.Final
+
+// default package
+
+// Generated Nov 4, 2025, 9:33:18 PM by Hibernate Tools 7.1.3.Final
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -13,6 +16,7 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
@@ -26,41 +30,45 @@ public class Questions implements java.io.Serializable {
 
     private long id;
     private QuestionCategories questionCategories;
+    private Exams exams;
     private Users users;
     private String content;
     private String type;
+    private BigDecimal points;
+    private Integer ordering;
     private Timestamp createdAt;
     private Timestamp updatedAt;
     private Set<ExamAnswers> examAnswerses = new HashSet<ExamAnswers>(0);
     private Set<QuestionOptions> questionOptionses = new HashSet<QuestionOptions>(0);
-    private Set<ExamQuestions> examQuestionses = new HashSet<ExamQuestions>(0);
     private Set<Feedbacks> feedbackses = new HashSet<Feedbacks>(0);
 
     public Questions() {
     }
 
-    public Questions(long id, String content, String type, Timestamp createdAt,
-            Timestamp updatedAt) {
+    public Questions(long id, Exams exams, String content, String type, Timestamp createdAt, Timestamp updatedAt) {
         this.id = id;
+        this.exams = exams;
         this.content = content;
         this.type = type;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
-    public Questions(long id, QuestionCategories questionCategories, Users users, String content, String type,
-            Timestamp createdAt, Timestamp updatedAt, Set<ExamAnswers> examAnswerses,
-            Set<QuestionOptions> questionOptionses, Set<ExamQuestions> examQuestionses, Set<Feedbacks> feedbackses) {
+    public Questions(long id, QuestionCategories questionCategories, Exams exams, Users users, String content,
+            String type, BigDecimal points, Integer ordering, Timestamp createdAt, Timestamp updatedAt,
+            Set<ExamAnswers> examAnswerses, Set<QuestionOptions> questionOptionses, Set<Feedbacks> feedbackses) {
         this.id = id;
         this.questionCategories = questionCategories;
+        this.exams = exams;
         this.users = users;
         this.content = content;
         this.type = type;
+        this.points = points;
+        this.ordering = ordering;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.examAnswerses = examAnswerses;
         this.questionOptionses = questionOptionses;
-        this.examQuestionses = examQuestionses;
         this.feedbackses = feedbackses;
     }
 
@@ -83,6 +91,16 @@ public class Questions implements java.io.Serializable {
 
     public void setQuestionCategories(QuestionCategories questionCategories) {
         this.questionCategories = questionCategories;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "exam_id", nullable = false)
+    public Exams getExams() {
+        return this.exams;
+    }
+
+    public void setExams(Exams exams) {
+        this.exams = exams;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -111,6 +129,24 @@ public class Questions implements java.io.Serializable {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    @Column(name = "points", precision = 6, scale = 2)
+    public BigDecimal getPoints() {
+        return this.points;
+    }
+
+    public void setPoints(BigDecimal points) {
+        this.points = points;
+    }
+
+    @Column(name = "ordering")
+    public Integer getOrdering() {
+        return this.ordering;
+    }
+
+    public void setOrdering(Integer ordering) {
+        this.ordering = ordering;
     }
 
     @Temporal(TemporalType.TIMESTAMP)
@@ -149,15 +185,6 @@ public class Questions implements java.io.Serializable {
 
     public void setQuestionOptionses(Set<QuestionOptions> questionOptionses) {
         this.questionOptionses = questionOptionses;
-    }
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "questions")
-    public Set<ExamQuestions> getExamQuestionses() {
-        return this.examQuestionses;
-    }
-
-    public void setExamQuestionses(Set<ExamQuestions> examQuestionses) {
-        this.examQuestionses = examQuestionses;
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "questions")

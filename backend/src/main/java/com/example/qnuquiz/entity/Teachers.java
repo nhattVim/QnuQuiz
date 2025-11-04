@@ -1,5 +1,8 @@
 package com.example.qnuquiz.entity;
-// Generated Oct 12, 2025, 7:49:47 PM by Hibernate Tools 7.1.3.Final
+
+// default package
+
+// Generated Nov 4, 2025, 9:33:18 PM by Hibernate Tools 7.1.3.Final
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -20,7 +23,8 @@ import java.sql.Timestamp;
  */
 @Entity
 @Table(name = "teachers", schema = "public", catalog = "defaultdb", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "teacher_code"), @UniqueConstraint(columnNames = "user_id") })
+        @UniqueConstraint(columnNames = "teacher_code"),
+        @UniqueConstraint(columnNames = "user_id") })
 public class Teachers implements java.io.Serializable {
 
     private long id;

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.QuestionService;
 
 import lombok.RequiredArgsConstructor;
@@ -19,9 +20,11 @@ public class QuestionController {
     private final QuestionService questionService;
 
     @PostMapping("/import")
-    public ResponseEntity<String> importQuestions(@RequestParam("file") MultipartFile file) {
+    public ResponseEntity<String> importQuestions(
+            @RequestParam("file") MultipartFile file,
+            @RequestParam("examId") Long examId) {
         try {
-            questionService.importQuestionsFromExcel(file);
+            questionService.importQuestionsFromExcel(file, SecurityUtils.getCurrentUserId(), examId);
             return ResponseEntity.ok("Data import successfully!");
         } catch (Exception e) {
             e.printStackTrace();

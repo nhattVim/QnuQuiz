@@ -1,5 +1,8 @@
 package com.example.qnuquiz.entity;
-// Generated Oct 12, 2025, 7:49:47 PM by Hibernate Tools 7.1.3.Final
+
+// default package
+
+// Generated Nov 4, 2025, 9:33:18 PM by Hibernate Tools 7.1.3.Final
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -30,43 +33,43 @@ public class Exams implements java.io.Serializable {
     private String description;
     private Timestamp startTime;
     private Timestamp endTime;
-    private boolean isRandom;
+    private boolean random;
     private Integer durationMinutes;
     private String status;
     private Timestamp createdAt;
     private Timestamp updatedAt;
+    private Set<Questions> questionses = new HashSet<Questions>(0);
     private Set<ExamAttempts> examAttemptses = new HashSet<ExamAttempts>(0);
-    private Set<ExamQuestions> examQuestionses = new HashSet<ExamQuestions>(0);
     private Set<Leaderboard> leaderboards = new HashSet<Leaderboard>(0);
 
     public Exams() {
     }
 
-    public Exams(long id, String title, boolean isRandom, String status, Timestamp createdAt, Timestamp updatedAt) {
+    public Exams(long id, String title, boolean random, String status, Timestamp createdAt, Timestamp updatedAt) {
         this.id = id;
         this.title = title;
-        this.isRandom = isRandom;
+        this.random = random;
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
     }
 
     public Exams(long id, Users users, String title, String description, Timestamp startTime, Timestamp endTime,
-            boolean isRandom, Integer durationMinutes, String status, Timestamp createdAt, Timestamp updatedAt,
-            Set<ExamAttempts> examAttemptses, Set<ExamQuestions> examQuestionses, Set<Leaderboard> leaderboards) {
+            boolean random, Integer durationMinutes, String status, Timestamp createdAt, Timestamp updatedAt,
+            Set<Questions> questionses, Set<ExamAttempts> examAttemptses, Set<Leaderboard> leaderboards) {
         this.id = id;
         this.users = users;
         this.title = title;
         this.description = description;
         this.startTime = startTime;
         this.endTime = endTime;
-        this.isRandom = isRandom;
+        this.random = random;
         this.durationMinutes = durationMinutes;
         this.status = status;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.questionses = questionses;
         this.examAttemptses = examAttemptses;
-        this.examQuestionses = examQuestionses;
         this.leaderboards = leaderboards;
     }
 
@@ -129,13 +132,13 @@ public class Exams implements java.io.Serializable {
         this.endTime = endTime;
     }
 
-    @Column(name = "is_random", nullable = false)
-    public boolean isIsRandom() {
-        return this.isRandom;
+    @Column(name = "random", nullable = false)
+    public boolean isRandom() {
+        return this.random;
     }
 
-    public void setIsRandom(boolean isRandom) {
-        this.isRandom = isRandom;
+    public void setRandom(boolean random) {
+        this.random = random;
     }
 
     @Column(name = "duration_minutes")
@@ -177,21 +180,21 @@ public class Exams implements java.io.Serializable {
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "exams")
+    public Set<Questions> getQuestionses() {
+        return this.questionses;
+    }
+
+    public void setQuestionses(Set<Questions> questionses) {
+        this.questionses = questionses;
+    }
+
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "exams")
     public Set<ExamAttempts> getExamAttemptses() {
         return this.examAttemptses;
     }
 
     public void setExamAttemptses(Set<ExamAttempts> examAttemptses) {
         this.examAttemptses = examAttemptses;
-    }
-
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "exams")
-    public Set<ExamQuestions> getExamQuestionses() {
-        return this.examQuestionses;
-    }
-
-    public void setExamQuestionses(Set<ExamQuestions> examQuestionses) {
-        this.examQuestionses = examQuestionses;
     }
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "exams")

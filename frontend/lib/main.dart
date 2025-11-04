@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import 'constants/theme_constants.dart';
 import 'providers/app_startup_provider.dart';
 import 'screens/home_screen.dart';
 import 'screens/login_screen.dart';
@@ -13,10 +14,15 @@ import 'screens/splash_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   runApp(
     DevicePreview(
-      enabled: !kReleaseMode && (kIsWeb || Platform.isWindows || Platform.isLinux || Platform.isMacOS),
+      enabled:
+          !kReleaseMode &&
+          (kIsWeb ||
+              Platform.isWindows ||
+              Platform.isLinux ||
+              Platform.isMacOS),
       builder: (constext) => const ProviderScope(child: MyApp()),
     ),
   );
@@ -42,7 +48,10 @@ class MyApp extends ConsumerWidget {
           },
           debugShowCheckedModeBanner: false,
           title: 'QnuQuiz',
-          theme: ThemeData(primarySwatch: Colors.blue),
+          theme: ThemeData(
+            primaryColor: ThemeConstants.kColorPrimary,
+            primarySwatch: ThemeConstants.kColorPrimary,
+          ),
           home: startupAsync.when(
             loading: () => const SplashScreen(),
             error: (_, _) => const SplashScreen(),
