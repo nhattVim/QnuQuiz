@@ -1,11 +1,16 @@
 import 'dart:convert';
 
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:frontend/models/user_model.dart';
+
+import '../models/user_model.dart';
 
 const _storage = FlutterSecureStorage();
 
 class UserService {
+  Future<void> clearUser() async {
+    await _storage.delete(key: 'user');
+  }
+
   Future<UserModel?> getUser() async {
     final data = await _storage.read(key: 'user');
     if (data == null) return null;

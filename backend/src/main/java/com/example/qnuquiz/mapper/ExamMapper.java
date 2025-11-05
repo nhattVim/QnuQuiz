@@ -8,7 +8,7 @@ import org.mapstruct.Mapping;
 
 import com.example.qnuquiz.dto.exam.AnswerResultDto;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
-import com.example.qnuquiz.dto.exam.ExamCreateDto;
+import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.QuestionExamDto;
 import com.example.qnuquiz.entity.ExamAnswers;
 import com.example.qnuquiz.entity.ExamAttempts;
@@ -28,8 +28,9 @@ public interface ExamMapper {
 	AnswerResultDto toAnswerResultDto(Questions q, ExamAnswers answer, List<QuestionOptions> options,
 			BigDecimal points);
 
-	@Mapping(source = "users.id", target = "userId")
-	ExamCreateDto toCreateDto(Exams entity);
+	ExamDto toDto(Exams entity);
+
+	List<ExamDto> toListDto(List<Exams> entity);
 
 	@Mapping(target = "createdAt", ignore = true)
 	@Mapping(target = "examAttemptses", ignore = true)
@@ -37,5 +38,6 @@ public interface ExamMapper {
 	@Mapping(target = "updatedAt", ignore = true)
 	@Mapping(target = "users", ignore = true)
 	@Mapping(target = "questionses", ignore = true)
-	Exams toEntity(ExamCreateDto dto);
+	@Mapping(target = "status", ignore = true)
+	Exams toEntity(ExamDto dto);
 }

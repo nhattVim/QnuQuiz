@@ -1,52 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/models/user_model.dart';
-import 'package:frontend/services/user_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/user_provider.dart';
 
-class ProfilePage extends StatelessWidget {
+class ProfilePage extends ConsumerWidget {
   const ProfilePage({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = ref.watch(userProvider);
+
     return SizedBox.expand(
       child: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: () => Future.delayed(const Duration(seconds: 1)),
-          child: FutureBuilder<UserModel?>(
-            future: _loadUser(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError || snapshot.data == null) {
-                return Center(
-                  child: SingleChildScrollView(
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(Icons.error, size: 60, color: Colors.red),
-                        const SizedBox(height: 16),
-                        Text(
-                          snapshot.hasError
-                              ? 'Lỗi: ${snapshot.error}'
-                              : 'Không tìm thấy người dùng',
-                          textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.red),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton(
-                          onPressed: () =>
-                              (context as Element).markNeedsBuild(),
-                          child: const Text('Thử lại'),
-                        ),
-                      ],
-                    ),
+        child: user == null
+            ? const Center(
+                child: SingleChildScrollView(
+                  physics: AlwaysScrollableScrollPhysics(),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.error, size: 60, color: Colors.red),
+                      SizedBox(height: 16),
+                      Text('Không tìm thấy người dùng'),
+                      SizedBox(height: 16),
+                    ],
                   ),
-                );
-              }
-
-              final user = snapshot.data!;
-              return SingleChildScrollView(
+                ),
+              )
+            : SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
                 padding: const EdgeInsets.all(20),
                 child: Column(
@@ -68,10 +48,7 @@ class ProfilePage extends StatelessWidget {
                     _buildInfoCard('Vai trò', user.role, Icons.badge),
                   ],
                 ),
-              );
-            },
-          ),
-        ),
+              ),
       ),
     );
   }
@@ -85,13 +62,5 @@ class ProfilePage extends StatelessWidget {
         subtitle: Text(value, style: const TextStyle(fontSize: 16)),
       ),
     );
-  }
-
-  Future<UserModel?> _loadUser() async {
-    try {
-      return await UserService().getUser();
-    } catch (e) {
-      return null;
-    }
   }
 }

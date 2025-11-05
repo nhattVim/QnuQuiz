@@ -1,12 +1,17 @@
 package com.example.qnuquiz.service;
 
+import java.util.List;
+import java.util.UUID;
+
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
-import com.example.qnuquiz.dto.exam.ExamCreateDto;
+import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.entity.ExamAttempts;
 
 public interface ExamService {
 
-	ExamCreateDto createExam(ExamCreateDto dto);
+	ExamDto createExam(ExamDto dto, UUID userId);
+
+	List<ExamDto> getExamsByUserId(UUID userId);
 
 	ExamAttemptDto startExam(Long examId, Long studentId);
 

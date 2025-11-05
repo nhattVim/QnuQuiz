@@ -9,7 +9,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
-import com.example.qnuquiz.dto.exam.ExamCreateDto;
+import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.entity.ExamAnswers;
 import com.example.qnuquiz.entity.ExamAttempts;
 import com.example.qnuquiz.entity.Exams;
@@ -146,17 +146,23 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public ExamCreateDto createExam(ExamCreateDto dto) {
+    public ExamDto createExam(ExamDto dto, UUID userId) {
         Exams exam = examMapper.toEntity(dto);
 
-        Users user = userRepository.findById(UUID.fromString(dto.getUserId()))
+        Users user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         exam.setUsers(user);
+        exam.setStatus("ACTIVE");
         exam.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         exam.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
         Exams saved = examRepository.save(exam);
-        return examMapper.toCreateDto(saved);
+        return examMapper.toDto(saved);
+    }
+
+    @Override
+    public List<ExamDto> getExamsByUserId(UUID userId) {
+        return examMapper.toListDto(examRepository.findByUsers_Id(userId));
     }
 }
