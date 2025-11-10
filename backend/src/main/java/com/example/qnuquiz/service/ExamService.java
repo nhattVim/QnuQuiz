@@ -9,9 +9,11 @@ import com.example.qnuquiz.entity.ExamAttempts;
 
 public interface ExamService {
 
+	List<ExamDto> getExamsByUserId(UUID userId, String sort);
+
 	ExamDto createExam(ExamDto dto, UUID userId);
 
-	List<ExamDto> getExamsByUserId(UUID userId);
+	ExamDto updateExam(ExamDto dto, UUID userId);
 
 	ExamAttemptDto startExam(Long examId, Long studentId);
 

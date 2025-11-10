@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @CacheEvict(value = "allUsers", allEntries = true)
     public UserDto register(UserRegisterDto dto) {
         if (userRepository.existsByUsername(dto.getUsername())) {
             throw new RuntimeException("Username already exists");

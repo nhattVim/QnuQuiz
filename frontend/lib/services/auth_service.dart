@@ -5,10 +5,9 @@ import 'package:logger/web.dart';
 import '../constants/api_constants.dart';
 import '../models/user_model.dart';
 
-const _storage = FlutterSecureStorage();
-final _log = Logger();
-
 class AuthService {
+  static const _storage = FlutterSecureStorage();
+  final _log = Logger();
   Future<String?> getToken() async => await _storage.read(key: 'auth_token');
 
   Future<bool> isLoggedIn() async {

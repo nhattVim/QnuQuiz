@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/pages/exam_page.dart';
+import 'package:frontend/pages/my_exam_page.dart';
+
 import '../models/nav_item.dart';
 import '../pages/dashboard_page.dart';
 import '../pages/faq_page.dart';
@@ -15,15 +16,9 @@ const dashboardItem = NavItem(
 );
 
 const examItem = NavItem(
-  page: ExamPage(),
+  page: MyExamPage(),
   icon: Icons.library_books_sharp,
   label: "Exam",
-);
-
-const profileItem = NavItem(
-  page: ProfilePage(),
-  icon: Icons.person_rounded,
-  label: "Profile",
 );
 
 const faqItem = NavItem(
@@ -38,9 +33,15 @@ const leaderboardItem = NavItem(
   label: "BXH",
 );
 
+const profileItem = NavItem(
+  page: ProfilePage(),
+  icon: Icons.person_rounded,
+  label: "Profile",
+);
+
+const adminNav = [examItem, dashboardItem, profileItem];
 const studentNav = [dashboardItem, leaderboardItem, faqItem, profileItem];
 const teacherNav = [examItem, dashboardItem, leaderboardItem, profileItem];
-const adminNav = [examItem, dashboardItem, profileItem];
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});

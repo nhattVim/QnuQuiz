@@ -9,8 +9,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
@@ -30,14 +32,21 @@ public class ExamController {
 
     @GetMapping("/user")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ResponseEntity<List<ExamDto>> getExamsByUserId() {
-        return ResponseEntity.ok(examService.getExamsByUserId(SecurityUtils.getCurrentUserId()));
+    public ResponseEntity<List<ExamDto>> getExamsByUserId(
+            @RequestParam(value = "sort", required = false, defaultValue = "asc") String sort) {
+        return ResponseEntity.ok(
+                examService.getExamsByUserId(SecurityUtils.getCurrentUserId(), sort));
     }
 
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<ExamDto> createExam(@RequestBody ExamDto dto) {
         return ResponseEntity.ok(examService.createExam(dto, SecurityUtils.getCurrentUserId()));
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<ExamDto> updateExam(@RequestBody ExamDto dto) {
+        return ResponseEntity.ok(examService.updateExam(dto, SecurityUtils.getCurrentUserId()));
     }
 
     @PostMapping("/{examId}/start/{studentId}")

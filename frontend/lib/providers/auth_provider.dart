@@ -10,18 +10,19 @@ final authProvider = StateNotifierProvider<AuthNotifier, AuthState>(
 
 class AuthNotifier extends StateNotifier<AuthState> {
   final Ref ref;
+  final _authService = AuthService();
   AuthNotifier(this.ref) : super(AuthState.initial);
 
   Future<void> login(String username, String password) async {
     state = AuthState.loading;
 
-    final result = await AuthService().login(
+    final result = await _authService.login(
       username: username,
       password: password,
     );
 
     if (result['success'] == true) {
-      await AuthService().saveToken(result['token']);
+      await _authService.saveToken(result['token']);
       final user = result['user'];
       ref.read(userProvider.notifier).setUser(user);
       state = AuthState.authenticated;
@@ -31,7 +32,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }
 
   Future<void> logout() async {
-    await AuthService().logout();
+    await _authService.logout();
     ref.read(userProvider.notifier).clearUser();
     state = AuthState.unauthenticated;
   }

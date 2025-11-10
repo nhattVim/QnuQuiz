@@ -4,9 +4,9 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import '../models/user_model.dart';
 
-const _storage = FlutterSecureStorage();
 
 class UserService {
+  static const _storage = FlutterSecureStorage();
   Future<void> clearUser() async {
     await _storage.delete(key: 'user');
   }

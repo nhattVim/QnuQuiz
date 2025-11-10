@@ -5,6 +5,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
@@ -50,7 +51,7 @@ public class ExamServiceImpl implements ExamService {
         answer.setExamAttempts(attempt);
         answer.setQuestions(option.getQuestions());
         answer.setQuestionOptions(option);
-        answer.setIsCorrect(option.isIsCorrect());
+        answer.setIsCorrect(option.getCorrect());
         answerRepo.save(answer);
     }
 
@@ -153,7 +154,7 @@ public class ExamServiceImpl implements ExamService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         exam.setUsers(user);
-        exam.setStatus("ACTIVE");
+        exam.setStatus("DRAFT");
         exam.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         exam.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
@@ -162,7 +163,72 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public List<ExamDto> getExamsByUserId(UUID userId) {
-        return examMapper.toListDto(examRepository.findByUsers_Id(userId));
+    public List<ExamDto> getExamsByUserId(UUID userId, String sort) {
+        List<Exams> exams = examRepository.findByUsers_Id(userId);
+
+        if ("desc".equalsIgnoreCase(sort)) {
+            exams.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
+        } else {
+            exams.sort((a, b) -> a.getCreatedAt().compareTo(b.getCreatedAt()));
+        }
+
+        return exams.stream()
+                .map(exam -> {
+                    ExamDto dto = examMapper.toDto(exam);
+                    dto.setStatus(getComputedStatus(exam));
+                    return dto;
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public ExamDto updateExam(ExamDto dto, UUID userId) {
+        Exams exam = examRepository.findById(dto.getId())
+                .orElseThrow(() -> new RuntimeException("Exam not found"));
+
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        exam.setTitle(dto.getTitle());
+        exam.setDescription(dto.getDescription());
+        exam.setDurationMinutes(dto.getDurationMinutes());
+        exam.setStartTime(dto.getStartTime());
+        exam.setEndTime(dto.getEndTime());
+        exam.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        exam.setUsers(user);
+
+        if ("DRAFT".equals(dto.getStatus())) {
+            exam.setStatus("DRAFT");
+        } else {
+            exam.setStatus("PUBLISHED");
+        }
+
+        Exams saved = examRepository.save(exam);
+        ExamDto resultDto = examMapper.toDto(saved);
+        resultDto.setStatus(getComputedStatus(saved));
+
+        return resultDto;
+    }
+
+    private String getComputedStatus(Exams exam) {
+        if ("DRAFT".equals(exam.getStatus())) {
+            return "DRAFT";
+        }
+
+        Timestamp startTime = exam.getStartTime();
+        Timestamp endTime = exam.getEndTime();
+        Timestamp now = Timestamp.from(Instant.now());
+
+        if (startTime == null || endTime == null) {
+            return "DRAFT";
+        }
+
+        if (now.after(startTime) && now.before(endTime)) {
+            return "ACTIVE";
+        } else if (now.after(endTime)) {
+            return "CLOSED";
+        } else {
+            return "DRAFT";
+        }
     }
 }

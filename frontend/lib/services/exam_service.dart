@@ -1,31 +1,19 @@
 import 'package:dio/dio.dart';
 import 'package:frontend/constants/api_constants.dart';
 import 'package:frontend/models/exam_model.dart';
+import 'package:frontend/services/api_service.dart';
 import 'package:logger/logger.dart';
-import 'auth_service.dart';
-
-final _log = Logger();
 
 class ExamService {
-  final Dio _dio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
+  final _log = Logger();
+  final Dio _dio = ApiService().dio;
 
-  ExamService() {
-    _dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          final token = await AuthService().getToken();
-          if (token != null) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
-          return handler.next(options);
-        },
-      ),
-    );
-  }
-
-  Future<List<ExamModel>> getExamsByUserId() async {
+  Future<List<ExamModel>> getExamsByUserId(bool sort) async {
     try {
-      final response = await _dio.get('${ApiConstants.exams}/user');
+      final response = await _dio.get(
+        '${ApiConstants.exams}/user',
+        queryParameters: {'sort': sort == true ? "asc" : "desc"},
+      );
       final data = response.data;
 
       if (data is List) {
@@ -37,6 +25,19 @@ class ExamService {
       } else {
         throw Exception('Unexpected data format: $data');
       }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
+
+  Future<ExamModel> updateExam(ExamModel exam) async {
+    try {
+      final response = await _dio.put(
+        '${ApiConstants.exams}/update',
+        data: exam.toJson(),
+      );
+      return ExamModel.fromJson(response.data);
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);
       throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');

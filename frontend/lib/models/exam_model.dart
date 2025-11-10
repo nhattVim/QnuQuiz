@@ -22,8 +22,8 @@ class ExamModel {
   factory ExamModel.fromJson(Map<String, dynamic> json) {
     return ExamModel(
       id: json['id'] as int,
-      title: json['title'] as String,
-      description: json['description'] as String,
+      title: json['title'],
+      description: json['description'],
       startTime: json['startTime'] != null
           ? DateTime.parse(json['startTime'] as String)
           : null,

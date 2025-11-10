@@ -30,7 +30,7 @@ public class QuestionOptions implements java.io.Serializable {
     private long id;
     private Questions questions;
     private String content;
-    private boolean isCorrect;
+    private boolean correct;
     private Integer position;
     private Timestamp createdAt;
     private Set<ExamAnswers> examAnswerses = new HashSet<ExamAnswers>(0);
@@ -42,7 +42,7 @@ public class QuestionOptions implements java.io.Serializable {
         this.id = id;
         this.questions = questions;
         this.content = content;
-        this.isCorrect = isCorrect;
+        this.correct = isCorrect;
         this.createdAt = createdAt;
     }
 
@@ -51,7 +51,7 @@ public class QuestionOptions implements java.io.Serializable {
         this.id = id;
         this.questions = questions;
         this.content = content;
-        this.isCorrect = isCorrect;
+        this.correct = isCorrect;
         this.position = position;
         this.createdAt = createdAt;
         this.examAnswerses = examAnswerses;
@@ -88,12 +88,12 @@ public class QuestionOptions implements java.io.Serializable {
     }
 
     @Column(name = "is_correct", nullable = false)
-    public boolean isIsCorrect() {
-        return this.isCorrect;
+    public boolean getCorrect() {
+        return this.correct;
     }
 
-    public void setIsCorrect(boolean isCorrect) {
-        this.isCorrect = isCorrect;
+    public void setCorrect(boolean correct) {
+        this.correct = correct;
     }
 
     @Column(name = "position")

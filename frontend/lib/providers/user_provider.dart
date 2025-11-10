@@ -8,22 +8,24 @@ final userProvider = StateNotifierProvider<UserNotifier, UserModel?>(
 );
 
 class UserNotifier extends StateNotifier<UserModel?> {
+  final _userService = UserService();
+
   UserNotifier() : super(null) {
     _loadFromStorage();
   }
 
   Future<void> _loadFromStorage() async {
-    final user = await UserService().getUser();
+    final user = await _userService.getUser();
     state = user;
   }
 
   void setUser(UserModel user) async {
-    await UserService().saveUser(user);
+    await _userService.saveUser(user);
     state = user;
   }
 
   Future<void> clearUser() async {
-    await UserService().clearUser();
+    await _userService.clearUser();
     state = null;
   }
 }
