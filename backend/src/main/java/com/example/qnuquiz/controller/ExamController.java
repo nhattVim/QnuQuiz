@@ -1,6 +1,7 @@
 package com.example.qnuquiz.controller;
 
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,7 +17,10 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
-import com.example.qnuquiz.entity.ExamAttempts;
+import com.example.qnuquiz.dto.exam.ExamResultDto;
+import com.example.qnuquiz.dto.exam.ExamReviewDTO;
+import com.example.qnuquiz.dto.exam.PracticeExamDTO;
+import com.example.qnuquiz.dto.exam.QuestionDTO;
 import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.ExamService;
 
@@ -28,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/exams/")
 public class ExamController {
 
-    private final ExamService examService;
+	private final ExamService examService;
 
     @GetMapping("/user")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
@@ -49,36 +53,46 @@ public class ExamController {
         return ResponseEntity.ok(examService.updateExam(dto, SecurityUtils.getCurrentUserId()));
     }
 
-    @PostMapping("/{examId}/start/{studentId}")
-    public ResponseEntity<ExamAttemptDto> startExam(@PathVariable Long examId,
-            @PathVariable Long studentId) {
-        return ResponseEntity.ok(examService.startExam(examId, studentId));
-    }
+	@PostMapping("/{examId}/start/{userId}")
+    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+	public ResponseEntity<ExamAttemptDto> startExam(@PathVariable Long examId, @PathVariable UUID userId) {
+		return ResponseEntity.ok(examService.startExam(examId, userId));
+	}
 
-    @PostMapping("/{attemptId}/answer/{questionId}")
-    public void submitAnswer(@PathVariable Long attemptId,
-            @PathVariable Long questionId,
-            @RequestBody Long optionId) {
-        examService.submitAnswer(attemptId, questionId, optionId);
-    }
+	// trả lời câu hỏi
+	@PostMapping("/{attemptId}/answer/{questionId}/{optionId}")
+	public void submitAnswer(@PathVariable Long attemptId, @PathVariable Long questionId, @PathVariable Long optionId) {
+		examService.submitAnswer(attemptId, questionId, optionId);
+	}
 
-    @PostMapping("/{attemptId}/finish")
-    public ResponseEntity<ExamAttempts> finishExam(@PathVariable Long attemptId) {
-        return ResponseEntity.ok(examService.finishExam(attemptId));
-    }
+	@PostMapping("/{attemptId}/finish")
+	public ResponseEntity<ExamResultDto> finishExam(@PathVariable Long attemptId) {
+	    return ResponseEntity.ok(examService.finishExam(attemptId));
+	}
 
-    // Khi làm bài: chỉ hiển thị câu hỏi + đáp án + câu trả lời
-    // @GetMapping("/{examId}/questions")
-    // public ResponseEntity<List<QuestionExamDto>> getQuestions(@PathVariable Long
-    // examId,
-    // @RequestParam Long attemptId) {
-    // return ResponseEntity.ok(examService.getQuestionsForExam(examId, attemptId));
-    // }
 
-    // Sau khi nộp: hiển thị kết quả + đáp án đúng/sai
-    // @GetMapping("/attempts/{attemptId}/results")
-    // public ResponseEntity<List<AnswerResultDto>> getResults(@PathVariable Long
-    // attemptId) {
-    // return ResponseEntity.ok(examService.getResultForAttempt(attemptId));
-    // }
+	// Lấy danh sách câu hỏi cho bài thi
+	@GetMapping("/{examId}/questions")
+	public ResponseEntity<List<QuestionDTO>> getQuestions(@PathVariable Long examId) {
+		return ResponseEntity.ok(examService.getQuestionsForExam(examId));
+	}
+
+	// Xem lại kết quả bài thi
+	@GetMapping("/attempts/{attemptId}/review")
+	public ResponseEntity<ExamReviewDTO> reviewExam(@PathVariable Long attemptId) {
+		return ResponseEntity.ok(examService.reviewExamAttempt(attemptId));
+	}
+
+	@GetMapping("/category/{categoryId}/random")
+	public ResponseEntity<List<QuestionDTO>> getRandomQuestions(@PathVariable Long categoryId,
+			@RequestParam(defaultValue = "25") int limit) {
+		return ResponseEntity.ok(examService.getRandomQuestionsByCategory(categoryId, limit));
+	}
+
+	@GetMapping("/category/{categoryId}")
+	public ResponseEntity<PracticeExamDTO> createPracticeExam(@PathVariable Long categoryId,
+			@RequestParam(defaultValue = "5") int limit) {
+		return ResponseEntity.ok(examService.createPracticeExam(categoryId, limit));
+	}
+
 }

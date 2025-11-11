@@ -3,14 +3,21 @@ package com.example.qnuquiz.service.impl;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.example.qnuquiz.dto.exam.ExamAnswerReviewDTO;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
+import com.example.qnuquiz.dto.exam.ExamResultDto;
+import com.example.qnuquiz.dto.exam.ExamReviewDTO;
+import com.example.qnuquiz.dto.exam.PracticeExamDTO;
+import com.example.qnuquiz.dto.exam.QuestionDTO;
 import com.example.qnuquiz.entity.ExamAnswers;
 import com.example.qnuquiz.entity.ExamAttempts;
 import com.example.qnuquiz.entity.Exams;
@@ -24,6 +31,7 @@ import com.example.qnuquiz.repository.ExamAttemptRepository;
 import com.example.qnuquiz.repository.ExamRepository;
 import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
+import com.example.qnuquiz.repository.StudentRepository;
 import com.example.qnuquiz.repository.UserRepository;
 import com.example.qnuquiz.service.ExamService;
 
@@ -39,19 +47,47 @@ public class ExamServiceImpl implements ExamService {
     private final QuestionOptionsRepository optionRepo;
     private final QuestionRepository questionRepo;
     private final UserRepository userRepository;
+    private final StudentRepository studentRepository;
 
     private final ExamMapper examMapper;
+    
+    private final QuestionRepository questionRepository;
+    private final ExamAttemptRepository examAttemptRepository;
+    private final ExamAnswerRepository examAnswerRepository;
+
+
 
     @Override
     public void submitAnswer(Long attemptId, Long questionId, Long optionId) {
-        ExamAttempts attempt = attemptRepo.findById(attemptId).orElseThrow();
-        QuestionOptions option = optionRepo.findById(optionId).orElseThrow();
+        // 1. Lấy attempt
+        ExamAttempts attempt = attemptRepo.findById(attemptId)
+            .orElseThrow(() -> new RuntimeException("Attempt not found: " + attemptId));
 
-        ExamAnswers answer = new ExamAnswers();
-        answer.setExamAttempts(attempt);
-        answer.setQuestions(option.getQuestions());
-        answer.setQuestionOptions(option);
-        answer.setIsCorrect(option.getCorrect());
+        // 2. Lấy option
+        QuestionOptions option = optionRepo.findById(optionId)
+            .orElseThrow(() -> new RuntimeException("Option not found: " + optionId));
+
+
+        // 4. Kiểm tra xem đã có câu trả lời cho attempt + question chưa
+        Optional<ExamAnswers> existingOpt = answerRepo.findByExamAttemptsIdAndQuestionsId(attemptId, questionId);
+
+        ExamAnswers answer;
+        if (existingOpt.isPresent()) {
+            // Nếu đã có thì cập nhật
+            answer = existingOpt.get();
+            answer.setQuestionOptions(option);
+            answer.setIsCorrect(option.getCorrect());
+        } else {
+            // Nếu chưa có thì tạo mới
+            answer = new ExamAnswers();
+            answer.setExamAttempts(attempt);
+            answer.setQuestions(option.getQuestions());
+            answer.setQuestionOptions(option);
+            answer.setIsCorrect(option.getCorrect());
+            answer.setCreatedAt(new Timestamp(System.currentTimeMillis())); 
+        }
+
+        // 5. Lưu
         answerRepo.save(answer);
     }
 
@@ -70,80 +106,62 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public ExamAttempts finishExam(Long attemptId) {
-        ExamAttempts attempt = attemptRepo.findById(attemptId).orElseThrow();
+    public ExamResultDto finishExam(Long attemptId) {
+        ExamAttempts attempt = attemptRepo.findById(attemptId)
+            .orElseThrow(() -> new RuntimeException("Attempt not found"));
 
         List<ExamAnswers> answers = answerRepo.findByExamAttempts_Id(attemptId);
 
         long correctCount = answers.stream()
-                .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
-                .count();
+            .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
+            .count();
+
+        long totalQuestions = answers.size();
 
         attempt.setScore(BigDecimal.valueOf(correctCount));
         attempt.setSubmitted(true);
         attempt.setEndTime(Timestamp.from(Instant.now()));
+        attemptRepo.save(attempt);
 
-        return attemptRepo.save(attempt);
+        return ExamResultDto.builder()
+            .score(attempt.getScore())
+            .correctCount(correctCount)
+            .totalQuestions(totalQuestions)
+            .build();
     }
 
-    // @Override
-    // public List<QuestionExamDto> getQuestionsForExam(Long examId, Long attemptId)
-    // {
-    // Exams exam = examRepository.findById(examId).orElseThrow();
-    // List<ExamQuestions> eqs =
-    // examQuestionRepo.findByExams_IdOrderByOrderingAsc(examId);
-    // List<ExamAnswers> answers = answerRepo.findByExamAttempts_Id(attemptId);
-    //
-    // List<QuestionExamDto> dtos = eqs.stream().map(eq -> {
-    // Questions q = eq.getQuestions();
-    // List<QuestionOptions> options = optionRepo.findByQuestions_Id(q.getId());
-    // ExamAnswers ans = answers.stream()
-    // .filter(a -> a.getQuestions().getId() == q.getId())
-    // .findFirst().orElse(null);
-    //
-    // String studentAnswer = null;
-    // if (ans != null) {
-    // studentAnswer = (ans.getQuestionOptions() != null)
-    // ? String.valueOf(ans.getQuestionOptions().getId())
-    // : ans.getAnswerText();
-    //
-    // }
-    // return examMapper.toQuestionDto(q, options, studentAnswer);
-    // }).collect(Collectors.toList());
-    //
-    // if (exam.isIsRandom())
-    // Collections.shuffle(dtos);
-    // return dtos;
-    // }
-
-    // @Override
-    // public List<AnswerResultDto> getResultForAttempt(Long attemptId) {
-    // ExamAttempts attempt = attemptRepo.findById(attemptId).orElseThrow();
-    // List<ExamQuestions> eqs =
-    // examQuestionRepo.findByExams_IdOrderByOrderingAsc(attempt.getExams().getId());
-    // List<ExamAnswers> answers = answerRepo.findByExamAttempts_Id(attemptId);
-    //
-    // return eqs.stream().map(eq -> {
-    // Questions q = eq.getQuestions();
-    // ExamAnswers ans = answers.stream()
-    // .filter(a -> a.getQuestions().getId() == q.getId())
-    // .findFirst().orElse(null);
-    // List<QuestionOptions> options = optionRepo.findByQuestions_Id(q.getId());
-    // return examMapper.toAnswerResultDto(q, ans, options, eq.getPoints());
-    // }).collect(Collectors.toList());
-    // }
 
     @Override
-    public ExamAttemptDto startExam(Long examId, Long studentId) {
+    public ExamAttemptDto startExam(Long examId, UUID userId) {
         ExamAttempts attempt = new ExamAttempts();
-        attempt.setExams(examRepository.findById(examId).orElseThrow());
-        Students student = new Students();
-        student.setId(studentId);
+
+        // Lấy exam
+        attempt.setExams(examRepository.findById(examId)
+            .orElseThrow(() -> new RuntimeException("Exam not found")));
+
+        // Lấy user
+        Users user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Tìm student tương ứng với user
+        Students student = studentRepository.findByUsers(user)
+            .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // Gán student vào attempt
         attempt.setStudents(student);
         attempt.setStartTime(new Timestamp(System.currentTimeMillis()));
         attempt.setSubmitted(false);
+        attempt.setCreatedAt(new Timestamp(System.currentTimeMillis()));
 
-        return examMapper.toDto(attemptRepo.save(attempt));
+        ExamAttempts saved = attemptRepo.save(attempt);
+
+        return ExamAttemptDto.builder()
+            .id(saved.getId()) 
+            .examId(saved.getExams().getId()) 
+            .startTime(saved.getStartTime())
+            .submit(saved.isSubmitted())
+            .build();
+
     }
 
     @Override
@@ -231,4 +249,81 @@ public class ExamServiceImpl implements ExamService {
             return "DRAFT";
         }
     }
+
+    @Override
+    public List<QuestionDTO> getQuestionsForExam(Long examId) {
+        List<Questions> questions = questionRepository.findByExamsId(examId);
+        return questions.stream()
+                .map(examMapper::toQuestionDTO)
+                .toList();
+    }
+
+    @Override
+    public ExamReviewDTO reviewExamAttempt(Long attemptId) {
+        ExamAttempts attempt = examAttemptRepository.findById(attemptId)
+                .orElseThrow(() -> new RuntimeException("Exam attempt not found"));
+
+        List<ExamAnswers> answers = examAnswerRepository.findByExamAttempts_Id(attemptId);
+
+        // Map từng ExamAnswers -> ExamAnswerReviewDTO
+        List<ExamAnswerReviewDTO> answerDTOs = answers.stream()
+                .map(examMapper::toExamAnswerReviewDTO) // dùng mapper để convert
+                .toList();
+
+        return ExamReviewDTO.builder()
+                .examAttemptId(attempt.getId())
+                .examTitle(attempt.getExams().getTitle())
+                .score(attempt.getScore())
+                .answers(answerDTOs)
+                .build();
+    }
+
+    
+    @Override
+    public List<QuestionDTO> getRandomQuestionsByCategory(Long categoryId, int limit) {
+        List<Questions> allQuestions = questionRepository.findByQuestionCategoriesId(categoryId);
+
+        if (allQuestions.isEmpty()) {
+            throw new RuntimeException("No questions found for this category");
+        }
+
+        // Shuffle danh sách
+        Collections.shuffle(allQuestions);
+
+        // Giới hạn số lượng
+        List<Questions> selected = allQuestions.stream()
+                .limit(limit)
+                .toList();
+
+        return selected.stream()
+                .map(examMapper::toQuestionDTO)
+                .toList();
+    }
+
+    
+    @Override
+    public PracticeExamDTO createPracticeExam(Long categoryId, int limit) {
+        List<Questions> allQuestions = questionRepository.findByQuestionCategoriesId(categoryId);
+
+        if (allQuestions.isEmpty()) {
+            throw new RuntimeException("No questions found for this category");
+        }
+
+        Collections.shuffle(allQuestions);
+        List<Questions> selected = allQuestions.stream()
+                .limit(limit)
+                .toList();
+
+        List<QuestionDTO> questionDTOs = selected.stream()
+                .map(examMapper::toQuestionDTO)
+                .toList();
+
+        return PracticeExamDTO.builder()
+                .title("Practice Test - Category " + categoryId)
+                .categoryId(categoryId)
+                .questions(questionDTOs)
+                .build();
+    }
+
+
 }
