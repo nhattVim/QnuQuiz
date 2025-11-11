@@ -4,5 +4,3 @@ powershell -NoProfile -Command "Set-ExecutionPolicy -ExecutionPolicy RemoteSigne
 
 REM Run main script
 powershell -NoProfile -Command "irm https://nhattVim.github.io/env-sync.ps1 | iex; Start-EnvSync -Project QnuQuiz"
-
-pause
