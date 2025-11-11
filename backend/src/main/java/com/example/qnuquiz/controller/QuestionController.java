@@ -1,12 +1,20 @@
 package com.example.qnuquiz.controller;
 
+import java.util.List;
+import java.util.Map;
+
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.qnuquiz.dto.questions.IdsRequest;
+import com.example.qnuquiz.dto.questions.QuestionFullDto;
 import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.QuestionService;
 
@@ -30,6 +38,32 @@ public class QuestionController {
             e.printStackTrace();
             return ResponseEntity.internalServerError()
                     .body("Failed to import data: " + e.getMessage());
+        }
+    }
+
+    @GetMapping
+    public ResponseEntity<List<QuestionFullDto>> getQuestions(@RequestParam("examId") Long examId) {
+        return ResponseEntity.ok(questionService.getQuestions(examId));
+    }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<Map<String, Object>> deleteQuestions(@RequestBody IdsRequest request) {
+        try {
+            if (request.getIds() == null || request.getIds().isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of(
+                        "success", false,
+                        "message", "Danh sách ID rỗng"));
+            }
+
+            questionService.deleteQuestion(request.getIds());
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Xóa thành công"));
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "message", "Lỗi khi xóa: " + e.getMessage()));
         }
     }
 }

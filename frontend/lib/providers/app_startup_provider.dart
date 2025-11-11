@@ -17,6 +17,12 @@ class AppStartupResult {
   });
 }
 
+final appStartupProvider =
+    AsyncNotifierProvider<AppStartupNotifier, AppStartupResult>(
+      // AppStartupNotifier.new,
+      () => AppStartupNotifier(),
+    );
+
 class AppStartupNotifier extends AsyncNotifier<AppStartupResult> {
   Timer? _retryTimer;
 
@@ -65,9 +71,3 @@ class AppStartupNotifier extends AsyncNotifier<AppStartupResult> {
     }
   }
 }
-
-final appStartupProvider =
-    AsyncNotifierProvider<AppStartupNotifier, AppStartupResult>(
-      // AppStartupNotifier.new,
-      () => AppStartupNotifier(),
-    );

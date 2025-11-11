@@ -1,9 +1,12 @@
 
 package com.example.qnuquiz.mapper;
 
+import java.util.List;
+
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
+import com.example.qnuquiz.dto.questions.QuestionFullDto;
 import com.example.qnuquiz.dto.questions.QuestionImportDto;
 import com.example.qnuquiz.entity.Questions;
 
@@ -23,4 +26,9 @@ public interface QuestionMapper {
     @Mapping(target = "ordering", ignore = true)
     @Mapping(target = "points", ignore = true)
     Questions toEntity(QuestionImportDto dto);
+
+    @Mapping(target = "options", ignore = true)
+    QuestionFullDto toQuestionFullDto(Questions questions);
+
+    List<QuestionFullDto> toQuestionFullDtoList(List<Questions> questions);
 }

@@ -1,17 +1,23 @@
 package com.example.qnuquiz.controller;
 
+import java.util.List;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
-import com.example.qnuquiz.dto.exam.ExamCreateDto;
+import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.entity.ExamAttempts;
+import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.ExamService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,10 +30,23 @@ public class ExamController {
 
     private final ExamService examService;
 
+    @GetMapping("/user")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+    public ResponseEntity<List<ExamDto>> getExamsByUserId(
+            @RequestParam(value = "sort", required = false, defaultValue = "asc") String sort) {
+        return ResponseEntity.ok(
+                examService.getExamsByUserId(SecurityUtils.getCurrentUserId(), sort));
+    }
+
     @PostMapping("/create")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ResponseEntity<ExamCreateDto> createExam(@RequestBody ExamCreateDto dto) {
-        return ResponseEntity.ok(examService.createExam(dto));
+    public ResponseEntity<ExamDto> createExam(@RequestBody ExamDto dto) {
+        return ResponseEntity.ok(examService.createExam(dto, SecurityUtils.getCurrentUserId()));
+    }
+
+    @PutMapping("/update")
+    public ResponseEntity<ExamDto> updateExam(@RequestBody ExamDto dto) {
+        return ResponseEntity.ok(examService.updateExam(dto, SecurityUtils.getCurrentUserId()));
     }
 
     @PostMapping("/{examId}/start/{studentId}")
