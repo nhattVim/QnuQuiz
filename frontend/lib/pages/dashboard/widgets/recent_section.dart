@@ -16,7 +16,7 @@ class RecentSection extends StatelessWidget {
       children: [
         const Text(
           "Làm gần đây",
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         Column(children: items.map((e) => _buildRecentItem(e)).toList()),
@@ -29,7 +29,7 @@ class RecentSection extends StatelessWidget {
     final color = isCompleted ? Colors.blue : Colors.green;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: Colors.grey.shade100,
@@ -37,7 +37,15 @@ class RecentSection extends StatelessWidget {
       ),
       child: Row(
         children: [
-          const Icon(Icons.menu_book_rounded, color: Colors.amber, size: 28),
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: Colors.amber,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.menu_book_rounded, color: Colors.white),
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
@@ -45,7 +53,7 @@ class RecentSection extends StatelessWidget {
               children: [
                 Text(
                   data['title']!,
-                  style: const TextStyle(fontWeight: FontWeight.w500),
+                  style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -58,13 +66,15 @@ class RecentSection extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              // withOpacity is deprecated; use withAlpha to avoid precision-loss deprecation
-              color: color.withAlpha((0.1 * 255).round()),
-              borderRadius: BorderRadius.circular(10),
+              color: color,
+              borderRadius: BorderRadius.circular(12),
             ),
             child: Text(
               data['status']!,
-              style: TextStyle(color: color, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w500,
+              ),
             ),
           ),
         ],

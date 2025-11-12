@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/models/nav_item.dart';
-import 'package:frontend/pages/dashboard_page.dart';
+import 'package:frontend/pages/dashboard/dashboard_page.dart';
+// import 'package:frontend/pages/dashboard_page.dart';
 import 'package:frontend/pages/faq_page.dart';
 import 'package:frontend/pages/leaderboard_page.dart';
 import 'package:frontend/pages/profile_page.dart';

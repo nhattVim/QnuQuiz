@@ -6,7 +6,7 @@ import 'widgets/category_section.dart';
 import 'widgets/recent_section.dart';
 
 class DashboardPage extends StatelessWidget {
-  const DashboardScreen({super.key});
+  const DashboardPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,18 +14,18 @@ class DashboardPage extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(24),
+          padding: EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GreetingSection(username: "Trường"),
+              GreetingSection(username: "Phuc"),
               SizedBox(height: 16),
               SearchBarWidget(),
               SizedBox(height: 16),
               ActionCard(),
-              SizedBox(height: 20),
+              SizedBox(height: 16),
               CategorySection(),
-              SizedBox(height: 24),
+              SizedBox(height: 16),
               RecentSection(),
             ],
           ),
