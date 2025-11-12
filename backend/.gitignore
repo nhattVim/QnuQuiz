@@ -33,5 +33,9 @@ build/
 .vscode/
 
 ### env ###
-application.yaml
-application.properties
+application-prod.yaml
+application-prod.properties
+
+### H2DB ###
+/data/*.mv.db
+/data/*.trace.db
