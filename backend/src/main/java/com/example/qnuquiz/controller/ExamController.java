@@ -49,14 +49,15 @@ public class ExamController {
     }
 
     @PutMapping("/update")
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<ExamDto> updateExam(@RequestBody ExamDto dto) {
         return ResponseEntity.ok(examService.updateExam(dto, SecurityUtils.getCurrentUserId()));
     }
 
-	@PostMapping("/{examId}/start/{userId}")
+	@PostMapping("/{examId}/start")
     @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
-	public ResponseEntity<ExamAttemptDto> startExam(@PathVariable Long examId, @PathVariable UUID userId) {
-		return ResponseEntity.ok(examService.startExam(examId, userId));
+	public ResponseEntity<ExamAttemptDto> startExam(@PathVariable Long examId) {
+		return ResponseEntity.ok(examService.startExam(examId, SecurityUtils.getCurrentUserId()));
 	}
 
 	// trả lời câu hỏi
