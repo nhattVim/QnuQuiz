@@ -11,8 +11,13 @@ import lombok.Data;
 public class StudentDto {
 
     private long id;
+    private Long classId;
     private String className;
     private String userName;
+    private String fullName;
+    private String email;
+    private String phoneNumber;
+    private Long departmentId;
     private String departmentName;
     private BigDecimal gpa;
     private Timestamp createdAt;
