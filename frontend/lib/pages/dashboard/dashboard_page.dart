@@ -14,19 +14,33 @@ class DashboardPage extends StatelessWidget {
       backgroundColor: Colors.white,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              GreetingSection(username: "Phuc"),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: GreetingSection(username: "Phuc"),
+              ),
               SizedBox(height: 16),
-              SearchBarWidget(),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: SearchBarWidget(),
+              ),
               SizedBox(height: 16),
-              ActionCard(),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: ActionCard(),
+              ),
               SizedBox(height: 16),
-              CategorySection(),
+              Padding(
+                padding: EdgeInsets.only(left: 16),
+                child: CategorySection(),
+              ),
               SizedBox(height: 16),
-              RecentSection(),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: RecentSection(),
+              ),
             ],
           ),
         ),
