@@ -27,6 +27,7 @@ import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.repository.UserRepository;
 import com.example.qnuquiz.service.QuestionService;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 @Service
@@ -130,8 +131,10 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
+    @Transactional
     @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
     public void deleteQuestion(List<Long> ids) {
+        questionOptionsRepository.deleteAllByQuestions_IdIn(ids);
         questionsRepository.deleteAllById(ids);
     }
 }
