@@ -5,5 +5,9 @@ class NavItem {
   final IconData icon;
   final String label;
 
-  const NavItem({required this.page, required this.icon, required this.label});
+  const NavItem({
+    required this.page,
+    required this.icon,
+    required this.label,
+  });
 }
