@@ -2,6 +2,7 @@ package com.example.qnuquiz.service.impl;
 
 import java.io.IOException;
 import java.sql.Timestamp;
+import java.util.List;
 import java.util.UUID;
 
 import org.apache.poi.ss.usermodel.Cell;
@@ -9,9 +10,13 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.qnuquiz.dto.questions.QuestionFullDto;
+import com.example.qnuquiz.dto.questions.QuestionOptionDto;
 import com.example.qnuquiz.entity.Exams;
 import com.example.qnuquiz.entity.QuestionOptions;
 import com.example.qnuquiz.entity.Questions;
@@ -34,6 +39,7 @@ public class QuestionServiceImpl implements QuestionService {
     private final ExamRepository examRepository;
 
     @Override
+    @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
     public void importQuestionsFromExcel(MultipartFile file, UUID userId, Long examId) throws IOException {
         try (Workbook workbook = new XSSFWorkbook(file.getInputStream())) {
 
@@ -82,7 +88,7 @@ public class QuestionServiceImpl implements QuestionService {
         QuestionOptions opt = new QuestionOptions();
         opt.setQuestions(question);
         opt.setContent(content);
-        opt.setIsCorrect(isCorrect);
+        opt.setCorrect(isCorrect);
         opt.setPosition(position);
         opt.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         questionOptionsRepository.save(opt);
@@ -99,5 +105,33 @@ public class QuestionServiceImpl implements QuestionService {
             case FORMULA -> cell.getCellFormula();
             case BLANK, _NONE, ERROR -> "";
         };
+    }
+
+    @Override
+    @Cacheable("allQuestionsOfExam")
+    public List<QuestionFullDto> getQuestions(Long examId) {
+        if (!examRepository.existsById(examId)) {
+            throw new RuntimeException("Exam not found");
+        }
+
+        return questionsRepository.findByExamsId(examId).stream()
+                .map(q -> QuestionFullDto.builder()
+                        .id(q.getId())
+                        .content(q.getContent())
+                        .options(questionOptionsRepository.findByQuestions_Id(q.getId()).stream()
+                                .map(o -> QuestionOptionDto.builder()
+                                        .id(o.getId())
+                                        .content(o.getContent())
+                                        .correct(o.getCorrect())
+                                        .build())
+                                .toList())
+                        .build())
+                .toList();
+    }
+
+    @Override
+    @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
+    public void deleteQuestion(List<Long> ids) {
+        questionsRepository.deleteAllById(ids);
     }
 }

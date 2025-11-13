@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:frontend/constants/api_constants.dart';
-import 'package:frontend/models/user_model.dart';
 import 'package:logger/web.dart';
 
-const _storage = FlutterSecureStorage();
-final _log = Logger();
+import '../constants/api_constants.dart';
+import '../models/user_model.dart';
 
 class AuthService {
+  static const _storage = FlutterSecureStorage();
+  final _log = Logger();
   Future<String?> getToken() async => await _storage.read(key: 'auth_token');
 
   Future<bool> isLoggedIn() async {
@@ -20,6 +20,7 @@ class AuthService {
     required String password,
   }) async {
     final dio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
+
     try {
       final response = await dio.post(
         '${ApiConstants.auth}/login',

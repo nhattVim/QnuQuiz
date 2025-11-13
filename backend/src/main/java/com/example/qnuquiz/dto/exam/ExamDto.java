@@ -7,10 +7,9 @@ import lombok.Data;
 
 @Data
 @Builder
-public class ExamCreateDto {
+public class ExamDto {
 
     private long id;
-    private String userId;
     private String title;
     private String description;
     private Timestamp startTime;

@@ -1,69 +1,68 @@
 import 'package:flutter/material.dart';
 import 'package:frontend/models/nav_item.dart';
 import 'package:frontend/pages/dashboard/dashboard_page.dart';
-// import 'package:frontend/pages/dashboard_page.dart';
 import 'package:frontend/pages/faq_page.dart';
 import 'package:frontend/pages/leaderboard_page.dart';
 import 'package:frontend/pages/profile_page.dart';
-import 'package:frontend/pages/question_page.dart';
-import 'package:frontend/services/user_service.dart';
-import '../models/user_model.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/pages/my_exam_page.dart';
+import '../providers/user_provider.dart';
 
-const studentNav = [
-  NavItem(page: DashboardPage(), icon: Icons.home_rounded, label: "Home"),
-  NavItem(
-    page: LeaderboardPage(),
-    icon: Icons.leaderboard_rounded,
-    label: "BXH",
-  ),
-  NavItem(page: FaqPage(), icon: Icons.help_outline_rounded, label: "FAQ"),
-  NavItem(page: ProfilePage(), icon: Icons.person_rounded, label: "Profile"),
-];
+const dashboardItem = NavItem(
+  page: DashboardPage(),
+  icon: Icons.home_rounded,
+  label: "Home",
+);
 
-const teacherNav = [
-  NavItem(
-    page: QuestionPage(),
-    icon: Icons.question_answer_rounded,
-    label: "Questions",
-  ),
-  NavItem(page: DashboardPage(), icon: Icons.home_rounded, label: "Home"),
-  NavItem(
-    page: LeaderboardPage(),
-    icon: Icons.leaderboard_rounded,
-    label: "BXH",
-  ),
-  NavItem(page: ProfilePage(), icon: Icons.person_rounded, label: "Profile"),
-];
+const examItem = NavItem(
+  page: MyExamPage(),
+  icon: Icons.library_books_sharp,
+  label: "Exam",
+);
 
-class HomeScreen extends StatefulWidget {
+const faqItem = NavItem(
+  page: FaqPage(),
+  icon: Icons.help_outline_rounded,
+  label: "FAQ",
+);
+
+const leaderboardItem = NavItem(
+  page: LeaderboardPage(),
+  icon: Icons.leaderboard_rounded,
+  label: "BXH",
+);
+
+const profileItem = NavItem(
+  page: ProfilePage(),
+  icon: Icons.person_rounded,
+  label: "Profile",
+);
+
+const adminNav = [examItem, dashboardItem, profileItem];
+const studentNav = [dashboardItem, leaderboardItem, faqItem, profileItem];
+const teacherNav = [examItem, dashboardItem, leaderboardItem, profileItem];
+
+class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
 
   @override
-  State<HomeScreen> createState() => _HomeScreenState();
+  ConsumerState<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
-  UserModel? _user;
-
-  Future<void> _loadUser() async {
-    final user = await UserService().getUser();
-    setState(() => _user = user);
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadUser();
-  }
 
   @override
   Widget build(BuildContext context) {
-    if (_user == null) {
+    final user = ref.watch(userProvider);
+
+    if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final navItems = _user!.role == 'TEACHER' ? teacherNav : studentNav;
+    final navItems = user.role == 'ADMIN'
+        ? adminNav
+        : (user.role == 'TEACHER' ? teacherNav : studentNav);
 
     return Scaffold(
       body: IndexedStack(

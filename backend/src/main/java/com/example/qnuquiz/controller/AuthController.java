@@ -2,7 +2,6 @@ package com.example.qnuquiz.controller;
 
 import java.util.Map;
 
-import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -50,7 +49,6 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    @CacheEvict(value = "allUsers", allEntries = true)
     public ResponseEntity<UserDto> register(@RequestBody UserRegisterDto dto) {
         return ResponseEntity.ok(userService.register(dto));
     }
