@@ -8,6 +8,7 @@ import '../pages/dashboard_page.dart';
 import '../pages/faq_page.dart';
 import '../pages/leaderboard_page.dart';
 import '../pages/profile_page.dart';
+import '../pages/exam_list_page.dart';
 import '../providers/user_provider.dart';
 
 const dashboardItem = NavItem(
@@ -40,8 +41,15 @@ const profileItem = NavItem(
   label: "Profile",
 );
 
+const examItem2 = NavItem(
+  page: ExamListPage(), // thay vì MyExamPage()
+  icon: Icons.library_books_sharp,
+  label: "Exam",
+);
+
+
 const adminNav = [examItem, dashboardItem, profileItem];
-const studentNav = [dashboardItem, leaderboardItem, faqItem, profileItem];
+const studentNav = [dashboardItem, examItem2,leaderboardItem, faqItem, profileItem];
 const teacherNav = [examItem, dashboardItem, leaderboardItem, profileItem];
 
 class HomeScreen extends ConsumerStatefulWidget {
