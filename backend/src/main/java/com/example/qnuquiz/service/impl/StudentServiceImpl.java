@@ -3,21 +3,28 @@ package com.example.qnuquiz.service.impl;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
+import com.example.qnuquiz.dto.student.ExamAnswerHistoryDto;
+import com.example.qnuquiz.dto.student.ExamHistoryDto;
 import com.example.qnuquiz.dto.student.StudentDto;
 import com.example.qnuquiz.dto.student.StudentProfileUpdateRequest;
 import com.example.qnuquiz.entity.Classes;
 import com.example.qnuquiz.entity.Departments;
+import com.example.qnuquiz.entity.ExamAnswers;
+import com.example.qnuquiz.entity.ExamAttempts;
 import com.example.qnuquiz.entity.Students;
 import com.example.qnuquiz.entity.Users;
 import com.example.qnuquiz.mapper.StudentMapper;
 import com.example.qnuquiz.repository.ClassesRepository;
 import com.example.qnuquiz.repository.DepartmentRepository;
+import com.example.qnuquiz.repository.ExamAnswerRepository;
+import com.example.qnuquiz.repository.ExamAttemptRepository;
 import com.example.qnuquiz.repository.StudentRepository;
 import com.example.qnuquiz.repository.UserRepository;
 import com.example.qnuquiz.security.SecurityUtils;
@@ -35,6 +42,8 @@ public class StudentServiceImpl implements StudentService {
     private final DepartmentRepository departmentRepository;
     private final ClassesRepository classesRepository;
     private final PasswordEncoder passwordEncoder;
+    private final ExamAttemptRepository examAttemptRepository;
+    private final ExamAnswerRepository examAnswerRepository;
 
     @Override
     public List<StudentDto> getAllStudents() {
@@ -103,6 +112,71 @@ public class StudentServiceImpl implements StudentService {
         userRepository.save(user);
 
         return studentMapper.toDto(student);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ExamHistoryDto> getExamHistory() {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+        if (currentUserId == null) {
+            throw new RuntimeException("Không xác định được người dùng hiện tại");
+        }
+
+        Users user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (!"STUDENT".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Chỉ sinh viên mới có thể xem lịch sử làm kiểm tra");
+        }
+
+        Students student = studentRepository.findByUsers(user)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin sinh viên"));
+
+        // Lấy tất cả các bài thi đã nộp của sinh viên
+        List<ExamAttempts> attempts = examAttemptRepository
+                .findByStudentsIdAndSubmittedTrueOrderByEndTimeDesc(student.getId());
+
+        return attempts.stream().map(attempt -> {
+            ExamHistoryDto.ExamHistoryDtoBuilder builder = ExamHistoryDto.builder()
+                    .attemptId(attempt.getId())
+                    .examId(attempt.getExams().getId())
+                    .examTitle(attempt.getExams().getTitle())
+                    .examDescription(attempt.getExams().getDescription())
+                    .score(attempt.getScore())
+                    .completionDate(attempt.getEndTime());
+
+            // Tính tổng thời gian làm bài (phút)
+            if (attempt.getStartTime() != null && attempt.getEndTime() != null) {
+                long durationMillis = attempt.getEndTime().getTime() - attempt.getStartTime().getTime();
+                long durationMinutes = durationMillis / (1000 * 60);
+                builder.durationMinutes(durationMinutes);
+            } else {
+                builder.durationMinutes(0L);
+            }
+
+            // Lấy danh sách đáp án
+            List<ExamAnswers> examAnswers = examAnswerRepository.findByExamAttempts_Id(attempt.getId());
+            List<ExamAnswerHistoryDto> answerDtos = examAnswers.stream().map(answer -> {
+                ExamAnswerHistoryDto.ExamAnswerHistoryDtoBuilder answerBuilder = ExamAnswerHistoryDto.builder()
+                        .questionId(answer.getQuestions().getId())
+                        .questionContent(answer.getQuestions().getContent())
+                        .isCorrect(answer.getIsCorrect())
+                        .answerText(answer.getAnswerText());
+
+                // Nếu có selected option, lấy thông tin option
+                if (answer.getQuestionOptions() != null) {
+                    answerBuilder.selectedOptionId(answer.getQuestionOptions().getId())
+                            .selectedOptionContent(answer.getQuestionOptions().getContent());
+                }
+
+                return answerBuilder.build();
+            }).collect(Collectors.toList());
+
+            builder.answers(answerDtos);
+
+            return builder.build();
+        }).collect(Collectors.toList());
     }
 
 }

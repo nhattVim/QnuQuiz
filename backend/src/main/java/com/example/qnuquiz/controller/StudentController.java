@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.qnuquiz.dto.student.ExamHistoryDto;
 import com.example.qnuquiz.dto.student.StudentDto;
 import com.example.qnuquiz.dto.student.StudentProfileUpdateRequest;
 import com.example.qnuquiz.service.StudentService;
@@ -35,5 +36,11 @@ public class StudentController {
     public ResponseEntity<StudentDto> updateCurrentStudentProfile(
             @RequestBody StudentProfileUpdateRequest request) {
         return ResponseEntity.ok(studentService.updateCurrentStudentProfile(request));
+    }
+
+    @GetMapping("/me/exam-history")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<List<ExamHistoryDto>> getExamHistory() {
+        return ResponseEntity.ok(studentService.getExamHistory());
     }
 }
