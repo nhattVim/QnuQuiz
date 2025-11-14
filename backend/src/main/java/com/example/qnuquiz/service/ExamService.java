@@ -35,5 +35,7 @@ public interface ExamService {
 	List<QuestionDTO> getRandomQuestionsByCategory(Long categoryId, int limit);
 
 	PracticeExamDTO createPracticeExam(Long categoryId, int limit);
+	
+	List<ExamDto> getAllExams();
 
 }

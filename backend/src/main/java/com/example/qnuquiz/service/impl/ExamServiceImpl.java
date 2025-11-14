@@ -35,7 +35,6 @@ import com.example.qnuquiz.repository.StudentRepository;
 import com.example.qnuquiz.repository.UserRepository;
 import com.example.qnuquiz.service.ExamService;
 
-import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 
 @Service
@@ -323,4 +322,12 @@ public class ExamServiceImpl implements ExamService {
     public void deleteExam(Long id) {
         examRepository.deleteById(id);
     }
+
+    @Override
+    public List<ExamDto> getAllExams() {
+        List<Exams> exams = examRepository.findAll();
+        return examMapper.toDtoList(exams);
+    }
+
+    
 }
