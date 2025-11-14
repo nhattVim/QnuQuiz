@@ -31,6 +31,7 @@ public class Users implements java.io.Serializable {
     private String passwordHash;
     private String fullName;
     private String email;
+    private String phoneNumber;
     private String role;
     private String status;
     private Timestamp createdAt;
@@ -129,6 +130,15 @@ public class Users implements java.io.Serializable {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @Column(name = "phone_number", length = 32)
+    public String getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     @Column(name = "role", nullable = false)
