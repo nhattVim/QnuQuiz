@@ -70,4 +70,25 @@ class ExamService {
       throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
     }
   }
+
+  Future<List<ExamModel>> getAllExams() async {
+    try {
+      final response = await _dio.get('${ApiConstants.exams}/all');
+      final data = response.data;
+
+      if (data is List) {
+        return data
+            .map((e) => ExamModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Unexpected data format');
+      }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
+
+
+
 }

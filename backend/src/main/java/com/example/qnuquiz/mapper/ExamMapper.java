@@ -45,5 +45,6 @@ public interface ExamMapper {
 	
     QuestionDTO toQuestionDTO(Questions entity);
     ExamAnswerReviewDTO toExamAnswerReviewDTO(ExamAnswers entity);
+    List<ExamDto> toDtoList(List<Exams> exams);
 
 }

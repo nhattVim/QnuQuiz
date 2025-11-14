@@ -112,4 +112,9 @@ public class ExamController {
 		return ResponseEntity.ok(examService.createPracticeExam(categoryId, limit));
 	}
 
+    @GetMapping("/getAll")
+    public ResponseEntity<List<ExamDto>> getAllExams() {
+        return ResponseEntity.ok(examService.getAllExams());
+    }
+
 }
