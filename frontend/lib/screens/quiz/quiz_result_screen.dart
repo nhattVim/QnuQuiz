@@ -1,37 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_boxicons/flutter_boxicons.dart';
-import 'package:flutter_svg/flutter_svg.dart';
-import 'quiz_review_screen.dart';
 
 class QuizResultScreen extends StatelessWidget {
   final int totalQuestions;
   final int correctAnswers;
   final VoidCallback onBackHome;
-  final List<Map<String, dynamic>>? quizData;
-  final List<int?>? answeredQuestions;
 
   const QuizResultScreen({
     super.key,
     required this.totalQuestions,
     required this.correctAnswers,
     required this.onBackHome,
-    this.quizData,
-    this.answeredQuestions,
   });
-
-  void _handleReviewAnswers(BuildContext context) {
-    if (quizData != null && answeredQuestions != null) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => QuizReviewScreen(
-            quizData: quizData!,
-            answeredQuestions: answeredQuestions!,
-          ),
-        ),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,13 +30,15 @@ class QuizResultScreen extends StatelessWidget {
                     const SizedBox(height: 30),
 
                     // Icon tượng trưng (Star)
-                    Align(
-                      alignment: Alignment.center,
-                      child: SvgPicture.asset(
-                        'assets/images/img-result.svg',
-                        width: 140,
-                        height: 140,
-                        fit: BoxFit.contain,
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFFFFF3E0),
+                      ),
+                      child: const Center(
+                        child: Text('⭐', style: TextStyle(fontSize: 40)),
                       ),
                     ),
 
@@ -77,14 +58,11 @@ class QuizResultScreen extends StatelessWidget {
 
                     // Blue info box
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 16,
-                        horizontal: 32,
-                      ),
+                      padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: const Color(0xFFE3F2FD),
                         border: Border.all(color: Colors.blue, width: 2),
-                        borderRadius: BorderRadius.circular(16),
+                        borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
                         children: [
@@ -108,9 +86,9 @@ class QuizResultScreen extends StatelessWidget {
                           const Text(
                             'Nhập học & thủ tục',
                             style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.black87,
                             ),
                           ),
                         ],
@@ -157,29 +135,24 @@ class QuizResultScreen extends StatelessWidget {
                           const Divider(height: 1, color: Colors.grey),
                           const SizedBox(height: 16),
                           // Points row
-                          Container(
-                            padding: const EdgeInsets.all(8),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade100,
-                              borderRadius: BorderRadius.circular(50),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Boxicons.bx_bolt_circle,
-                                  color: Colors.amber,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.star,
+                                color: Colors.amber,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                '$points điểm',
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.black87,
                                 ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  '$points điểm',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 15,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -200,7 +173,14 @@ class QuizResultScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: () => _handleReviewAnswers(context),
+                      onPressed: () {
+                        // TODO: Implement review functionality
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Review functionality coming soon'),
+                          ),
+                        );
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,

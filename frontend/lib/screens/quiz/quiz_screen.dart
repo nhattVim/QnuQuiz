@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/question_model.dart';
+import 'package:frontend/services/question_service.dart';
 import 'widgets/quiz_header.dart';
 import 'widgets/quiz_progress.dart';
 import 'widgets/quiz_question.dart';
@@ -24,33 +26,36 @@ class _QuizScreenState extends State<QuizScreen> {
   int currentQuestionIndex = 0;
   int selectedAnswerIndex = -1;
   int correctAnswers = 0;
-  late List<int?> answeredQuestions; // Track đáp án đã chọn cho mỗi câu
+  late List<int?> answeredQuestions;
 
-  // Sample quiz data
-  final Map<String, dynamic> singleQuestion = {
-    'question':
-        'Trong thủ tục nhập học đại học, giấy tờ nào sau đây thường được yêu cầu là bắt buộc bao gồm chứng chỉ để hoàn thành học?',
-    'answers': [
-      'Giấy chứng nhận tham gia hoạt động tình nguyện của cấp xã',
-      'Giấy báo trúng tuyển đại học',
-      'Số hộ khẩu của hàng xóm',
-      'Thẻ thư viện trường cấp 3',
-    ],
-    'correctAnswerIndex': 1,
-  };
-
-  late final List<Map<String, dynamic>> quizData = List.generate(
-    10,
-    (index) => {
-      ...singleQuestion, // sao chép dữ liệu gốc
-      'questionNumber': index + 1, // thêm số thứ tự câu hỏi
-    },
-  );
+  final QuestionService _questionService = QuestionService();
+  late Future<List<QuestionModel>> _quizDataFuture;
+  List<QuestionModel> quizData = [];
+  bool isLoading = true;
+  String? errorMessage;
 
   @override
   void initState() {
     super.initState();
-    answeredQuestions = List<int?>.filled(quizData.length, null);
+    _quizDataFuture = _questionService.getQuestions(1); // examId = 1 để test
+    _loadQuizData();
+  }
+
+  Future<void> _loadQuizData() async {
+    try {
+      final data = await _quizDataFuture;
+      setState(() {
+        quizData = data;
+        answeredQuestions = List<int?>.filled(quizData.length, null);
+        isLoading = false;
+        errorMessage = null;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+        errorMessage = e.toString();
+      });
+    }
   }
 
   void _selectAnswer(int index) {
@@ -74,8 +79,12 @@ class _QuizScreenState extends State<QuizScreen> {
   void _nextQuestion() {
     if (currentQuestionIndex < quizData.length - 1) {
       // Kiểm tra đáp án trước khi qua câu tiếp theo
-      if (selectedAnswerIndex ==
-          quizData[currentQuestionIndex]['correctAnswerIndex']) {
+      final currentQuestion = quizData[currentQuestionIndex];
+      final correctOptionIndex = currentQuestion.options.indexWhere(
+        (option) => option.isCorrect,
+      );
+
+      if (selectedAnswerIndex == correctOptionIndex) {
         correctAnswers++;
       }
 
@@ -85,8 +94,12 @@ class _QuizScreenState extends State<QuizScreen> {
       });
     } else {
       // Kiểm tra đáp án câu cuối cùng
-      if (selectedAnswerIndex ==
-          quizData[currentQuestionIndex]['correctAnswerIndex']) {
+      final currentQuestion = quizData[currentQuestionIndex];
+      final correctOptionIndex = currentQuestion.options.indexWhere(
+        (option) => option.isCorrect,
+      );
+
+      if (selectedAnswerIndex == correctOptionIndex) {
         correctAnswers++;
       }
 
@@ -103,7 +116,10 @@ class _QuizScreenState extends State<QuizScreen> {
     // Tính điểm từ tất cả câu đã trả lời
     correctAnswers = 0;
     for (int i = 0; i < quizData.length; i++) {
-      if (answeredQuestions[i] == quizData[i]['correctAnswerIndex']) {
+      final correctOptionIndex = quizData[i].options.indexWhere(
+        (option) => option.isCorrect,
+      );
+      if (answeredQuestions[i] == correctOptionIndex) {
         correctAnswers++;
       }
     }
@@ -154,8 +170,6 @@ class _QuizScreenState extends State<QuizScreen> {
         builder: (context) => QuizResultScreen(
           totalQuestions: quizData.length,
           correctAnswers: correctAnswers,
-          quizData: quizData,
-          answeredQuestions: answeredQuestions,
           onBackHome: () {
             Navigator.pop(context);
           },
@@ -184,7 +198,69 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Hiển thị loading hoặc error
+    if (isLoading) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (errorMessage != null) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+              const SizedBox(height: 16),
+              Text(
+                'Lỗi: $errorMessage',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.red),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    if (quizData.isEmpty) {
+      return Scaffold(
+        backgroundColor: Colors.white,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        body: const Center(child: Text('Không có câu hỏi')),
+      );
+    }
+
     final currentQuestion = quizData[currentQuestionIndex];
+    final correctOptionIndex = currentQuestion.options.indexWhere(
+      (option) => option.isCorrect,
+    );
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -225,7 +301,7 @@ class _QuizScreenState extends State<QuizScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: QuizQuestion(
-                  questionText: currentQuestion['question'],
+                  questionText: currentQuestion.content,
                   imageUrl: null,
                 ),
               ),
@@ -236,12 +312,11 @@ class _QuizScreenState extends State<QuizScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: QuizAnswerOptions(
-                  answers: List<String>.from(
-                    currentQuestion['answers'] as List,
-                  ),
+                  answers: currentQuestion.options
+                      .map((o) => o.content)
+                      .toList(),
                   selectedAnswerIndex: selectedAnswerIndex,
-                  correctAnswerIndex:
-                      currentQuestion['correctAnswerIndex'] as int,
+                  correctAnswerIndex: correctOptionIndex,
                   answered: false,
                   onSelectAnswer: _selectAnswer,
                 ),
