@@ -73,7 +73,7 @@ class ExamService {
 
   Future<List<ExamModel>> getAllExams() async {
     try {
-      final response = await _dio.get('${ApiConstants.exams}/all');
+      final response = await _dio.get('${ApiConstants.exams}/getAll');
       final data = response.data;
 
       if (data is List) {
