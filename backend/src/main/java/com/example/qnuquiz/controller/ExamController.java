@@ -90,8 +90,8 @@ public class ExamController {
 
 	// Lấy danh sách câu hỏi cho bài thi
 	@GetMapping("/{examId}/questions")
-	public ResponseEntity<List<QuestionDTO>> getQuestions(@PathVariable Long examId) {
-		return ResponseEntity.ok(examService.getQuestionsForExam(examId));
+	public ResponseEntity<List<QuestionDTO>> getQuestions(@PathVariable Long examId, @RequestParam(defaultValue = "30") int limit) {
+		return ResponseEntity.ok(examService.getQuestionsForExam(examId, limit));
 	}
 
 	// Xem lại kết quả bài thi
@@ -100,17 +100,6 @@ public class ExamController {
 		return ResponseEntity.ok(examService.reviewExamAttempt(attemptId));
 	}
 
-	@GetMapping("/category/{categoryId}/random")
-	public ResponseEntity<List<QuestionDTO>> getRandomQuestions(@PathVariable Long categoryId,
-			@RequestParam(defaultValue = "25") int limit) {
-		return ResponseEntity.ok(examService.getRandomQuestionsByCategory(categoryId, limit));
-	}
-
-	@GetMapping("/category/{categoryId}")
-	public ResponseEntity<PracticeExamDTO> createPracticeExam(@PathVariable Long categoryId,
-			@RequestParam(defaultValue = "5") int limit) {
-		return ResponseEntity.ok(examService.createPracticeExam(categoryId, limit));
-	}
 
     @GetMapping("/getAll")
     public ResponseEntity<List<ExamDto>> getAllExams() {

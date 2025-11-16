@@ -28,13 +28,9 @@ public interface ExamService {
 
 	void submitEssay(Long attemptId, Long questionId, String answerText);
 
-	List<QuestionDTO> getQuestionsForExam(Long examId);
+	List<QuestionDTO> getQuestionsForExam(Long examId, int limit);
 
 	ExamReviewDTO reviewExamAttempt(Long attemptId);
-
-	List<QuestionDTO> getRandomQuestionsByCategory(Long categoryId, int limit);
-
-	PracticeExamDTO createPracticeExam(Long categoryId, int limit);
 	
 	List<ExamDto> getAllExams();
 
