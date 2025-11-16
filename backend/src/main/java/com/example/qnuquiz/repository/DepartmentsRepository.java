@@ -9,4 +9,3 @@ import com.example.qnuquiz.entity.Departments;
 public interface DepartmentsRepository extends JpaRepository<Departments, Long> {
     Optional<Departments> findById(Long id);
 }
-

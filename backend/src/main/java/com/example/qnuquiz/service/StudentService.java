@@ -1,14 +1,16 @@
 package com.example.qnuquiz.service;
 
 import java.util.List;
-import java.util.UUID;
 
+import com.example.qnuquiz.dto.student.ExamHistoryDto;
 import com.example.qnuquiz.dto.student.StudentDto;
-import com.example.qnuquiz.dto.student.StudentUpdateDto;
+import com.example.qnuquiz.dto.student.StudentProfileUpdateRequest;
 
 public interface StudentService {
 
     List<StudentDto> getAllStudents();
 
-    StudentDto updateStudentProfile(UUID userId, StudentUpdateDto updateDto);
+    StudentDto updateCurrentStudentProfile(StudentProfileUpdateRequest request);
+
+    List<ExamHistoryDto> getExamHistory();
 }

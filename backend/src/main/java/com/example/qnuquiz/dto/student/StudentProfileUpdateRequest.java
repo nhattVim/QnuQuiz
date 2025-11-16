@@ -3,11 +3,12 @@ package com.example.qnuquiz.dto.student;
 import lombok.Data;
 
 @Data
-public class StudentUpdateDto {
+public class StudentProfileUpdateRequest {
+    private String fullName;
     private String email;
     private String phoneNumber;
-    private String fullName;
     private Long departmentId;
     private Long classId;
-    private String password;
+    private String newPassword;
 }
+
