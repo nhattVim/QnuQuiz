@@ -246,7 +246,7 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public List<QuestionDTO> getQuestionsForExam(Long examId, int limit) {
+    public List<QuestionDTO> getQuestionsForExam(Long examId) {
     	Exams exam = examRepository.findById(examId)
     			   .orElseThrow(() -> new RuntimeException("Exam not found"));;
     	
@@ -268,7 +268,7 @@ public class ExamServiceImpl implements ExamService {
 
         // Giới hạn số lượng
         List<Questions> selected = questionsRandom.stream()
-                .limit(limit)
+                .limit(30)
                 .collect(Collectors.toList());
         return selected.stream()
                 .map(examMapper::toQuestionDTO)

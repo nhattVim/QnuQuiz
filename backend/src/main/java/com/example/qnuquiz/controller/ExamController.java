@@ -90,8 +90,8 @@ public class ExamController {
 
 	// Lấy danh sách câu hỏi cho bài thi
 	@GetMapping("/{examId}/questions")
-	public ResponseEntity<List<QuestionDTO>> getQuestions(@PathVariable Long examId, @RequestParam(defaultValue = "30") int limit) {
-		return ResponseEntity.ok(examService.getQuestionsForExam(examId, limit));
+	public ResponseEntity<List<QuestionDTO>> getQuestions(@PathVariable Long examId) {
+		return ResponseEntity.ok(examService.getQuestionsForExam(examId));
 	}
 
 	// Xem lại kết quả bài thi
