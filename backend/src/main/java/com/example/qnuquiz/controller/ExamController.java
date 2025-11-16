@@ -1,12 +1,13 @@
 package com.example.qnuquiz.controller;
 
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,28 +35,44 @@ public class ExamController {
 
 	private final ExamService examService;
 
-    @GetMapping("/user")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ResponseEntity<List<ExamDto>> getExamsByUserId(
-            @RequestParam(value = "sort", required = false, defaultValue = "asc") String sort) {
-        return ResponseEntity.ok(
-                examService.getExamsByUserId(SecurityUtils.getCurrentUserId(), sort));
-    }
+	@GetMapping("/user")
+	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+	public ResponseEntity<List<ExamDto>> getExamsByUserId(
+			@RequestParam(value = "sort", required = false, defaultValue = "asc") String sort) {
+		return ResponseEntity.ok(
+				examService.getExamsByUserId(SecurityUtils.getCurrentUserId(), sort));
+	}
 
-    @PostMapping("/create")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ResponseEntity<ExamDto> createExam(@RequestBody ExamDto dto) {
-        return ResponseEntity.ok(examService.createExam(dto, SecurityUtils.getCurrentUserId()));
-    }
+	@PostMapping("/create")
+	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+	public ResponseEntity<ExamDto> createExam(@RequestBody ExamDto dto) {
+		return ResponseEntity.ok(examService.createExam(dto, SecurityUtils.getCurrentUserId()));
+	}
 
-    @PutMapping("/update")
-    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ResponseEntity<ExamDto> updateExam(@RequestBody ExamDto dto) {
-        return ResponseEntity.ok(examService.updateExam(dto, SecurityUtils.getCurrentUserId()));
-    }
+	@PutMapping("/update/{id}")
+	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+	public ResponseEntity<ExamDto> updateExam(@RequestBody ExamDto dto, @PathVariable Long id) {
+		dto.setId(id);
+		return ResponseEntity.ok(examService.updateExam(dto, SecurityUtils.getCurrentUserId()));
+	}
+
+	@DeleteMapping("/delete/{id}")
+	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
+	public ResponseEntity<Map<String, Object>> deleteExam(@PathVariable Long id) {
+		try {
+			examService.deleteExam(id);
+			return ResponseEntity.ok(Map.of(
+					"success", true,
+					"message", "Xóa thành công"));
+		} catch (Exception e) {
+			return ResponseEntity.internalServerError().body(Map.of(
+					"success", false,
+					"message", "Lỗi khi xóa: " + e.getMessage()));
+		}
+	}
 
 	@PostMapping("/{examId}/start")
-    @PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+	@PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
 	public ResponseEntity<ExamAttemptDto> startExam(@PathVariable Long examId) {
 		return ResponseEntity.ok(examService.startExam(examId, SecurityUtils.getCurrentUserId()));
 	}
@@ -68,9 +85,8 @@ public class ExamController {
 
 	@PostMapping("/{attemptId}/finish")
 	public ResponseEntity<ExamResultDto> finishExam(@PathVariable Long attemptId) {
-	    return ResponseEntity.ok(examService.finishExam(attemptId));
+		return ResponseEntity.ok(examService.finishExam(attemptId));
 	}
-
 
 	// Lấy danh sách câu hỏi cho bài thi
 	@GetMapping("/{examId}/questions")
@@ -95,5 +111,10 @@ public class ExamController {
 			@RequestParam(defaultValue = "5") int limit) {
 		return ResponseEntity.ok(examService.createPracticeExam(categoryId, limit));
 	}
+
+    @GetMapping("/getAll")
+    public ResponseEntity<List<ExamDto>> getAllExams() {
+        return ResponseEntity.ok(examService.getAllExams());
+    }
 
 }

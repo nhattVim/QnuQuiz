@@ -22,7 +22,7 @@ import com.example.qnuquiz.entity.Students;
 import com.example.qnuquiz.entity.Users;
 import com.example.qnuquiz.mapper.StudentMapper;
 import com.example.qnuquiz.repository.ClassesRepository;
-import com.example.qnuquiz.repository.DepartmentsRepository;
+import com.example.qnuquiz.repository.DepartmentRepository;
 import com.example.qnuquiz.repository.ExamAnswerRepository;
 import com.example.qnuquiz.repository.ExamAttemptRepository;
 import com.example.qnuquiz.repository.StudentRepository;
@@ -39,7 +39,7 @@ public class StudentServiceImpl implements StudentService {
     private final StudentMapper studentMapper;
     private final StudentRepository studentRepository;
     private final UserRepository userRepository;
-    private final DepartmentsRepository departmentsRepository;
+    private final DepartmentRepository departmentRepository;
     private final ClassesRepository classesRepository;
     private final PasswordEncoder passwordEncoder;
     private final ExamAttemptRepository examAttemptRepository;
@@ -71,6 +71,7 @@ public class StudentServiceImpl implements StudentService {
         }
 
         UUID currentUserId = SecurityUtils.getCurrentUserId();
+
         if (currentUserId == null) {
             throw new RuntimeException("Không xác định được người dùng hiện tại");
         }
@@ -85,7 +86,7 @@ public class StudentServiceImpl implements StudentService {
         Students student = studentRepository.findByUsers(user)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin sinh viên"));
 
-        Departments department = departmentsRepository.findById(request.getDepartmentId())
+        Departments department = departmentRepository.findById(request.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy khoa"));
 
         Classes classes = classesRepository.findById(request.getClassId())
@@ -117,6 +118,7 @@ public class StudentServiceImpl implements StudentService {
     @Transactional(readOnly = true)
     public List<ExamHistoryDto> getExamHistory() {
         UUID currentUserId = SecurityUtils.getCurrentUserId();
+
         if (currentUserId == null) {
             throw new RuntimeException("Không xác định được người dùng hiện tại");
         }

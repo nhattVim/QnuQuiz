@@ -34,7 +34,7 @@ class ExamService {
   Future<ExamModel> updateExam(ExamModel exam) async {
     try {
       final response = await _dio.put(
-        '${ApiConstants.exams}/update',
+        '${ApiConstants.exams}/update/${(exam.id)}',
         data: exam.toJson(),
       );
       return ExamModel.fromJson(response.data);
@@ -43,4 +43,52 @@ class ExamService {
       throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
     }
   }
+
+  Future<ExamModel> createExam(ExamModel exam) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.exams}/create',
+        data: exam.toJson(),
+      );
+      return ExamModel.fromJson(response.data);
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
+
+  Future<void> deleteExam(int id) async {
+    try {
+      final response = await _dio.delete('${ApiConstants.exams}/delete/$id');
+      if (response.statusCode == 200) {
+        _log.i('Đã xóa câu hỏi');
+      } else {
+        throw Exception('Xóa thất bại: ${response.statusMessage}');
+      }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
+
+  Future<List<ExamModel>> getAllExams() async {
+    try {
+      final response = await _dio.get('${ApiConstants.exams}/getAll');
+      final data = response.data;
+
+      if (data is List) {
+        return data
+            .map((e) => ExamModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Unexpected data format');
+      }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
+
+
+
 }

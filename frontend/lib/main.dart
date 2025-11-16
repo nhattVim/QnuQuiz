@@ -5,7 +5,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 import 'constants/theme_constants.dart';
 import 'providers/app_startup_provider.dart';
@@ -49,11 +48,9 @@ class MyApp extends ConsumerWidget {
           },
           debugShowCheckedModeBanner: false,
           title: 'QnuQuiz',
-          theme: ThemeData(
-            primaryColor: ThemeConstants.kColorPrimary,
-            primarySwatch: ThemeConstants.kColorPrimary,
-            textTheme: GoogleFonts.robotoTextTheme(),
-          ),
+          theme: ThemeConstants.lightTheme,
+          darkTheme: ThemeConstants.darkTheme,
+          themeMode: ThemeMode.system,
           home: startupAsync.when(
             loading: () => const SplashScreen(),
             error: (_, _) => const SplashScreen(),

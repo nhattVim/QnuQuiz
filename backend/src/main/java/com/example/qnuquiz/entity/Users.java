@@ -60,7 +60,7 @@ public class Users implements java.io.Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public Users(UUID id, String username, String passwordHash, String fullName, String email, String role,
+    public Users(UUID id, String username, String passwordHash, String fullName, String email, String phoneNumber, String role,
             String status, Timestamp createdAt, Timestamp updatedAt, Set<Questions> questionses, Set<Exams> examses,
             Set<Feedbacks> feedbacksesForUserId, Set<Students> studentses, Set<Announcements> announcementses,
             Set<Teachers> teacherses, Set<MediaFiles> mediaFileses, Set<Classes> classeses,
@@ -70,6 +70,7 @@ public class Users implements java.io.Serializable {
         this.passwordHash = passwordHash;
         this.fullName = fullName;
         this.email = email;
+        this.phoneNumber = phoneNumber;
         this.role = role;
         this.status = status;
         this.createdAt = createdAt;

@@ -50,23 +50,20 @@ public class ExamServiceImpl implements ExamService {
     private final StudentRepository studentRepository;
 
     private final ExamMapper examMapper;
-    
+
     private final QuestionRepository questionRepository;
     private final ExamAttemptRepository examAttemptRepository;
     private final ExamAnswerRepository examAnswerRepository;
-
-
 
     @Override
     public void submitAnswer(Long attemptId, Long questionId, Long optionId) {
         // 1. Lấy attempt
         ExamAttempts attempt = attemptRepo.findById(attemptId)
-            .orElseThrow(() -> new RuntimeException("Attempt not found: " + attemptId));
+                .orElseThrow(() -> new RuntimeException("Attempt not found: " + attemptId));
 
         // 2. Lấy option
         QuestionOptions option = optionRepo.findById(optionId)
-            .orElseThrow(() -> new RuntimeException("Option not found: " + optionId));
-
+                .orElseThrow(() -> new RuntimeException("Option not found: " + optionId));
 
         // 4. Kiểm tra xem đã có câu trả lời cho attempt + question chưa
         Optional<ExamAnswers> existingOpt = answerRepo.findByExamAttemptsIdAndQuestionsId(attemptId, questionId);
@@ -84,7 +81,7 @@ public class ExamServiceImpl implements ExamService {
             answer.setQuestions(option.getQuestions());
             answer.setQuestionOptions(option);
             answer.setIsCorrect(option.getCorrect());
-            answer.setCreatedAt(new Timestamp(System.currentTimeMillis())); 
+            answer.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         }
 
         // 5. Lưu
@@ -108,13 +105,13 @@ public class ExamServiceImpl implements ExamService {
     @Override
     public ExamResultDto finishExam(Long attemptId) {
         ExamAttempts attempt = attemptRepo.findById(attemptId)
-            .orElseThrow(() -> new RuntimeException("Attempt not found"));
+                .orElseThrow(() -> new RuntimeException("Attempt not found"));
 
         List<ExamAnswers> answers = answerRepo.findByExamAttempts_Id(attemptId);
 
         long correctCount = answers.stream()
-            .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
-            .count();
+                .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
+                .count();
 
         long totalQuestions = answers.size();
 
@@ -124,12 +121,11 @@ public class ExamServiceImpl implements ExamService {
         attemptRepo.save(attempt);
 
         return ExamResultDto.builder()
-            .score(attempt.getScore())
-            .correctCount(correctCount)
-            .totalQuestions(totalQuestions)
-            .build();
+                .score(attempt.getScore())
+                .correctCount(correctCount)
+                .totalQuestions(totalQuestions)
+                .build();
     }
-
 
     @Override
     public ExamAttemptDto startExam(Long examId, UUID userId) {
@@ -137,15 +133,15 @@ public class ExamServiceImpl implements ExamService {
 
         // Lấy exam
         attempt.setExams(examRepository.findById(examId)
-            .orElseThrow(() -> new RuntimeException("Exam not found")));
+                .orElseThrow(() -> new RuntimeException("Exam not found")));
 
         // Lấy user
         Users user = userRepository.findById(userId)
-            .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Tìm student tương ứng với user
         Students student = studentRepository.findByUsers(user)
-            .orElseThrow(() -> new RuntimeException("Student not found"));
+                .orElseThrow(() -> new RuntimeException("Student not found"));
 
         // Gán student vào attempt
         attempt.setStudents(student);
@@ -156,11 +152,11 @@ public class ExamServiceImpl implements ExamService {
         ExamAttempts saved = attemptRepo.save(attempt);
 
         return ExamAttemptDto.builder()
-            .id(saved.getId()) 
-            .examId(saved.getExams().getId()) 
-            .startTime(saved.getStartTime())
-            .submit(saved.isSubmitted())
-            .build();
+                .id(saved.getId())
+                .examId(saved.getExams().getId())
+                .startTime(saved.getStartTime())
+                .submit(saved.isSubmitted())
+                .build();
 
     }
 
@@ -172,7 +168,6 @@ public class ExamServiceImpl implements ExamService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
         exam.setUsers(user);
-        exam.setStatus("DRAFT");
         exam.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         exam.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
@@ -278,7 +273,6 @@ public class ExamServiceImpl implements ExamService {
                 .build();
     }
 
-    
     @Override
     public List<QuestionDTO> getRandomQuestionsByCategory(Long categoryId, int limit) {
         List<Questions> allQuestions = questionRepository.findByQuestionCategoriesId(categoryId);
@@ -300,7 +294,6 @@ public class ExamServiceImpl implements ExamService {
                 .toList();
     }
 
-    
     @Override
     public PracticeExamDTO createPracticeExam(Long categoryId, int limit) {
         List<Questions> allQuestions = questionRepository.findByQuestionCategoriesId(categoryId);
@@ -325,5 +318,16 @@ public class ExamServiceImpl implements ExamService {
                 .build();
     }
 
+    @Override
+    public void deleteExam(Long id) {
+        examRepository.deleteById(id);
+    }
 
+    @Override
+    public List<ExamDto> getAllExams() {
+        List<Exams> exams = examRepository.findAll();
+        return examMapper.toDtoList(exams);
+    }
+
+    
 }
