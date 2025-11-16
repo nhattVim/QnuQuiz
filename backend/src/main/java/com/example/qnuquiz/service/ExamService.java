@@ -7,7 +7,6 @@ import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
-import com.example.qnuquiz.dto.exam.PracticeExamDTO;
 import com.example.qnuquiz.dto.exam.QuestionDTO;
 
 public interface ExamService {
@@ -31,10 +30,6 @@ public interface ExamService {
 	List<QuestionDTO> getQuestionsForExam(Long examId);
 
 	ExamReviewDTO reviewExamAttempt(Long attemptId);
-
-	List<QuestionDTO> getRandomQuestionsByCategory(Long categoryId, int limit);
-
-	PracticeExamDTO createPracticeExam(Long categoryId, int limit);
 	
 	List<ExamDto> getAllExams();
 

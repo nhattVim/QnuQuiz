@@ -100,17 +100,6 @@ public class ExamController {
 		return ResponseEntity.ok(examService.reviewExamAttempt(attemptId));
 	}
 
-	@GetMapping("/category/{categoryId}/random")
-	public ResponseEntity<List<QuestionDTO>> getRandomQuestions(@PathVariable Long categoryId,
-			@RequestParam(defaultValue = "25") int limit) {
-		return ResponseEntity.ok(examService.getRandomQuestionsByCategory(categoryId, limit));
-	}
-
-	@GetMapping("/category/{categoryId}")
-	public ResponseEntity<PracticeExamDTO> createPracticeExam(@PathVariable Long categoryId,
-			@RequestParam(defaultValue = "5") int limit) {
-		return ResponseEntity.ok(examService.createPracticeExam(categoryId, limit));
-	}
 
     @GetMapping("/getAll")
     public ResponseEntity<List<ExamDto>> getAllExams() {
