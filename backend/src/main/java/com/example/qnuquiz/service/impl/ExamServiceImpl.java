@@ -3,6 +3,7 @@ package com.example.qnuquiz.service.impl;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -16,7 +17,6 @@ import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
-import com.example.qnuquiz.dto.exam.PracticeExamDTO;
 import com.example.qnuquiz.dto.exam.QuestionDTO;
 import com.example.qnuquiz.entity.ExamAnswers;
 import com.example.qnuquiz.entity.ExamAttempts;
@@ -246,9 +246,31 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public List<QuestionDTO> getQuestionsForExam(Long examId) {
+    public List<QuestionDTO> getQuestionsForExam(Long examId, int limit) {
+    	Exams exam = examRepository.findById(examId)
+    			   .orElseThrow(() -> new RuntimeException("Exam not found"));;
+    	
         List<Questions> questions = questionRepository.findByExamsId(examId);
-        return questions.stream()
+        if (questions.isEmpty()) {
+            throw new RuntimeException("No questions found for this exam");
+        }
+        
+    	if(!exam.isRandom()){
+            return questions.stream()
+                    .map(examMapper::toQuestionDTO)
+                    .toList();
+    	}
+    			    
+        List<Questions> questionsRandom = new ArrayList<>(questions); 
+        
+        // Shuffle danh sách
+        Collections.shuffle(questionsRandom);
+
+        // Giới hạn số lượng
+        List<Questions> selected = questionsRandom.stream()
+                .limit(limit)
+                .collect(Collectors.toList());
+        return selected.stream()
                 .map(examMapper::toQuestionDTO)
                 .toList();
     }
@@ -273,50 +295,6 @@ public class ExamServiceImpl implements ExamService {
                 .build();
     }
 
-    @Override
-    public List<QuestionDTO> getRandomQuestionsByCategory(Long categoryId, int limit) {
-        List<Questions> allQuestions = questionRepository.findByQuestionCategoriesId(categoryId);
-
-        if (allQuestions.isEmpty()) {
-            throw new RuntimeException("No questions found for this category");
-        }
-
-        // Shuffle danh sách
-        Collections.shuffle(allQuestions);
-
-        // Giới hạn số lượng
-        List<Questions> selected = allQuestions.stream()
-                .limit(limit)
-                .toList();
-
-        return selected.stream()
-                .map(examMapper::toQuestionDTO)
-                .toList();
-    }
-
-    @Override
-    public PracticeExamDTO createPracticeExam(Long categoryId, int limit) {
-        List<Questions> allQuestions = questionRepository.findByQuestionCategoriesId(categoryId);
-
-        if (allQuestions.isEmpty()) {
-            throw new RuntimeException("No questions found for this category");
-        }
-
-        Collections.shuffle(allQuestions);
-        List<Questions> selected = allQuestions.stream()
-                .limit(limit)
-                .toList();
-
-        List<QuestionDTO> questionDTOs = selected.stream()
-                .map(examMapper::toQuestionDTO)
-                .toList();
-
-        return PracticeExamDTO.builder()
-                .title("Practice Test - Category " + categoryId)
-                .categoryId(categoryId)
-                .questions(questionDTOs)
-                .build();
-    }
 
     @Override
     public void deleteExam(Long id) {
