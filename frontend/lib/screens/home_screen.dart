@@ -6,6 +6,7 @@ import 'package:frontend/pages/leaderboard_page.dart';
 import 'package:frontend/pages/profile_page.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/pages/my_exam_page.dart';
+import 'package:frontend/pages/category/category_page.dart';
 import '../providers/user_provider.dart';
 
 const dashboardItem = NavItem(
@@ -38,8 +39,20 @@ const profileItem = NavItem(
   label: "Profile",
 );
 
+const categoryItem = NavItem(
+  page: CategoryPage(),
+  icon: Icons.category_rounded,
+  label: "Chủ đề",
+);
+
 const adminNav = [examItem, dashboardItem, profileItem];
-const studentNav = [dashboardItem, leaderboardItem, faqItem, profileItem];
+const studentNav = [
+  dashboardItem,
+  categoryItem,
+  leaderboardItem,
+  faqItem,
+  profileItem,
+];
 const teacherNav = [examItem, dashboardItem, leaderboardItem, profileItem];
 
 class HomeScreen extends ConsumerStatefulWidget {
