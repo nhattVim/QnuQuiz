@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/screens/login_screen.dart';
+import 'package:frontend/screens/update_profile_screen.dart';
 import '../providers/user_provider.dart';
 
 class ProfilePage extends ConsumerWidget {
@@ -49,6 +50,34 @@ class ProfilePage extends ConsumerWidget {
                     const SizedBox(height: 12),
                     _buildInfoCard('Vai trò', user.role, Icons.badge),
 
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          final result = await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const UpdateProfileScreen(),
+                            ),
+                          );
+                          // If result is true, profile was updated successfully
+                          if (result == true && context.mounted) {
+                            // Refresh is handled by the provider update
+                          }
+                        },
+                        icon: const Icon(Icons.edit),
+                        label: const Text('Chỉnh sửa hồ sơ'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
