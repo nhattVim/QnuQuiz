@@ -16,5 +16,10 @@ public interface ClassMapper {
 
     List<ClassDto> toDtoList(List<Classes> classes);
 
+    @Mapping(target = "users", ignore = true)
+    @Mapping(target = "departments", ignore = true)
+    @Mapping(target = "createdAt", ignore = true)
+    @Mapping(target = "announcementses", ignore = true)
+    @Mapping(target = "studentses", ignore = true)
     Classes toEntity(ClassDto classDto);
 }

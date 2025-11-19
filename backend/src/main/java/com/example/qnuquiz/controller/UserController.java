@@ -27,4 +27,10 @@ public class UserController {
     public ResponseEntity<List<UserDto>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
+
+    @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER', 'STUDENT')")
+    @GetMapping("/me")
+    public ResponseEntity<Object> getCurrentUser() {
+        return ResponseEntity.ok(userService.getCurrentUserProfile());
+    }
 }

@@ -9,7 +9,4 @@ import com.example.qnuquiz.entity.Questions;
 public interface QuestionRepository extends JpaRepository<Questions, Long> {
 
     List<Questions> findByExamsId(Long id);
-
-    List<Questions> findByQuestionCategoriesId(Long categoryId);
-
 }

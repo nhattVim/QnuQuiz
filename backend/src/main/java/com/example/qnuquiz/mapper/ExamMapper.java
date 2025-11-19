@@ -22,7 +22,6 @@ import com.example.qnuquiz.entity.Questions;
 public interface ExamMapper {
 
 	@Mapping(target = "submit", ignore = true)
-	
 	ExamAttemptDto toDto(ExamAttempts attempt);
 
 	QuestionExamDto toQuestionDto(Questions q, List<QuestionOptions> options, String studentAnswer);
@@ -35,6 +34,10 @@ public interface ExamMapper {
 
 	List<ExamDto> toListDto(List<Exams> entity);
 
+	QuestionDTO toQuestionDTO(Questions entity);
+
+	ExamAnswerReviewDTO toExamAnswerReviewDTO(ExamAnswers entity);
+
 	@Mapping(target = "createdAt", ignore = true)
 	@Mapping(target = "examAttemptses", ignore = true)
 	@Mapping(target = "leaderboards", ignore = true)
@@ -42,9 +45,6 @@ public interface ExamMapper {
 	@Mapping(target = "users", ignore = true)
 	@Mapping(target = "questionses", ignore = true)
 	Exams toEntity(ExamDto dto);
-	
-    QuestionDTO toQuestionDTO(Questions entity);
-    ExamAnswerReviewDTO toExamAnswerReviewDTO(ExamAnswers entity);
-    List<ExamDto> toDtoList(List<Exams> exams);
 
+	List<ExamDto> toDtoList(List<Exams> exams);
 }

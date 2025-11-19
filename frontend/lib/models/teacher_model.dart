@@ -1,45 +1,45 @@
-class StudentModel {
+class TeacherModel {
   final int id;
   final String? username;
   final String? fullName;
   final String? email;
   final String? phoneNumber;
-  final int? classId;
   final int? departmentId;
-  final double? gpa;
+  final String? teacherCode;
+  final String? title;
 
-  StudentModel({
+  TeacherModel({
     required this.id,
     this.username,
-    this.gpa,
     this.fullName,
     this.email,
     this.phoneNumber,
     this.departmentId,
-    this.classId,
+    this.teacherCode,
+    this.title,
   });
 
-  factory StudentModel.fromJson(Map<String, dynamic> json) {
-    return StudentModel(
+  factory TeacherModel.fromJson(Map<String, dynamic> json) {
+    return TeacherModel(
       id: json['id'] ?? 0,
       username: json['username'],
-      gpa: json['gpa']?.toDouble(),
       fullName: json['fullName'],
       email: json['email'],
       phoneNumber: json['phoneNumber'],
       departmentId: json['departmentId'],
-      classId: json['classId'],
+      teacherCode: json['teacherCode'],
+      title: json['title'],
     );
   }
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'username': username,
-    'gpa': gpa,
     'fullName': fullName,
     'email': email,
     'phoneNumber': phoneNumber,
     'departmentId': departmentId,
-    'classId': classId,
+    'teacherCode': teacherCode,
+    'title': title,
   };
 }

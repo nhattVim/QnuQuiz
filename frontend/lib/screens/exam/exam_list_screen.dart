@@ -49,7 +49,9 @@ class _ExamListScreenState extends State<ExamListScreen> {
             return const Center(child: Text("Không có bài kiểm tra"));
           }
 
-          final exams = snapshot.data!;
+          final data = snapshot.data ?? [];
+
+          final exams = data.where((e) => e.isPublished).toList();
 
           return Column(
             children: [
@@ -81,7 +83,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
                 child: ListView.separated(
                   padding: const EdgeInsets.all(16),
                   itemCount: exams.length,
-                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  separatorBuilder: (_, _) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     return ExamCard(
                       exam: exams[index],

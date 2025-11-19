@@ -12,10 +12,8 @@ import com.example.qnuquiz.entity.Students;
 public interface StudentMapper {
 
     @Mapping(source = "classes.id", target = "classId")
-    @Mapping(source = "classes.name", target = "className")
     @Mapping(source = "departments.id", target = "departmentId")
-    @Mapping(source = "departments.name", target = "departmentName")
-    @Mapping(source = "users.username", target = "userName")
+    @Mapping(source = "users.username", target = "username")
     @Mapping(source = "users.fullName", target = "fullName")
     @Mapping(source = "users.email", target = "email")
     @Mapping(source = "users.phoneNumber", target = "phoneNumber")

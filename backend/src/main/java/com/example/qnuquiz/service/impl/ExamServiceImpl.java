@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.qnuquiz.dto.exam.ExamAnswerReviewDTO;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
+import com.example.qnuquiz.dto.exam.ExamCategoryDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
@@ -33,6 +34,9 @@ import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.repository.StudentRepository;
 import com.example.qnuquiz.repository.UserRepository;
+import com.example.qnuquiz.repository.ExamCategoryRepository;
+import com.example.qnuquiz.mapper.ExamCategoryMapper;
+import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.ExamService;
 
 import lombok.AllArgsConstructor;
@@ -48,7 +52,9 @@ public class ExamServiceImpl implements ExamService {
     private final QuestionRepository questionRepo;
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
-
+    private final ExamCategoryRepository examCategoryRepository;
+    
+    private final ExamCategoryMapper examCategoryMapper;
     private final ExamMapper examMapper;
 
     private final QuestionRepository questionRepository;
@@ -128,16 +134,13 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public ExamAttemptDto startExam(Long examId, UUID userId) {
+    public ExamAttemptDto startExam(Long examId) {
+        Users user = getCurrentAuthenticatedUser();
         ExamAttempts attempt = new ExamAttempts();
 
         // Lấy exam
         attempt.setExams(examRepository.findById(examId)
                 .orElseThrow(() -> new RuntimeException("Exam not found")));
-
-        // Lấy user
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
         // Tìm student tương ứng với user
         Students student = studentRepository.findByUsers(user)
@@ -161,11 +164,9 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public ExamDto createExam(ExamDto dto, UUID userId) {
+    public ExamDto createExam(ExamDto dto) {
+        Users user = getCurrentAuthenticatedUser();
         Exams exam = examMapper.toEntity(dto);
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
         exam.setUsers(user);
         exam.setCreatedAt(new Timestamp(System.currentTimeMillis()));
@@ -176,8 +177,9 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public List<ExamDto> getExamsByUserId(UUID userId, String sort) {
-        List<Exams> exams = examRepository.findByUsers_Id(userId);
+    public List<ExamDto> getExamsByUserId(String sort) {
+        Users user = getCurrentAuthenticatedUser();
+        List<Exams> exams = examRepository.findByUsers_Id(user.getId());
 
         if ("desc".equalsIgnoreCase(sort)) {
             exams.sort((a, b) -> b.getCreatedAt().compareTo(a.getCreatedAt()));
@@ -195,12 +197,11 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
-    public ExamDto updateExam(ExamDto dto, UUID userId) {
+    public ExamDto updateExam(ExamDto dto) {
+        Users user = getCurrentAuthenticatedUser();
+
         Exams exam = examRepository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("Exam not found"));
-
-        Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
 
         exam.setTitle(dto.getTitle());
         exam.setDescription(dto.getDescription());
@@ -247,22 +248,23 @@ public class ExamServiceImpl implements ExamService {
 
     @Override
     public List<QuestionDTO> getQuestionsForExam(Long examId) {
-    	Exams exam = examRepository.findById(examId)
-    			   .orElseThrow(() -> new RuntimeException("Exam not found"));;
-    	
+        Exams exam = examRepository.findById(examId)
+                .orElseThrow(() -> new RuntimeException("Exam not found"));
+        ;
+
         List<Questions> questions = questionRepository.findByExamsId(examId);
         if (questions.isEmpty()) {
             throw new RuntimeException("No questions found for this exam");
         }
-        
-    	if(!exam.isRandom()){
+
+        if (!exam.isRandom()) {
             return questions.stream()
                     .map(examMapper::toQuestionDTO)
                     .toList();
-    	}
-    			    
-        List<Questions> questionsRandom = new ArrayList<>(questions); 
-        
+        }
+
+        List<Questions> questionsRandom = new ArrayList<>(questions);
+
         // Shuffle danh sách
         Collections.shuffle(questionsRandom);
 
@@ -295,7 +297,6 @@ public class ExamServiceImpl implements ExamService {
                 .build();
     }
 
-
     @Override
     public void deleteExam(Long id) {
         examRepository.deleteById(id);
@@ -307,5 +308,32 @@ public class ExamServiceImpl implements ExamService {
         return examMapper.toDtoList(exams);
     }
 
-    
+    private Users getCurrentAuthenticatedUser() {
+        UUID userId = SecurityUtils.getCurrentUserId();
+        userId = userId == null ? null : userId;
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    @Override public List<ExamCategoryDto> getAllCategories() {
+        return examCategoryMapper.toDtoList(examCategoryRepository.findAll());
+    }
+
+    @Override
+    public List<ExamDto> getExamsByCategory(Long categoryId) {
+
+        examCategoryRepository.findById(categoryId)
+            .orElseThrow(() -> new RuntimeException("Exam category not found"));
+
+        List<Exams> exams = examRepository.findByExamCategories_Id(categoryId);
+
+        return exams.stream()
+            .map(exam -> {
+                ExamDto dto = examMapper.toDto(exam);
+                dto.setStatus(getComputedStatus(exam));
+                return dto;
+            })
+            .toList();
+}
+
 }

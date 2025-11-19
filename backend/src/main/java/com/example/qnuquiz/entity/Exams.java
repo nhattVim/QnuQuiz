@@ -2,7 +2,7 @@ package com.example.qnuquiz.entity;
 
 // default package
 
-// Generated Nov 4, 2025, 9:33:18 PM by Hibernate Tools 7.1.3.Final
+// Generated Nov 19, 2025, 9:07:13 AM by Hibernate Tools 7.1.3.Final
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,6 +29,7 @@ public class Exams implements java.io.Serializable {
 
     private long id;
     private Users users;
+    private ExamCategories examCategories;
     private String title;
     private String description;
     private Timestamp startTime;
@@ -54,11 +55,13 @@ public class Exams implements java.io.Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public Exams(long id, Users users, String title, String description, Timestamp startTime, Timestamp endTime,
-            boolean random, Integer durationMinutes, String status, Timestamp createdAt, Timestamp updatedAt,
-            Set<Questions> questionses, Set<ExamAttempts> examAttemptses, Set<Leaderboard> leaderboards) {
+    public Exams(long id, Users users, ExamCategories examCategories, String title, String description,
+            Timestamp startTime, Timestamp endTime, boolean random, Integer durationMinutes, String status,
+            Timestamp createdAt, Timestamp updatedAt, Set<Questions> questionses, Set<ExamAttempts> examAttemptses,
+            Set<Leaderboard> leaderboards) {
         this.id = id;
         this.users = users;
+        this.examCategories = examCategories;
         this.title = title;
         this.description = description;
         this.startTime = startTime;
@@ -92,6 +95,16 @@ public class Exams implements java.io.Serializable {
 
     public void setUsers(Users users) {
         this.users = users;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    public ExamCategories getExamCategories() {
+        return this.examCategories;
+    }
+
+    public void setExamCategories(ExamCategories examCategories) {
+        this.examCategories = examCategories;
     }
 
     @Column(name = "title", nullable = false, length = 256)
