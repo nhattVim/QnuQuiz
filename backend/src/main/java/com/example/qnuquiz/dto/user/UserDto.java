@@ -3,11 +3,13 @@ package com.example.qnuquiz.dto.user;
 import java.sql.Timestamp;
 import java.util.UUID;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
+@AllArgsConstructor
 public class UserDto {
 
     private UUID id;
