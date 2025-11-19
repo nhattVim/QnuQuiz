@@ -31,6 +31,7 @@ public class Users implements java.io.Serializable {
     private String passwordHash;
     private String fullName;
     private String email;
+    private String phoneNumber;
     private String role;
     private String status;
     private Timestamp createdAt;
@@ -59,7 +60,7 @@ public class Users implements java.io.Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public Users(UUID id, String username, String passwordHash, String fullName, String email, String role,
+    public Users(UUID id, String username, String passwordHash, String fullName, String email, String phoneNumber, String role,
             String status, Timestamp createdAt, Timestamp updatedAt, Set<Questions> questionses, Set<Exams> examses,
             Set<Feedbacks> feedbacksesForUserId, Set<Students> studentses, Set<Announcements> announcementses,
             Set<Teachers> teacherses, Set<MediaFiles> mediaFileses, Set<Classes> classeses,
@@ -69,6 +70,7 @@ public class Users implements java.io.Serializable {
         this.passwordHash = passwordHash;
         this.fullName = fullName;
         this.email = email;
+        this.phoneNumber = phoneNumber;
         this.role = role;
         this.status = status;
         this.createdAt = createdAt;
@@ -129,6 +131,15 @@ public class Users implements java.io.Serializable {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @Column(name = "phone_number", length = 32)
+    public String getPhoneNumber() {
+        return this.phoneNumber;
+    }
+
+    public void setPhoneNumber(String phoneNumber) {
+        this.phoneNumber = phoneNumber;
     }
 
     @Column(name = "role", nullable = false)

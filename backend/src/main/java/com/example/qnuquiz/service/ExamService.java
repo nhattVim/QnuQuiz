@@ -7,7 +7,6 @@ import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
-import com.example.qnuquiz.dto.exam.PracticeExamDTO;
 import com.example.qnuquiz.dto.exam.QuestionDTO;
 
 public interface ExamService {
@@ -18,6 +17,8 @@ public interface ExamService {
 
 	ExamDto updateExam(ExamDto dto, UUID userId);
 
+	void deleteExam(Long id);
+
 	ExamAttemptDto startExam(Long examId, UUID userId);
 
 	void submitAnswer(Long attemptId, Long questionId, Long optionId);
@@ -26,12 +27,10 @@ public interface ExamService {
 
 	void submitEssay(Long attemptId, Long questionId, String answerText);
 
-    List<QuestionDTO> getQuestionsForExam(Long examId);
-    
-    ExamReviewDTO reviewExamAttempt(Long attemptId);
-    
-    List<QuestionDTO> getRandomQuestionsByCategory(Long categoryId, int limit);
+	List<QuestionDTO> getQuestionsForExam(Long examId);
 
-    PracticeExamDTO createPracticeExam(Long categoryId, int limit);
+	ExamReviewDTO reviewExamAttempt(Long attemptId);
+	
+	List<ExamDto> getAllExams();
 
 }

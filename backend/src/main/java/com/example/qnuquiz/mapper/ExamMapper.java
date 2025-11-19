@@ -41,10 +41,10 @@ public interface ExamMapper {
 	@Mapping(target = "updatedAt", ignore = true)
 	@Mapping(target = "users", ignore = true)
 	@Mapping(target = "questionses", ignore = true)
-	@Mapping(target = "status", ignore = true)
 	Exams toEntity(ExamDto dto);
 	
     QuestionDTO toQuestionDTO(Questions entity);
     ExamAnswerReviewDTO toExamAnswerReviewDTO(ExamAnswers entity);
+    List<ExamDto> toDtoList(List<Exams> exams);
 
 }
