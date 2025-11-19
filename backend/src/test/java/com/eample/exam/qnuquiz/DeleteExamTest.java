@@ -1,4 +1,4 @@
-package com.eample.exam;
+package com.eample.exam.qnuquiz;
 
 import static org.mockito.Mockito.verify;
 
