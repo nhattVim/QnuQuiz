@@ -8,25 +8,6 @@ class StudentService {
   final _log = Logger();
   final Dio _dio = ApiService().dio;
 
-  Future<StudentModel> getCurrentStudent() async {
-    try {
-      // Get current student from the list (assuming first one is current user)
-      // TODO: Replace with actual endpoint when available: /api/students/me
-      final response = await _dio.get('${ApiConstants.students}');
-      final data = response.data;
-
-      if (data is List && data.isNotEmpty) {
-        return StudentModel.fromJson(data[0] as Map<String, dynamic>);
-      }
-      throw Exception('Không tìm thấy thông tin sinh viên');
-    } on DioException catch (e) {
-      _log.e(e.response?.data ?? e.message);
-      throw Exception(
-        e.response?.data?['message'] ?? 'Lỗi lấy thông tin sinh viên',
-      );
-    }
-  }
-
   Future<StudentModel> updateProfile({
     required String fullName,
     required String email,

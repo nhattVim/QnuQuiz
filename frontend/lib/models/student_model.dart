@@ -1,20 +1,16 @@
 class StudentModel {
   final int id;
-  final String? className;
-  final String? userName;
-  final String? departmentName;
-  final double? gpa;
+  final String? username;
   final String? fullName;
   final String? email;
   final String? phoneNumber;
-  final int? departmentId;
   final int? classId;
+  final int? departmentId;
+  final double? gpa;
 
   StudentModel({
     required this.id,
-    this.className,
-    this.userName,
-    this.departmentName,
+    this.username,
     this.gpa,
     this.fullName,
     this.email,
@@ -26,9 +22,7 @@ class StudentModel {
   factory StudentModel.fromJson(Map<String, dynamic> json) {
     return StudentModel(
       id: json['id'] ?? 0,
-      className: json['className'],
-      userName: json['userName'],
-      departmentName: json['departmentName'],
+      username: json['username'],
       gpa: json['gpa']?.toDouble(),
       fullName: json['fullName'],
       email: json['email'],
@@ -40,9 +34,7 @@ class StudentModel {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'className': className,
-    'userName': userName,
-    'departmentName': departmentName,
+    'username': username,
     'gpa': gpa,
     'fullName': fullName,
     'email': email,
@@ -51,4 +43,3 @@ class StudentModel {
     'classId': classId,
   };
 }
-

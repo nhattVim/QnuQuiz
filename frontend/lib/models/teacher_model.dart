@@ -1,23 +1,32 @@
 class TeacherModel {
   final int id;
-  final String? userName;
-  final String? departmentName;
+  final String? username;
+  final String? fullName;
+  final String? email;
+  final String? phoneNumber;
+  final int? departmentId;
   final String? teacherCode;
   final String? title;
 
   TeacherModel({
     required this.id,
-    required this.userName,
-    required this.departmentName,
-    required this.teacherCode,
-    required this.title,
+    this.username,
+    this.fullName,
+    this.email,
+    this.phoneNumber,
+    this.departmentId,
+    this.teacherCode,
+    this.title,
   });
 
   factory TeacherModel.fromJson(Map<String, dynamic> json) {
     return TeacherModel(
       id: json['id'] ?? 0,
-      userName: json['userName'],
-      departmentName: json['departmentName'],
+      username: json['username'],
+      fullName: json['fullName'],
+      email: json['email'],
+      phoneNumber: json['phoneNumber'],
+      departmentId: json['departmentId'],
       teacherCode: json['teacherCode'],
       title: json['title'],
     );
@@ -25,8 +34,11 @@ class TeacherModel {
 
   Map<String, dynamic> toJson() => {
     'id': id,
-    'userName': userName,
-    'departmentName': departmentName,
+    'username': username,
+    'fullName': fullName,
+    'email': email,
+    'phoneNumber': phoneNumber,
+    'departmentId': departmentId,
     'teacherCode': teacherCode,
     'title': title,
   };

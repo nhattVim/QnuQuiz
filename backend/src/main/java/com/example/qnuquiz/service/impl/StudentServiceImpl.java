@@ -52,7 +52,7 @@ public class StudentServiceImpl implements StudentService {
 
     @Override
     @Transactional
-    public StudentDto updateCurrentStudentProfile(StudentProfileUpdateRequest request) {
+    public StudentDto updateCurrentStudentProfile(StudentDto request) {
         if (request == null) {
             throw new RuntimeException("Dữ liệu cập nhật không hợp lệ");
         }
@@ -64,10 +64,6 @@ public class StudentServiceImpl implements StudentService {
 
         if (request.getDepartmentId() == null || request.getClassId() == null) {
             throw new RuntimeException("Vui lòng chọn khoa và lớp");
-        }
-
-        if (StringUtils.hasText(request.getNewPassword()) && request.getNewPassword().length() < 6) {
-            throw new RuntimeException("Mật khẩu phải có ít nhất 6 ký tự");
         }
 
         UUID currentUserId = SecurityUtils.getCurrentUserId();
@@ -100,10 +96,6 @@ public class StudentServiceImpl implements StudentService {
         user.setEmail(request.getEmail());
         user.setPhoneNumber(request.getPhoneNumber());
         user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-
-        if (StringUtils.hasText(request.getNewPassword())) {
-            user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
-        }
 
         student.setDepartments(department);
         student.setClasses(classes);

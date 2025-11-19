@@ -34,7 +34,7 @@ public class StudentController {
     @PutMapping("/me/profile")
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<StudentDto> updateCurrentStudentProfile(
-            @RequestBody StudentProfileUpdateRequest request) {
+            @RequestBody StudentDto request) {
         return ResponseEntity.ok(studentService.updateCurrentStudentProfile(request));
     }
 

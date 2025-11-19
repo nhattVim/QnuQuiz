@@ -28,7 +28,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   final _usernameController = TextEditingController();
   final _phoneNumberController = TextEditingController();
   final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
   final _titleController = TextEditingController();
   final _teacherCodeController = TextEditingController();
 
@@ -56,11 +55,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     final user = ref.read(userProvider);
     if (user == null) return;
 
-    _fullNameController.text = user.fullName ?? '';
-    _usernameController.text = user.username;
-    _phoneNumberController.text = user.phoneNumber ?? '';
-    _emailController.text = user.email;
-
     await _loadDepartments();
 
     try {
@@ -68,6 +62,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       setState(() {
         _profileData = profile;
       });
+
+      _fullNameController.text = _profileData.fullName ?? '';
+      _usernameController.text = _profileData.username ?? '';
+      _phoneNumberController.text = _profileData.phoneNumber ?? '';
+      _emailController.text = _profileData.email ?? '';
 
       if (profile is StudentModel) {
         if (profile.departmentId != null) {
@@ -84,16 +83,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       } else if (profile is TeacherModel) {
         _titleController.text = profile.title ?? '';
         _teacherCodeController.text = profile.teacherCode ?? '';
-        if (profile.departmentName != null) {
-          final department = _departments.firstWhere(
-            (d) => d.name == profile.departmentName,
-            orElse: () => DepartmentModel(id: -1, name: ''),
-          );
-          if (department.id != -1) {
-            setState(() {
-              _selectedDepartmentId = department.id;
-            });
-          }
+        if (profile.departmentId != null) {
+          setState(() {
+            _selectedDepartmentId = profile.departmentId;
+          });
         }
       }
     } catch (e) {
@@ -132,7 +125,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     _usernameController.dispose();
     _phoneNumberController.dispose();
     _emailController.dispose();
-    _passwordController.dispose();
     _titleController.dispose();
     _teacherCodeController.dispose();
     super.dispose();
@@ -163,9 +155,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             phoneNumber: _phoneNumberController.text.trim(),
             departmentId: _selectedDepartmentId,
             classId: _selectedClassId,
-            newPassword: _passwordController.text.isNotEmpty
-                ? _passwordController.text
-                : null,
           );
           break;
         case 'TEACHER':
@@ -178,9 +167,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             phoneNumber: _phoneNumberController.text.trim(),
             departmentId: _selectedDepartmentId,
             title: _titleController.text.trim(),
-            newPassword: _passwordController.text.isNotEmpty
-                ? _passwordController.text
-                : null,
           );
           break;
         case 'ADMIN':
@@ -188,9 +174,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             fullName: _fullNameController.text.trim(),
             email: _emailController.text.trim(),
             phoneNumber: _phoneNumberController.text.trim(),
-            newPassword: _passwordController.text.isNotEmpty
-                ? _passwordController.text
-                : null,
           );
           break;
       }
@@ -345,27 +328,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     const SizedBox(height: 16),
 
                     // Role-specific fields
-                    if (user.role == 'TEACHER') ...[
-                      _buildTextFormField(
-                        _teacherCodeController,
-                        'Mã giảng viên',
-                        Icons.qr_code_scanner_outlined,
-                        enabled: false,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildTextFormField(
-                        _titleController,
-                        'Chức danh',
-                        Icons.school_outlined,
-                      ),
-                      const SizedBox(height: 16),
-                      _buildDepartmentDropdown(),
-                    ],
-                    if (user.role == 'STUDENT') ...[
-                      _buildDepartmentDropdown(),
-                      const SizedBox(height: 16),
-                      _buildClassDropdown(),
-                    ],
+                    _buildRoleSpecificFields(user),
 
                     const SizedBox(height: 16),
                     // Save Button
@@ -477,7 +440,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         border: Border.all(color: Colors.grey[300]!),
       ),
       child: DropdownButtonFormField<int>(
-        value: _selectedDepartmentId,
+        initialValue: _selectedDepartmentId,
         decoration: const InputDecoration(
           labelText: 'Khoa',
           prefixIcon: Icon(Icons.school_outlined),
@@ -500,6 +463,40 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 
+  Widget _buildRoleSpecificFields(UserModel user) {
+    switch (user.role) {
+      case 'TEACHER':
+        return Column(
+          children: [
+            _buildTextFormField(
+              _teacherCodeController,
+              'Mã giảng viên',
+              Icons.qr_code_scanner_outlined,
+              enabled: false,
+            ),
+            const SizedBox(height: 16),
+            _buildTextFormField(
+              _titleController,
+              'Chức danh',
+              Icons.school_outlined,
+            ),
+            const SizedBox(height: 16),
+            _buildDepartmentDropdown(),
+          ],
+        );
+      case 'STUDENT':
+        return Column(
+          children: [
+            _buildDepartmentDropdown(),
+            const SizedBox(height: 16),
+            _buildClassDropdown(),
+          ],
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
   Widget _buildClassDropdown() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -509,7 +506,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         border: Border.all(color: Colors.grey[300]!),
       ),
       child: DropdownButtonFormField<int>(
-        value: _selectedClassId,
+        initialValue: _selectedClassId,
         decoration: const InputDecoration(
           labelText: 'Lớp',
           prefixIcon: Icon(Icons.class_outlined),
@@ -530,4 +527,3 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     );
   }
 }
-
