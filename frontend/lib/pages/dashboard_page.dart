@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'widgets/greeting_section.dart';
-import 'widgets/search_bar.dart';
-import 'widgets/action_card.dart';
-import 'widgets/category_section.dart';
-import 'widgets/recent_section.dart';
+import 'package:frontend/widgets/dashboard/action_card.dart';
+import 'package:frontend/widgets/dashboard/category_section.dart';
+import 'package:frontend/widgets/dashboard/greeting_section.dart';
+import 'package:frontend/widgets/dashboard/recent_section.dart';
+import 'package:frontend/widgets/dashboard/search_bar.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});

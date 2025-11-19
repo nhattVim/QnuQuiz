@@ -14,4 +14,6 @@ public interface UserService {
     List<UserDto> getAllUsers();
 
     Optional<Users> findByUsername(String username);
+
+    Object getCurrentUserProfile();
 }

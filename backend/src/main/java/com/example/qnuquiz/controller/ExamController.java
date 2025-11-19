@@ -14,18 +14,16 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
-import com.example.qnuquiz.dto.exam.PracticeExamDTO;
 import com.example.qnuquiz.dto.exam.QuestionDTO;
-import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.ExamService;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @EnableMethodSecurity
@@ -40,20 +38,20 @@ public class ExamController {
 	public ResponseEntity<List<ExamDto>> getExamsByUserId(
 			@RequestParam(value = "sort", required = false, defaultValue = "asc") String sort) {
 		return ResponseEntity.ok(
-				examService.getExamsByUserId(SecurityUtils.getCurrentUserId(), sort));
+				examService.getExamsByUserId(sort));
 	}
 
 	@PostMapping("/create")
 	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
 	public ResponseEntity<ExamDto> createExam(@RequestBody ExamDto dto) {
-		return ResponseEntity.ok(examService.createExam(dto, SecurityUtils.getCurrentUserId()));
+		return ResponseEntity.ok(examService.createExam(dto));
 	}
 
 	@PutMapping("/update/{id}")
 	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
 	public ResponseEntity<ExamDto> updateExam(@RequestBody ExamDto dto, @PathVariable Long id) {
 		dto.setId(id);
-		return ResponseEntity.ok(examService.updateExam(dto, SecurityUtils.getCurrentUserId()));
+		return ResponseEntity.ok(examService.updateExam(dto));
 	}
 
 	@DeleteMapping("/delete/{id}")
@@ -74,7 +72,7 @@ public class ExamController {
 	@PostMapping("/{examId}/start")
 	@PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
 	public ResponseEntity<ExamAttemptDto> startExam(@PathVariable Long examId) {
-		return ResponseEntity.ok(examService.startExam(examId, SecurityUtils.getCurrentUserId()));
+		return ResponseEntity.ok(examService.startExam(examId));
 	}
 
 	// trả lời câu hỏi
@@ -100,10 +98,9 @@ public class ExamController {
 		return ResponseEntity.ok(examService.reviewExamAttempt(attemptId));
 	}
 
-
-    @GetMapping("/getAll")
-    public ResponseEntity<List<ExamDto>> getAllExams() {
-        return ResponseEntity.ok(examService.getAllExams());
-    }
+	@GetMapping("/getAll")
+	public ResponseEntity<List<ExamDto>> getAllExams() {
+		return ResponseEntity.ok(examService.getAllExams());
+	}
 
 }

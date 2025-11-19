@@ -109,9 +109,9 @@ CREATE TABLE IF NOT EXISTS teachers (
 CREATE INDEX IF NOT EXISTS idx_teachers_department ON teachers(department_id);
 
 -- ========================
--- TABLE: question_categories
+-- TABLE: exam_categories 
 -- ========================
-CREATE TABLE IF NOT EXISTS question_categories (
+CREATE TABLE IF NOT EXISTS exam_categories (
   id BIGSERIAL PRIMARY KEY,
   name VARCHAR(256) NOT NULL UNIQUE,
   description TEXT,
@@ -125,6 +125,7 @@ CREATE TABLE IF NOT EXISTS exams (
   id BIGSERIAL PRIMARY KEY,
   title VARCHAR(256) NOT NULL,
   description TEXT,
+  category_id BIGINT REFERENCES exam_categories(id) ON DELETE SET NULL, -- THÊM KHÓA NGOẠI VÀO BẢNG EXAMS
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   start_time TIMESTAMPTZ,
   end_time TIMESTAMPTZ,
@@ -139,14 +140,14 @@ CREATE TRIGGER trg_exams_updated BEFORE UPDATE ON exams
 FOR EACH ROW EXECUTE PROCEDURE trg_set_timestamp();
 
 CREATE INDEX IF NOT EXISTS idx_exams_status ON exams(status);
+CREATE INDEX IF NOT EXISTS idx_exams_category ON exams(category_id);
 
 -- ========================
--- TABLE: questions (question riêng cho mỗi exam)
+-- TABLE: questions
 -- ========================
 CREATE TABLE IF NOT EXISTS questions (
   id BIGSERIAL PRIMARY KEY,
   exam_id BIGINT NOT NULL REFERENCES exams(id) ON DELETE CASCADE,
-  category_id BIGINT REFERENCES question_categories(id) ON DELETE SET NULL,
   content TEXT NOT NULL,
   type question_type NOT NULL DEFAULT 'MULTIPLE_CHOICE',
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,

@@ -1,7 +1,5 @@
 package com.example.qnuquiz.dto.teacher;
 
-import java.sql.Timestamp;
-
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,5 +12,4 @@ public class TeacherDto {
     private String departmentName;
     private String teacherCode;
     private String title;
-    private Timestamp createdAt;
 }

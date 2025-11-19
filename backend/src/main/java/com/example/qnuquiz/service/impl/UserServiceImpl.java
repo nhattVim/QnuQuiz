@@ -3,6 +3,7 @@ package com.example.qnuquiz.service.impl;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
@@ -11,9 +12,16 @@ import org.springframework.stereotype.Service;
 
 import com.example.qnuquiz.dto.user.UserRegisterDto;
 import com.example.qnuquiz.dto.user.UserDto;
+import com.example.qnuquiz.entity.Students;
+import com.example.qnuquiz.entity.Teachers;
 import com.example.qnuquiz.entity.Users;
+import com.example.qnuquiz.mapper.StudentMapper;
+import com.example.qnuquiz.mapper.TeacherMapper;
 import com.example.qnuquiz.mapper.UserMapper;
+import com.example.qnuquiz.repository.StudentRepository;
+import com.example.qnuquiz.repository.TeacherRepository;
 import com.example.qnuquiz.repository.UserRepository;
+import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.UserService;
 
 import lombok.AllArgsConstructor;
@@ -25,6 +33,10 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
+    private final StudentRepository studentRepository;
+    private final TeacherRepository teacherRepository;
+    private final StudentMapper studentMapper;
+    private final TeacherMapper teacherMapper;
 
     @Override
     @CacheEvict(value = "allUsers", allEntries = true)
@@ -61,5 +73,30 @@ public class UserServiceImpl implements UserService {
     @Override
     public Optional<Users> findByUsername(String username) {
         return userRepository.findByUsername(username);
+    }
+
+    @Override
+    public Object getCurrentUserProfile() {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        Users user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        String role = user.getRole();
+
+        if ("STUDENT".equalsIgnoreCase(role)) {
+            Students student = studentRepository.findByUsers(user)
+                    .orElseThrow(() -> new RuntimeException("Student profile not found for user"));
+            return studentMapper.toDto(student);
+        } else if ("TEACHER".equalsIgnoreCase(role)) {
+            Teachers teacher = teacherRepository.findByUsers(user)
+                    .orElseThrow(() -> new RuntimeException("Teacher profile not found for user"));
+            return teacherMapper.toDto(teacher);
+        } else {
+            return userMapper.toDto(user);
+        }
     }
 }

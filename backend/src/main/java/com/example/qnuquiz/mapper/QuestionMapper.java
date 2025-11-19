@@ -17,7 +17,6 @@ public interface QuestionMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "examAnswerses", ignore = true)
     @Mapping(target = "feedbackses", ignore = true)
-    @Mapping(target = "questionCategories", ignore = true)
     @Mapping(target = "questionOptionses", ignore = true)
     @Mapping(target = "type", ignore = true)
     @Mapping(target = "users", ignore = true)

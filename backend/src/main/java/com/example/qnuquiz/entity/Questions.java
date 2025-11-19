@@ -2,7 +2,7 @@ package com.example.qnuquiz.entity;
 
 // default package
 
-// Generated Nov 4, 2025, 9:33:18 PM by Hibernate Tools 7.1.3.Final
+// Generated Nov 19, 2025, 9:07:13 AM by Hibernate Tools 7.1.3.Final
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -29,7 +29,6 @@ import java.util.Set;
 public class Questions implements java.io.Serializable {
 
     private long id;
-    private QuestionCategories questionCategories;
     private Exams exams;
     private Users users;
     private String content;
@@ -54,11 +53,10 @@ public class Questions implements java.io.Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public Questions(long id, QuestionCategories questionCategories, Exams exams, Users users, String content,
-            String type, BigDecimal points, Integer ordering, Timestamp createdAt, Timestamp updatedAt,
-            Set<ExamAnswers> examAnswerses, Set<QuestionOptions> questionOptionses, Set<Feedbacks> feedbackses) {
+    public Questions(long id, Exams exams, Users users, String content, String type, BigDecimal points,
+            Integer ordering, Timestamp createdAt, Timestamp updatedAt, Set<ExamAnswers> examAnswerses,
+            Set<QuestionOptions> questionOptionses, Set<Feedbacks> feedbackses) {
         this.id = id;
-        this.questionCategories = questionCategories;
         this.exams = exams;
         this.users = users;
         this.content = content;
@@ -81,16 +79,6 @@ public class Questions implements java.io.Serializable {
 
     public void setId(long id) {
         this.id = id;
-    }
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    public QuestionCategories getQuestionCategories() {
-        return this.questionCategories;
-    }
-
-    public void setQuestionCategories(QuestionCategories questionCategories) {
-        this.questionCategories = questionCategories;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
