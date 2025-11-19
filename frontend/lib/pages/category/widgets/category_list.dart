@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/screens/exam/exam_list_screen.dart';
 import 'category_item.dart';
 
 class CategoryList extends StatelessWidget {
@@ -101,9 +102,11 @@ class CategoryList extends StatelessWidget {
                 image: category['image'],
                 examCount: category['examCount'],
                 onTap: () {
-                  // Navigate to category detail or quiz
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Tapped: ${category['title']}')),
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ExamListScreen(),
+                    ),
                   );
                 },
               ),

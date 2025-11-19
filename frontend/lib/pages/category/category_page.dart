@@ -26,7 +26,7 @@ class _CategoryPageState extends State<CategoryPage> {
                 'Chủ đề',
                 style: TextStyle(
                   color: Colors.black,
-                  fontSize: 18,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),

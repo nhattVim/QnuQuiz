@@ -7,9 +7,7 @@ import 'package:frontend/pages/faq_page.dart';
 import 'package:frontend/pages/leaderboard_page.dart';
 import 'package:frontend/pages/my_exam_page.dart';
 import 'package:frontend/pages/category/category_page.dart';
-import 'package:frontend/pages/profile_page.dart';
 import 'package:frontend/screens/update_profile_screen.dart';
-import '../pages/exam_list_page.dart';
 import '../providers/user_provider.dart';
 
 const dashboardItem = NavItem(
@@ -20,12 +18,6 @@ const dashboardItem = NavItem(
 
 const examItem = NavItem(
   page: MyExamPage(),
-  icon: Icons.library_books_sharp,
-  label: "Exam",
-);
-
-const examItem2 = NavItem(
-  page: ExamListPage(), // thay vì MyExamPage()
   icon: Icons.library_books_sharp,
   label: "Exam",
 );
@@ -58,7 +50,6 @@ const adminNav = [examItem, dashboardItem, profileItem];
 const studentNav = [
   dashboardItem,
   categoryItem,
-  examItem2,
   leaderboardItem,
   faqItem,
   profileItem,
