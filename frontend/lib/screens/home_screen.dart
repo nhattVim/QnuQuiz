@@ -8,6 +8,7 @@ import 'package:frontend/pages/leaderboard_page.dart';
 import 'package:frontend/pages/my_exam_page.dart';
 import 'package:frontend/pages/category/category_page.dart';
 import 'package:frontend/pages/profile_page.dart';
+import 'package:frontend/screens/update_profile_screen.dart';
 import '../pages/exam_list_page.dart';
 import '../providers/user_provider.dart';
 
@@ -42,7 +43,7 @@ const leaderboardItem = NavItem(
 );
 
 const profileItem = NavItem(
-  page: ProfilePage(),
+  page: UpdateProfileScreen(),
   icon: Icons.person_rounded,
   label: "Profile",
 );

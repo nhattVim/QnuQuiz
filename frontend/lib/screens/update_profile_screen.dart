@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/models/user_model.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/services/student_service.dart';
 import 'package:frontend/services/department_service.dart';
 import 'package:frontend/services/class_service.dart';
 import 'package:frontend/models/department_model.dart';
 import 'package:frontend/models/class_model.dart';
+import 'package:frontend/screens/home_screen.dart';
 
 class UpdateProfileScreen extends ConsumerStatefulWidget {
   const UpdateProfileScreen({super.key});
@@ -26,12 +26,12 @@ class _UpdateProfileScreenState extends ConsumerState<UpdateProfileScreen> {
   final _studentService = StudentService();
   final _departmentService = DepartmentService();
   final _classService = ClassService();
-  
+
   bool _isLoading = false;
   bool _obscurePassword = true;
   bool _isLoadingDepartments = false;
   bool _isLoadingClasses = false;
-  
+
   List<DepartmentModel> _departments = [];
   List<ClassModel> _classes = [];
   int? _selectedDepartmentId;
@@ -169,9 +169,18 @@ class _UpdateProfileScreenState extends ConsumerState<UpdateProfileScreen> {
           const SnackBar(
             content: Text('Cập nhật hồ sơ thành công'),
             backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
           ),
         );
-        Navigator.pop(context);
+        // Wait for snackbar to show, then navigate to home
+        await Future.delayed(const Duration(milliseconds: 500));
+        if (mounted) {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+            (route) => false,
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -179,6 +188,7 @@ class _UpdateProfileScreenState extends ConsumerState<UpdateProfileScreen> {
           SnackBar(
             content: Text(e.toString().replaceAll('Exception: ', '')),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
           ),
         );
       }
@@ -264,10 +274,7 @@ class _UpdateProfileScreenState extends ConsumerState<UpdateProfileScreen> {
                     const SizedBox(height: 4),
                     Text(
                       '@${user.username}',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                     ),
                     const SizedBox(height: 32),
                     // Full Name
@@ -431,39 +438,6 @@ class _UpdateProfileScreenState extends ConsumerState<UpdateProfileScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    // New Password (optional)
-                    TextFormField(
-                      controller: _passwordController,
-                      obscureText: _obscurePassword,
-                      decoration: InputDecoration(
-                        labelText: 'Mật khẩu mới (để trống nếu không đổi)',
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      validator: (value) {
-                        if (value != null && value.isNotEmpty && value.length < 6) {
-                          return 'Mật khẩu phải có ít nhất 6 ký tự';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 32),
                     // Save Button
                     SizedBox(
                       width: double.infinity,
@@ -484,8 +458,9 @@ class _UpdateProfileScreenState extends ConsumerState<UpdateProfileScreen> {
                                 width: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor:
-                                      AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
                                 ),
                               )
                             : const Text(
