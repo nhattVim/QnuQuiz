@@ -1,20 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/exam_result_model.dart';
 
 class QuizResultScreen extends StatelessWidget {
   final int totalQuestions;
-  final int correctAnswers;
+  final ExamResultModel result;
   final VoidCallback onBackHome;
 
   const QuizResultScreen({
     super.key,
     required this.totalQuestions,
-    required this.correctAnswers,
+    required this.result,
     required this.onBackHome,
   });
 
   @override
   Widget build(BuildContext context) {
-    final points = correctAnswers * 10; // Mỗi câu đúng = 10 điểm
+    final points = result.score;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -122,7 +123,7 @@ class QuizResultScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 20),
                               Text(
-                                '$correctAnswers/$totalQuestions',
+                                '$points/$totalQuestions',
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -174,7 +175,6 @@ class QuizResultScreen extends StatelessWidget {
                     height: 48,
                     child: ElevatedButton(
                       onPressed: () {
-                        // TODO: Implement review functionality
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: Text('Review functionality coming soon'),

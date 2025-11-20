@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 
 class QuizCompletionDialog extends StatelessWidget {
   final int totalQuestions;
-  final int correctAnswers;
+  final double score;
   final VoidCallback onExit;
   final VoidCallback onContinue;
 
   const QuizCompletionDialog({
     super.key,
     required this.totalQuestions,
-    required this.correctAnswers,
+    required this.score,
     required this.onExit,
     required this.onContinue,
   });
@@ -38,7 +38,7 @@ class QuizCompletionDialog extends StatelessWidget {
                     style: const TextStyle(color: Colors.grey, fontSize: 14),
                   ),
                   TextSpan(
-                    text: '$correctAnswers',
+                    text: '$score',
                     style: const TextStyle(
                       color: Colors.black,
                       fontSize: 14,

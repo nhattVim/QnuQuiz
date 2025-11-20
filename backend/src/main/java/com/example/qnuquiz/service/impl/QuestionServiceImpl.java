@@ -119,6 +119,7 @@ public class QuestionServiceImpl implements QuestionService {
                 .map(q -> QuestionFullDto.builder()
                         .id(q.getId())
                         .content(q.getContent())
+                        .point(q.getPoints())
                         .options(questionOptionsRepository.findByQuestions_Id(q.getId()).stream()
                                 .map(o -> QuestionOptionDto.builder()
                                         .id(o.getId())

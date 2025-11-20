@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/exam_result_model.dart';
 import 'package:frontend/models/question_model.dart';
+import 'package:frontend/services/exam_service.dart';
 import 'package:frontend/services/question_service.dart';
 import 'widgets/quiz_header.dart';
 import 'widgets/quiz_progress.dart';
@@ -11,11 +13,17 @@ import 'quiz_result_screen.dart';
 class QuizScreen extends StatefulWidget {
   final String quizTitle;
   final int totalQuestions;
+  final int examId;
+  final int attemptId;
+  final int? durationMinutes;
 
   const QuizScreen({
     super.key,
     this.quizTitle = 'Quiz',
     this.totalQuestions = 50,
+    required this.examId,
+    required this.attemptId,
+    required this.durationMinutes,
   });
 
   @override
@@ -25,10 +33,11 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> {
   int currentQuestionIndex = 0;
   int selectedAnswerIndex = -1;
-  int correctAnswers = 0;
+  double totalScore = 0;
   late List<int?> answeredQuestions;
 
   final QuestionService _questionService = QuestionService();
+  final ExamService _examService = ExamService();
   late Future<List<QuestionModel>> _quizDataFuture;
   List<QuestionModel> quizData = [];
   bool isLoading = true;
@@ -37,7 +46,7 @@ class _QuizScreenState extends State<QuizScreen> {
   @override
   void initState() {
     super.initState();
-    _quizDataFuture = _questionService.getQuestions(1); // examId = 1 để test
+    _quizDataFuture = _questionService.getQuestions(widget.examId);
     _loadQuizData();
   }
 
@@ -55,6 +64,23 @@ class _QuizScreenState extends State<QuizScreen> {
         isLoading = false;
         errorMessage = e.toString();
       });
+    }
+  }
+
+  Future<void> _submitAllAnswers() async {
+    for (int i = 0; i < quizData.length; i++) {
+      final question = quizData[i];
+      final selectedIndex = answeredQuestions[i];
+
+      if (selectedIndex == null) continue; // bỏ câu không trả lời
+
+      final selectedOption = question.options[selectedIndex];
+
+      await _examService.submitAnswer(
+        attemptId: widget.attemptId,
+        questionId: question.id,
+        optionId: selectedOption.id,
+      );
     }
   }
 
@@ -85,7 +111,7 @@ class _QuizScreenState extends State<QuizScreen> {
       );
 
       if (selectedAnswerIndex == correctOptionIndex) {
-        correctAnswers++;
+        totalScore += currentQuestion.point;
       }
 
       setState(() {
@@ -100,35 +126,43 @@ class _QuizScreenState extends State<QuizScreen> {
       );
 
       if (selectedAnswerIndex == correctOptionIndex) {
-        correctAnswers++;
+        totalScore += currentQuestion.point;
       }
 
-      // Kiểm tra xem đã trả lời hết tất cả câu chưa
-      if (_areAllQuestionsAnswered()) {
-        _showResultScreen();
-      } else {
+      if (!_areAllQuestionsAnswered()) {
         _showIncompleteWarning();
+        return;
       }
     }
   }
 
-  void _handleCompleteQuiz() {
-    // Tính điểm từ tất cả câu đã trả lời
-    correctAnswers = 0;
-    for (int i = 0; i < quizData.length; i++) {
-      final correctOptionIndex = quizData[i].options.indexWhere(
-        (option) => option.isCorrect,
-      );
-      if (answeredQuestions[i] == correctOptionIndex) {
-        correctAnswers++;
-      }
+  Future<ExamResultModel> _submitAndFinishExam() async {
+    await _submitAllAnswers();
+
+    return await _examService.finishExam(widget.attemptId);
+  }
+
+  Future<void> _handleCompleteQuiz() async {
+    if (!_areAllQuestionsAnswered()) {
+      _showIncompleteWarning();
+      return;
     }
 
-    // Kiểm tra xem đã trả lời hết tất cả câu chưa
-    if (_areAllQuestionsAnswered()) {
-      _showResultScreen();
-    } else {
-      _showIncompleteWarning();
+    setState(() => isLoading = true);
+
+    try {
+      await _submitAllAnswers();
+
+      final examResult = await _examService.finishExam(widget.attemptId);
+
+      if (!mounted) return;
+      _showResultScreen(examResult);
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi khi nộp bài: $e')));
+    } finally {
+      setState(() => isLoading = false);
     }
   }
 
@@ -140,7 +174,8 @@ class _QuizScreenState extends State<QuizScreen> {
       builder: (context) => AlertDialog(
         title: const Text('Chưa hoàn thành'),
         content: Text(
-          'Bạn còn $unansweredCount câu chưa trả lời.\n\nBạn muốn nộp bài ngay hay tiếp tục chọn đáp án?',
+          'Bạn còn $unansweredCount câu chưa trả lời.\n\n'
+          'Bạn muốn nộp bài ngay hay tiếp tục chọn đáp án?',
         ),
         actions: [
           TextButton(
@@ -148,9 +183,20 @@ class _QuizScreenState extends State<QuizScreen> {
             child: const Text('Tiếp tục chọn'),
           ),
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              _showResultScreen();
+            onPressed: () async {
+              Navigator.pop(context); // đóng dialog
+              setState(() => isLoading = true);
+
+              try {
+                final examResult = await _submitAndFinishExam();
+                _showResultScreen(examResult);
+              } catch (e) {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(SnackBar(content: Text('Lỗi khi nộp bài: $e')));
+              } finally {
+                setState(() => isLoading = false);
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.blue,
@@ -163,13 +209,13 @@ class _QuizScreenState extends State<QuizScreen> {
     );
   }
 
-  void _showResultScreen() {
+  void _showResultScreen(ExamResultModel examResult) {
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
         builder: (context) => QuizResultScreen(
           totalQuestions: quizData.length,
-          correctAnswers: correctAnswers,
+          result: examResult,
           onBackHome: () {
             Navigator.pop(context);
           },
@@ -184,7 +230,7 @@ class _QuizScreenState extends State<QuizScreen> {
       barrierDismissible: false,
       builder: (context) => QuizCompletionDialog(
         totalQuestions: quizData.length,
-        correctAnswers: correctAnswers,
+        score: totalScore,
         onExit: () {
           Navigator.pop(context);
           Navigator.pop(context);
@@ -271,6 +317,7 @@ class _QuizScreenState extends State<QuizScreen> {
           totalQuestions: quizData.length,
           onBackPressed: _showPauseDialog,
           answeredQuestions: answeredQuestions,
+          durationMinutes: widget.durationMinutes,
           onQuestionSelected: (index) {
             setState(() {
               currentQuestionIndex = index;

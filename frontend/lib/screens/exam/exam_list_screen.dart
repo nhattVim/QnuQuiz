@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_boxicons/flutter_boxicons.dart';
+import 'package:frontend/models/exam_attempt_model.dart';
 import 'package:frontend/models/exam_model.dart';
 import 'package:frontend/screens/exam/widgets/exam_card.dart';
+import 'package:frontend/screens/quiz/quiz_screen.dart';
 import 'package:frontend/services/exam_service.dart';
 
 class ExamListScreen extends StatefulWidget {
@@ -87,8 +89,30 @@ class _ExamListScreenState extends State<ExamListScreen> {
                   itemBuilder: (context, index) {
                     return ExamCard(
                       exam: exams[index],
-                      onPressed: () {
-                        // TODO: Navigate to exam detail
+                      onPressed: () async {
+                        try {
+                          ExamAttemptModel attempt = await ExamService()
+                              .startExam(exams[index].id);
+
+                          // Điều hướng sang QuizScreen, truyền examId và attemptId
+                          if (!mounted) return;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => QuizScreen(
+                                examId: exams[index].id,
+                                durationMinutes: exams[index].durationMinutes,
+                                attemptId: attempt.id,
+                              ),
+                            ),
+                          );
+                        } catch (e) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text("Không thể bắt đầu bài thi: $e"),
+                            ),
+                          );
+                        }
                       },
                     );
                   },

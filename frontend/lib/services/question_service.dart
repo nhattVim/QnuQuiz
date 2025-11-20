@@ -16,6 +16,7 @@ class QuestionService {
         ApiConstants.questions,
         queryParameters: {'examId': examId},
       );
+      _log.i("📌 RESPONSE: ${response.data}");
       final data = response.data;
 
       if (data is List) {
