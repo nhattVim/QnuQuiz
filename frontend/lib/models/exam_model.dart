@@ -19,11 +19,7 @@ class ExamModel {
     required this.status,
   });
 
-  bool get isPublished => status.toLowerCase() == "published";
-
   String get computedStatus {
-    if (!isPublished) return "hidden";
-
     final now = DateTime.now();
 
     if (startTime == null || endTime == null) {

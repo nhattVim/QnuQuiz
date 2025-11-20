@@ -105,7 +105,7 @@ public class ExamController {
 	}
 
 	@GetMapping("/categories/{categoryId}")
-	public ResponseEntity<?> getExamsByCategory(@PathVariable Long categoryId) {
+	public ResponseEntity<List<ExamDto>> getExamsByCategory(@PathVariable Long categoryId) {
     return ResponseEntity.ok(examService.getExamsByCategory(categoryId));
 	}
 

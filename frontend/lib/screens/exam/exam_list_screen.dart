@@ -5,7 +5,9 @@ import 'package:frontend/screens/exam/widgets/exam_card.dart';
 import 'package:frontend/services/exam_service.dart';
 
 class ExamListScreen extends StatefulWidget {
-  const ExamListScreen({super.key});
+  final int categoryId;
+
+  const ExamListScreen({super.key, required this.categoryId});
 
   @override
   State<ExamListScreen> createState() => _ExamListScreenState();
@@ -17,7 +19,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
   @override
   void initState() {
     super.initState();
-    futureExams = ExamService().getAllExams();
+    futureExams = ExamService().getExamsByCategory(widget.categoryId);
   }
 
   @override
@@ -49,9 +51,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
             return const Center(child: Text("Không có bài kiểm tra"));
           }
 
-          final data = snapshot.data ?? [];
-
-          final exams = data.where((e) => e.isPublished).toList();
+          final exams = snapshot.data!;
 
           return Column(
             children: [
@@ -88,7 +88,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
                     return ExamCard(
                       exam: exams[index],
                       onPressed: () {
-                        // navigate
+                        // TODO: Navigate to exam detail
                       },
                     );
                   },

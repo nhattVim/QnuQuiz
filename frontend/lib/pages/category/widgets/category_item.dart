@@ -24,34 +24,22 @@ class CategoryItem extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         child: Row(
           children: [
-            // Image
             Container(
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(8),
                 color: Colors.grey.shade200,
-                image: DecorationImage(
-                  image: NetworkImage(image),
-                  fit: BoxFit.cover,
-                  onError: (exception, stackTrace) {},
-                ),
+                borderRadius: BorderRadius.circular(8),
               ),
-              child: image.isEmpty
-                  ? Center(
-                      child: Icon(Icons.image, color: Colors.grey.shade400),
-                    )
-                  : null,
+              child: const Icon(Icons.folder, size: 40, color: Colors.blue),
             ),
 
             const SizedBox(width: 12),
 
-            // Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title
                   Text(
                     title,
                     maxLines: 2,
@@ -59,21 +47,21 @@ class CategoryItem extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
                     ),
                   ),
 
                   const SizedBox(height: 4),
 
-                  // Subtitle
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 12, color: Colors.grey.shade500),
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey.shade500,
+                    ),
                   ),
 
                   const SizedBox(height: 8),
 
-                  // Exam count row
                   Row(
                     children: [
                       Icon(Icons.book_outlined, size: 16, color: Colors.blue),
@@ -83,7 +71,6 @@ class CategoryItem extends StatelessWidget {
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: Colors.black87,
                         ),
                       ),
                     ],

@@ -21,6 +21,7 @@ import com.example.qnuquiz.dto.exam.ExamReviewDTO;
 import com.example.qnuquiz.dto.exam.QuestionDTO;
 import com.example.qnuquiz.entity.ExamAnswers;
 import com.example.qnuquiz.entity.ExamAttempts;
+import com.example.qnuquiz.entity.ExamCategories;
 import com.example.qnuquiz.entity.Exams;
 import com.example.qnuquiz.entity.QuestionOptions;
 import com.example.qnuquiz.entity.Questions;
@@ -53,7 +54,7 @@ public class ExamServiceImpl implements ExamService {
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
     private final ExamCategoryRepository examCategoryRepository;
-    
+
     private final ExamCategoryMapper examCategoryMapper;
     private final ExamMapper examMapper;
 
@@ -315,25 +316,39 @@ public class ExamServiceImpl implements ExamService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    @Override public List<ExamCategoryDto> getAllCategories() {
-        return examCategoryMapper.toDtoList(examCategoryRepository.findAll());
+    @Override
+    public List<ExamCategoryDto> getAllCategories() {
+        List<ExamCategories> categories = examCategoryRepository.findAll();
+
+        return categories.stream().map(cat -> {
+            ExamCategoryDto dto = examCategoryMapper.toDto(cat);
+
+            Long totalExams = examRepository.findByExamCategories_Id(cat.getId())
+                    .stream()
+                    .filter(exam -> !"DRAFT".equalsIgnoreCase(exam.getStatus()))
+                    .count();
+
+            dto.setTotalExams(totalExams);
+            return dto;
+        }).toList();
     }
 
     @Override
     public List<ExamDto> getExamsByCategory(Long categoryId) {
 
         examCategoryRepository.findById(categoryId)
-            .orElseThrow(() -> new RuntimeException("Exam category not found"));
+                .orElseThrow(() -> new RuntimeException("Exam category not found"));
 
         List<Exams> exams = examRepository.findByExamCategories_Id(categoryId);
 
         return exams.stream()
-            .map(exam -> {
-                ExamDto dto = examMapper.toDto(exam);
-                dto.setStatus(getComputedStatus(exam));
-                return dto;
-            })
-            .toList();
-}
+                .filter(exam -> !"DRAFT".equalsIgnoreCase(exam.getStatus()))
+                .map(exam -> {
+                    ExamDto dto = examMapper.toDto(exam);
+                    dto.setStatus(getComputedStatus(exam));
+                    return dto;
+                })
+                .toList();
+    }
 
 }

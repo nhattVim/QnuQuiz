@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:frontend/constants/api_constants.dart';
-import 'package:frontend/models/exam_categpry_model.dart';
+import 'package:frontend/models/exam_category_model.dart';
 import 'package:frontend/models/exam_model.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:logger/logger.dart';
@@ -90,7 +90,6 @@ class ExamService {
     }
   }
 
-
   Future<List<ExamCategoryModel>> getAllCategories() async {
     try {
       final response = await _dio.get('${ApiConstants.exams}/categories');
@@ -109,4 +108,26 @@ class ExamService {
     }
   }
 
+  Future<List<ExamModel>> getExamsByCategory(int categoryId) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.exams}/categories/$categoryId',
+      );
+      _log.i("📌 RESPONSE: ${response.data}");
+      final data = response.data;
+
+      if (data is List) {
+        return data
+            .map((e) => ExamModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else if (data is Map && data.containsKey("message")) {
+        throw Exception(data["message"]);
+      } else {
+        throw Exception("Unexpected data format");
+      }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?["message"] ?? "Lỗi kết nối");
+    }
+  }
 }
