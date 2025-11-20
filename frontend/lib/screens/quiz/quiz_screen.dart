@@ -81,7 +81,7 @@ class _QuizScreenState extends State<QuizScreen> {
       // Kiểm tra đáp án trước khi qua câu tiếp theo
       final currentQuestion = quizData[currentQuestionIndex];
       final correctOptionIndex = currentQuestion.options.indexWhere(
-        (option) => option.isCorrect,
+        (option) => option.correct,
       );
 
       if (selectedAnswerIndex == correctOptionIndex) {
@@ -96,7 +96,7 @@ class _QuizScreenState extends State<QuizScreen> {
       // Kiểm tra đáp án câu cuối cùng
       final currentQuestion = quizData[currentQuestionIndex];
       final correctOptionIndex = currentQuestion.options.indexWhere(
-        (option) => option.isCorrect,
+        (option) => option.correct,
       );
 
       if (selectedAnswerIndex == correctOptionIndex) {
@@ -117,7 +117,7 @@ class _QuizScreenState extends State<QuizScreen> {
     correctAnswers = 0;
     for (int i = 0; i < quizData.length; i++) {
       final correctOptionIndex = quizData[i].options.indexWhere(
-        (option) => option.isCorrect,
+        (option) => option.correct,
       );
       if (answeredQuestions[i] == correctOptionIndex) {
         correctAnswers++;
@@ -259,7 +259,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
     final currentQuestion = quizData[currentQuestionIndex];
     final correctOptionIndex = currentQuestion.options.indexWhere(
-      (option) => option.isCorrect,
+      (option) => option.correct,
     );
 
     return Scaffold(

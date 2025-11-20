@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/exam_model.dart';
 import 'package:frontend/models/question_model.dart';
+import 'package:frontend/screens/question_edit_screen.dart';
 import 'package:frontend/services/exam_service.dart';
 import 'package:frontend/services/question_service.dart';
 import 'package:intl/intl.dart';
@@ -179,7 +180,6 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        // CHỈNH SỬA: Dùng bodyMedium/Large thay vì set color thủ công
                         Text(
                           _status,
                           style: Theme.of(context).textTheme.bodyLarge,
@@ -355,11 +355,27 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12.r),
-        onTap: () {
+        onTap: () async {
           if (_isDeleting) {
             onSelected();
           } else {
-            // TODO: Navigate to edit question
+            final updatedQuestion = await Navigator.push<QuestionModel?>(
+              context,
+              MaterialPageRoute(
+                builder: (context) => QuestionEditScreen(question: question),
+              ),
+            );
+
+            if (updatedQuestion != null) {
+              setState(() {
+                final questionIndex = _questionsList.indexWhere(
+                  (q) => q.id == updatedQuestion.id,
+                );
+                if (questionIndex != -1) {
+                  _questionsList[questionIndex] = updatedQuestion;
+                }
+              });
+            }
           }
         },
         child: ListTile(

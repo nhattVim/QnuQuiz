@@ -14,5 +14,7 @@ public interface QuestionService {
 
     List<QuestionFullDto> getQuestions(Long examId);
 
+    QuestionFullDto updateQuestion(QuestionFullDto dto);
+
     void deleteQuestion(List<Long> ids);
 }

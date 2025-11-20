@@ -1,25 +1,25 @@
 class QuestionOptionModel {
   final int id;
   final String content;
-  final bool isCorrect;
+  final bool correct;
 
   QuestionOptionModel({
     required this.id,
     required this.content,
-    required this.isCorrect,
+    required this.correct,
   });
 
   factory QuestionOptionModel.fromJson(Map<String, dynamic> json) {
     return QuestionOptionModel(
       id: json['id'] as int,
       content: json['content'],
-      isCorrect: json['correct'],
+      correct: json['correct'],
     );
   }
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'content': content,
-    'isCorrect': isCorrect,
+    'correct': correct,
   };
 }
