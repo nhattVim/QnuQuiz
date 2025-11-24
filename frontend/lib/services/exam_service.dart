@@ -179,6 +179,8 @@ class ExamService {
       final response = await _dio.get(
         '${ApiConstants.exams}/attempts/$attemptId/review',
       );
+
+      // _log.i("📌 RESPONSE: ${response.data}");
       return ExamReviewModel.fromJson(response.data);
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);

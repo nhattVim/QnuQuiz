@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import 'package:frontend/models/exam_result_model.dart';
 import 'package:frontend/models/question_model.dart';
 import 'package:frontend/services/exam_service.dart';
@@ -33,8 +34,13 @@ class QuizScreen extends StatefulWidget {
 class _QuizScreenState extends State<QuizScreen> {
   int currentQuestionIndex = 0;
   int selectedAnswerIndex = -1;
-  double totalScore = 0;
+  int questionsCompleted = 0;
   late List<int?> answeredQuestions;
+
+  // Timer variables
+  late Timer _timer;
+  int _remainingSeconds = 0;
+  bool _isTimeUp = false;
 
   final QuestionService _questionService = QuestionService();
   final ExamService _examService = ExamService();
@@ -48,6 +54,91 @@ class _QuizScreenState extends State<QuizScreen> {
     super.initState();
     _quizDataFuture = _questionService.getQuestions(widget.examId);
     _loadQuizData();
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    if (widget.durationMinutes == null || widget.durationMinutes == 0) {
+      return; // Không có giới hạn thời gian
+    }
+
+    _remainingSeconds = widget.durationMinutes! * 60;
+
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      setState(() {
+        if (_remainingSeconds > 0) {
+          _remainingSeconds--;
+        } else {
+          _remainingSeconds = 0;
+          _isTimeUp = true;
+          timer.cancel();
+          _showTimeUpDialog();
+        }
+      });
+    });
+  }
+
+  void _showTimeUpDialog() {
+    // Auto submit sau 5 giây nếu user không bấm nút
+    Future.delayed(const Duration(seconds: 5), () {
+      if (mounted && _isTimeUp) {
+        Navigator.of(
+          context,
+          rootNavigator: true,
+        ).pop(); // Đóng dialog nếu còn mở
+        _autoSubmitExam();
+      }
+    });
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: const Text('Hết thời gian'),
+        content: const Text(
+          'Thời gian làm bài của bạn đã hết.\n'
+          'Bài thi sẽ được nộp tự động trong 5 giây.',
+        ),
+        actions: [
+          ElevatedButton(
+            onPressed: () async {
+              Navigator.pop(context);
+              _autoSubmitExam();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.blue,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Nộp bài ngay'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _autoSubmitExam() async {
+    setState(() => isLoading = true);
+
+    try {
+      final examResult = await _submitAndFinishExam();
+      _showResultScreen(examResult);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Lỗi khi nộp bài: $e')));
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
   }
 
   Future<void> _loadQuizData() async {
@@ -85,6 +176,17 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _selectAnswer(int index) {
+    // Không cho chọn đáp án nếu hết thời gian
+    if (_isTimeUp) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Thời gian đã hết, không thể chọn đáp án'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
     setState(() {
       if (selectedAnswerIndex == index) {
         // Nếu bấm cùng đáp án → bỏ chọn
@@ -104,14 +206,8 @@ class _QuizScreenState extends State<QuizScreen> {
 
   void _nextQuestion() {
     if (currentQuestionIndex < quizData.length - 1) {
-      // Kiểm tra đáp án trước khi qua câu tiếp theo
-      final currentQuestion = quizData[currentQuestionIndex];
-      final correctOptionIndex = currentQuestion.options.indexWhere(
-        (option) => option.isCorrect,
-      );
-
-      if (selectedAnswerIndex == correctOptionIndex) {
-        totalScore += currentQuestion.point;
+      if (selectedAnswerIndex != -1) {
+        questionsCompleted++;
       }
 
       setState(() {
@@ -119,14 +215,8 @@ class _QuizScreenState extends State<QuizScreen> {
         selectedAnswerIndex = answeredQuestions[currentQuestionIndex] ?? -1;
       });
     } else {
-      // Kiểm tra đáp án câu cuối cùng
-      final currentQuestion = quizData[currentQuestionIndex];
-      final correctOptionIndex = currentQuestion.options.indexWhere(
-        (option) => option.isCorrect,
-      );
-
-      if (selectedAnswerIndex == correctOptionIndex) {
-        totalScore += currentQuestion.point;
+      if (selectedAnswerIndex != -1) {
+        questionsCompleted++;
       }
 
       if (!_areAllQuestionsAnswered()) {
@@ -216,8 +306,12 @@ class _QuizScreenState extends State<QuizScreen> {
         builder: (context) => QuizResultScreen(
           totalQuestions: quizData.length,
           result: examResult,
+          attemptId: widget.attemptId,
           onBackHome: () {
-            Navigator.pop(context);
+            // Navigate về HomeScreen
+            Navigator.of(
+              context,
+            ).pushNamedAndRemoveUntil('/', (route) => false);
           },
         ),
       ),
@@ -230,7 +324,7 @@ class _QuizScreenState extends State<QuizScreen> {
       barrierDismissible: false,
       builder: (context) => QuizCompletionDialog(
         totalQuestions: quizData.length,
-        score: totalScore,
+        questionsCompleted: questionsCompleted,
         onExit: () {
           Navigator.pop(context);
           Navigator.pop(context);
@@ -378,7 +472,7 @@ class _QuizScreenState extends State<QuizScreen> {
                   width: double.infinity,
                   height: 48,
                   child: ElevatedButton(
-                    onPressed: selectedAnswerIndex != -1
+                    onPressed: (!_isTimeUp && selectedAnswerIndex != -1)
                         ? () {
                             if (_areAllQuestionsAnswered()) {
                               // Tất cả câu đã trả lời → submit ngay
@@ -390,7 +484,7 @@ class _QuizScreenState extends State<QuizScreen> {
                           }
                         : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: selectedAnswerIndex != -1
+                      backgroundColor: (!_isTimeUp && selectedAnswerIndex != -1)
                           ? Colors.blue
                           : Colors.grey.shade300,
                       foregroundColor: Colors.white,
@@ -400,7 +494,11 @@ class _QuizScreenState extends State<QuizScreen> {
                       disabledBackgroundColor: Colors.grey.shade300,
                     ),
                     child: Text(
-                      _areAllQuestionsAnswered() ? 'Hoàn thành' : 'Tiếp tục',
+                      _isTimeUp
+                          ? 'Hết thời gian'
+                          : (_areAllQuestionsAnswered()
+                                ? 'Hoàn thành'
+                                : 'Tiếp tục'),
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
