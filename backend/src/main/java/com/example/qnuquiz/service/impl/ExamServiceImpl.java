@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.example.qnuquiz.dto.analytics.RankingDto;
 import com.example.qnuquiz.dto.exam.ExamAnswerReviewDTO;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
@@ -309,4 +310,16 @@ public class ExamServiceImpl implements ExamService {
         return userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
+
+    @Override
+    public List<RankingDto> rankingAll() {
+        return examAttemptRepository.rankingAll();
+    }
+
+    @Override
+    public List<RankingDto> rankingAllThisWeek() {
+        Timestamp weekAgo = new Timestamp(System.currentTimeMillis() - 7L * 86400 * 1000);
+        return examAttemptRepository.rankingAllThisWeek(weekAgo);
+    }
+
 }

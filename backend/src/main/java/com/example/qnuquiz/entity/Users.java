@@ -9,6 +9,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
@@ -27,6 +29,7 @@ import java.util.UUID;
 public class Users implements java.io.Serializable {
 
     private UUID id;
+    private MediaFiles mediaFiles;
     private String username;
     private String passwordHash;
     private String fullName;
@@ -60,12 +63,14 @@ public class Users implements java.io.Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public Users(UUID id, String username, String passwordHash, String fullName, String email, String phoneNumber, String role,
+    public Users(UUID id, MediaFiles mediaFiles, String username, String passwordHash, String fullName, String email,
+            String phoneNumber, String role,
             String status, Timestamp createdAt, Timestamp updatedAt, Set<Questions> questionses, Set<Exams> examses,
             Set<Feedbacks> feedbacksesForUserId, Set<Students> studentses, Set<Announcements> announcementses,
             Set<Teachers> teacherses, Set<MediaFiles> mediaFileses, Set<Classes> classeses,
             Set<Feedbacks> feedbacksesForReviewedBy) {
         this.id = id;
+        this.mediaFiles = mediaFiles;
         this.username = username;
         this.passwordHash = passwordHash;
         this.fullName = fullName;
@@ -95,6 +100,16 @@ public class Users implements java.io.Serializable {
 
     public void setId(UUID id) {
         this.id = id;
+    }
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "avatar_id")
+    public MediaFiles getMediaFiles() {
+        return this.mediaFiles;
+    }
+
+    public void setMediaFiles(MediaFiles mediaFiles) {
+        this.mediaFiles = mediaFiles;
     }
 
     @Column(name = "username", unique = true, nullable = false, length = 128)

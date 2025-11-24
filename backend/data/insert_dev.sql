@@ -1,15 +1,15 @@
 -- ========================
 -- TABLE: users (7 users để đảm bảo FK)
 -- ========================
-INSERT INTO users (id, username, password_hash, full_name, email, role, status, created_at, updated_at)
+INSERT INTO users (id, username, password_hash, full_name, email, role, status, created_at, updated_at, avatar_id)
 VALUES
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'admin', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Quản trị viên', 'admin@qnu.edu.vn', 'ADMIN', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'teacher1', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Nguyễn Văn An (GV)', 'gv.an@qnu.edu.vn', 'TEACHER', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', 'teacher2', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Trần Thị Bình (GV)', 'gv.binh@qnu.edu.vn', 'TEACHER', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', 'teacher3', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Lê Văn Cường (GV)', 'gv.cuong@qnu.edu.vn', 'TEACHER', 'INACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 'student1', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Phạm Thị Dung (SV)', 'sv.dung@qnu.edu.vn', 'STUDENT', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16', 'student2', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Hoàng Văn Em (SV)', 'sv.em@qnu.edu.vn', 'STUDENT', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', 'student3', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Vũ Thị Hà (SV)', 'sv.ha@qnu.edu.vn', 'STUDENT', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'admin', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Quản trị viên', 'admin@qnu.edu.vn', 'ADMIN', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'teacher1', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Nguyễn Văn An (GV)', 'gv.an@qnu.edu.vn', 'TEACHER', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', 'teacher2', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Trần Thị Bình (GV)', 'gv.binh@qnu.edu.vn', 'TEACHER', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', 'teacher3', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Lê Văn Cường (GV)', 'gv.cuong@qnu.edu.vn', 'TEACHER', 'INACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 'student1', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Phạm Thị Dung (SV)', 'sv.dung@qnu.edu.vn', 'STUDENT', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16', 'student2', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Hoàng Văn Em (SV)', 'sv.em@qnu.edu.vn', 'STUDENT', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', 'student3', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Vũ Thị Hà (SV)', 'sv.ha@qnu.edu.vn', 'STUDENT', 'ACTIVE', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP, NULL);
 
 ---
 
@@ -185,6 +185,6 @@ VALUES
 -- ========================
 INSERT INTO media_files (file_name, file_url, mime_type, size_bytes, uploaded_by, related_table, related_id, created_at)
 VALUES
-('avatar_sv1.png', 'https://storage.googleapis.com/qnuquiz/avatars/sv1.png', 'image/png', 102400, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 'users', NULL, CURRENT_TIMESTAMP),
-('hinh_minh_hoa_cau_1.jpg', 'https://storage.googleapis.com/qnuquiz/questions/q1_img.jpg', 'image/jpeg', 204800, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'questions', 1, CURRENT_TIMESTAMP),
+('avatar_sv1.png', 'https://guchat.vn/wp-content/uploads/2025/04/Avatar-Doi-Cute-2-1.jpg', 'image/png', 102400, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 'users', NULL, CURRENT_TIMESTAMP),
+('hinh_minh_hoa_cau_1.jpg', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRoRWtWLW-17WQA1Entsh3iwNesdYClwiMCyg&s', 'image/jpeg', 204800, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'questions', 1, CURRENT_TIMESTAMP),
 ('thong_bao_hoc_bong.pdf', 'https://storage.googleapis.com/qnuquiz/announcements/hocbong.pdf', 'application/pdf', 512000, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'announcements', 3, CURRENT_TIMESTAMP);

@@ -35,6 +35,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   full_name VARCHAR(256),
   email VARCHAR(256),
+  phone_number VARCHAR(16),
   role user_role NOT NULL DEFAULT 'STUDENT',
   status user_status NOT NULL DEFAULT 'ACTIVE',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -284,3 +285,8 @@ CREATE TABLE IF NOT EXISTS media_files (
 );
 
 CREATE INDEX IF NOT EXISTS idx_media_related ON media_files(related_table, related_id);
+
+
+ALTER TABLE users
+ADD COLUMN avatar_id BIGINT,
+ADD CONSTRAINT fk_users_avatar FOREIGN KEY (avatar_id) REFERENCES media_files(id);

@@ -167,7 +167,6 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
               ),
               SizedBox(width: 12.w),
 
-              // 3. Dropdown Trạng thái
               Expanded(
                 child: InkWell(
                   onTap: _pickStatus,
@@ -180,9 +179,12 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          _status,
-                          style: Theme.of(context).textTheme.bodyLarge,
+                        Flexible(
+                          child: Text(
+                            _status,
+                            style: Theme.of(context).textTheme.bodyLarge,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
                         const Icon(Icons.arrow_drop_down),
                       ],
