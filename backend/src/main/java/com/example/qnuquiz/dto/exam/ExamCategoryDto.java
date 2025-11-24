@@ -7,11 +7,10 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-public class QuestionOptionDTO {
-    private long id;
-    private String content;
-    private Integer position;
-    private boolean correct;
+@AllArgsConstructor
+public class ExamCategoryDto {
+    private Long id;
+    private String name;
+    private Long totalExams;
 }

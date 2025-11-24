@@ -222,6 +222,7 @@ class _QuestionEditScreenState extends State<QuestionEditScreen> {
     final updatedQuestion = QuestionModel(
       id: widget.question.id,
       content: _contentController.text.trim(),
+      point: widget.question.point,
       options: updatedOptions,
     );
 

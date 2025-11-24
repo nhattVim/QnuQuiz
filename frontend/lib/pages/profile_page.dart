@@ -143,13 +143,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     if (user == null) return;
 
     try {
-      dynamic updatedProfile;
       switch (user.role) {
         case 'STUDENT':
           if (_selectedDepartmentId == null || _selectedClassId == null) {
             throw Exception('Vui lòng chọn khoa và lớp');
           }
-          updatedProfile = await _studentService.updateProfile(
+          await _studentService.updateProfile(
             fullName: _fullNameController.text.trim(),
             email: _emailController.text.trim(),
             phoneNumber: _phoneNumberController.text.trim(),
@@ -161,7 +160,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           if (_selectedDepartmentId == null) {
             throw Exception('Vui lòng chọn khoa');
           }
-          updatedProfile = await _teacherService.updateProfile(
+          await _teacherService.updateProfile(
             fullName: _fullNameController.text.trim(),
             email: _emailController.text.trim(),
             phoneNumber: _phoneNumberController.text.trim(),
@@ -170,7 +169,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           );
           break;
         case 'ADMIN':
-          updatedProfile = await _userService.updateProfile(
+          await _userService.updateProfile(
             fullName: _fullNameController.text.trim(),
             email: _emailController.text.trim(),
             phoneNumber: _phoneNumberController.text.trim(),

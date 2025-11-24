@@ -3,6 +3,7 @@ package com.example.qnuquiz.service;
 import java.util.List;
 
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
+import com.example.qnuquiz.dto.exam.ExamCategoryDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
@@ -32,4 +33,7 @@ public interface ExamService {
 
 	List<ExamDto> getAllExams();
 
+	List<ExamCategoryDto> getAllCategories();
+	
+	List<ExamDto> getExamsByCategory(Long categoryId);
 }
