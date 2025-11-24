@@ -12,6 +12,8 @@ public interface ExamAttemptRepository extends JpaRepository<ExamAttempts, Long>
 	
 	List<ExamAttempts> findByExamsId(Long id);
 	List<ExamAttempts> findByStudentsIdAndSubmittedTrueOrderByEndTimeDesc(Long studentId);
+	List<ExamAttempts> findByStudents_IdOrderByEndTimeDesc(Long studentId);
+
 }
 
 
