@@ -80,4 +80,17 @@ class QuestionService {
       throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối khi xóa');
     }
   }
+
+  Future<QuestionModel> updateQuestion(QuestionModel question) async {
+    try {
+      final response = await _dio.put(
+        '${ApiConstants.questions}/update/${(question.id)}',
+        data: question.toJson(),
+      );
+      return QuestionModel.fromJson(response.data);
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
 }

@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -13,7 +12,6 @@ import org.springframework.util.StringUtils;
 import com.example.qnuquiz.dto.student.ExamAnswerHistoryDto;
 import com.example.qnuquiz.dto.student.ExamHistoryDto;
 import com.example.qnuquiz.dto.student.StudentDto;
-import com.example.qnuquiz.dto.student.StudentProfileUpdateRequest;
 import com.example.qnuquiz.entity.Classes;
 import com.example.qnuquiz.entity.Departments;
 import com.example.qnuquiz.entity.ExamAnswers;
@@ -41,7 +39,6 @@ public class StudentServiceImpl implements StudentService {
     private final UserRepository userRepository;
     private final DepartmentRepository departmentRepository;
     private final ClassesRepository classesRepository;
-    private final PasswordEncoder passwordEncoder;
     private final ExamAttemptRepository examAttemptRepository;
     private final ExamAnswerRepository examAnswerRepository;
 

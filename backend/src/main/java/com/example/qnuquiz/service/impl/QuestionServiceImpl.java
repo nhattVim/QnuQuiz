@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -137,5 +138,38 @@ public class QuestionServiceImpl implements QuestionService {
     public void deleteQuestion(List<Long> ids) {
         questionOptionsRepository.deleteAllByQuestions_IdIn(ids);
         questionsRepository.deleteAllById(ids);
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
+    public QuestionFullDto updateQuestion(QuestionFullDto dto) {
+        Questions question = questionsRepository.findById(dto.getId())
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+
+        question.setContent(dto.getContent());
+
+        List<QuestionOptionDto> updatedOptions = dto.getOptions().stream()
+                .map(optionDto -> {
+                    QuestionOptions option = questionOptionsRepository.findById(optionDto.getId())
+                            .orElseThrow(() -> new RuntimeException("Option not found with id: " + optionDto.getId()));
+                    option.setContent(optionDto.getContent());
+                    option.setCorrect(optionDto.isCorrect());
+                    questionOptionsRepository.save(option);
+                    return QuestionOptionDto.builder()
+                            .id(option.getId())
+                            .content(option.getContent())
+                            .correct(option.getCorrect())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        questionsRepository.save(question);
+
+        return QuestionFullDto.builder()
+                .id(question.getId())
+                .content(question.getContent())
+                .options(updatedOptions)
+                .build();
     }
 }

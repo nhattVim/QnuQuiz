@@ -30,8 +30,8 @@ class ExamAnswerReviewModel {
 
     // Find correct option ID
     final correctOption = opts.firstWhere(
-      (o) => o.isCorrect == true,
-      orElse: () => QuestionOptionModel(id: 0, content: "", isCorrect: false),
+      (o) => o.correct == true,
+      orElse: () => QuestionOptionModel(id: 0, content: "", correct: false),
     );
 
     return ExamAnswerReviewModel(

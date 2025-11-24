@@ -27,6 +27,7 @@ public interface QuestionMapper {
     Questions toEntity(QuestionImportDto dto);
 
     @Mapping(target = "options", ignore = true)
+    @Mapping(target = "point", source = "points")
     QuestionFullDto toQuestionFullDto(Questions questions);
 
     List<QuestionFullDto> toQuestionFullDtoList(List<Questions> questions);

@@ -251,8 +251,14 @@ class QuizReviewScreen extends StatelessWidget {
                   // Options
                   Column(
                     children: List.generate(answer.options.length, (optIndex) {
-                      final option = answer.options[optIndex];
-                      final isCorrectOption = option.isCorrect;
+                      // Sort options by position before displaying
+                      final sortedOptions = [...answer.options]
+                        ..sort(
+                          (a, b) =>
+                              (a.position ?? 0).compareTo((b.position ?? 0)),
+                        );
+                      final option = sortedOptions[optIndex];
+                      final isCorrectOption = option.correct;
                       final isStudentAnswer =
                           answer.selectedOptionId == option.id;
 

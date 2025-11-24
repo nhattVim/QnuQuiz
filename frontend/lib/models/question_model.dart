@@ -28,7 +28,6 @@ class QuestionModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'content': content,
       'point': point,
       'options': options.map((option) => option.toJson()).toList(),

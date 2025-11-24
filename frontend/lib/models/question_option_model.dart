@@ -1,13 +1,13 @@
 class QuestionOptionModel {
   final int id;
   final String content;
-  final bool isCorrect;
+  final bool correct;
   final int? position;
 
   QuestionOptionModel({
     required this.id,
     required this.content,
-    required this.isCorrect,
+    required this.correct,
     this.position,
   });
 
@@ -15,7 +15,7 @@ class QuestionOptionModel {
     return QuestionOptionModel(
       id: json['id'] as int,
       content: json['content'],
-      isCorrect: json['correct'],
+      correct: json['correct'],
       position: json['position'] as int?,
     );
   }
@@ -23,7 +23,7 @@ class QuestionOptionModel {
   Map<String, dynamic> toJson() => {
     'id': id,
     'content': content,
-    'isCorrect': isCorrect,
+    'correct': correct,
     'position': position,
   };
 }

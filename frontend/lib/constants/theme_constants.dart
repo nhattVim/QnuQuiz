@@ -7,7 +7,7 @@ class ThemeConstants {
     useMaterial3: true,
     textTheme: GoogleFonts.robotoTextTheme(ThemeData.light().textTheme),
     colorScheme: ColorScheme.fromSeed(
-      seedColor: Colors.deepPurple,
+      seedColor: Colors.blue,
       brightness: Brightness.light,
     ),
   );

@@ -399,7 +399,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
     final currentQuestion = quizData[currentQuestionIndex];
     final correctOptionIndex = currentQuestion.options.indexWhere(
-      (option) => option.isCorrect,
+      (option) => option.correct,
     );
 
     return Scaffold(
