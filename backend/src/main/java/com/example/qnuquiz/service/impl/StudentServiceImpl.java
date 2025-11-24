@@ -124,7 +124,10 @@ public class StudentServiceImpl implements StudentService {
 
         // Lấy tất cả các bài thi đã nộp của sinh viên
         List<ExamAttempts> attempts = examAttemptRepository
-                .findByStudentsIdAndSubmittedTrueOrderByEndTimeDesc(student.getId());
+            .findByStudents_IdOrderByEndTimeDesc(student.getId())
+            .stream()
+            .filter(a -> a.isSubmitted() || a.getEndTime() != null)
+            .collect(Collectors.toList());
 
         return attempts.stream().map(attempt -> {
             ExamHistoryDto.ExamHistoryDtoBuilder builder = ExamHistoryDto.builder()
