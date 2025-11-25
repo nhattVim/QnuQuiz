@@ -6,12 +6,12 @@
 -- 1. USERS
 INSERT INTO users (id, username, password_hash, full_name, email, role, status, created_at, updated_at, avatar_url) VALUES
 ('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11', 'admin', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Quản trị viên', 'admin@qnu.edu.vn', 'ADMIN', 'ACTIVE', NOW(), NOW(), NULL),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'teacher1', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Nguyễn Văn An (GV)', 'gv.an@qnu.edu.vn', 'TEACHER', 'ACTIVE', NOW(), NOW(), 'https://i.pravatar.cc/150?u=teacher1'),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', 'teacher2', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Trần Thị Bình (GV)', 'gv.binh@qnu.edu.vn', 'TEACHER', 'ACTIVE', NOW(), NOW(), NULL),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', 'teacher3', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Lê Văn Cường (GV)', 'gv.cuong@qnu.edu.vn', 'TEACHER', 'INACTIVE', NOW(), NOW(), NULL),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 'student1', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Phạm Thị Dung (SV)', 'sv.dung@qnu.edu.vn', 'STUDENT', 'ACTIVE', NOW(), NOW(), 'https://bom.edu.vn/public/upload/2024/12/avatar-dep-nam-1.webp'),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16', 'student2', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Hoàng Văn Em (SV)', 'sv.em@qnu.edu.vn', 'STUDENT', 'ACTIVE', NOW(), NOW(), 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQG5s-pnpsa-iT5R9xesoXWpOfFwNhRFIzQxQ&s'),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', 'student3', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Vũ Thị Hà (SV)', 'sv.ha@qnu.edu.vn', 'STUDENT', 'ACTIVE', NOW(), NOW(), 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQG5s-pnpsa-iT5R9xesoXWpOfFwNhRFIzQxQ&s');
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', 'teacher1', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Nguyễn Văn An (GV)', 'gv.an@qnu.edu.vn', 'TEACHER', 'ACTIVE', NOW(), NOW(), 'https://heucollege.edu.vn/upload/2025/02/hinh-dai-dien-anime-nu-10.webp'),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', 'teacher2', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Trần Thị Bình (GV)', 'gv.binh@qnu.edu.vn', 'TEACHER', 'ACTIVE', NOW(), NOW(), 'https://cdn-media.sforum.vn/storage/app/media/THANHAN/avartar-anime-91.jpg'),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a14', 'teacher3', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Lê Văn Cường (GV)', 'gv.cuong@qnu.edu.vn', 'TEACHER', 'INACTIVE', NOW(), NOW(), 'https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-anime-dang-yeu-khong-the-cuong-duoc-3.jpg'),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 'student1', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Phạm Thị Dung (SV)', 'sv.dung@qnu.edu.vn', 'STUDENT', 'ACTIVE', NOW(), NOW(), 'https://cellphones.com.vn/sforum/wp-content/uploads/2024/01/avartar-anime-6.jpg'),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16', 'student2', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Hoàng Văn Em (SV)', 'sv.em@qnu.edu.vn', 'STUDENT', 'ACTIVE', NOW(), NOW(), 'https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-avatar-anime-nu-cute-1.jpg'),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a17', 'student3', '$2a$10$fsxxNTnoL9KZZhqleSuk5uWO0UUCLKjAkZ4cDLYbD4ljXZkxCS4Ki', 'Vũ Thị Hà (SV)', 'sv.ha@qnu.edu.vn', 'STUDENT', 'ACTIVE', NOW(), NOW(), 'https://jbagy.me/wp-content/uploads/2025/03/Hinh-anh-anime-dang-yeu-khong-the-cuong-duoc-2.jpg');
 
 -- 2. DEPARTMENTS
 INSERT INTO departments (name, description, created_at) VALUES
