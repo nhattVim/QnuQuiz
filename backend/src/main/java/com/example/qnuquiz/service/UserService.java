@@ -1,13 +1,19 @@
 package com.example.qnuquiz.service;
 
 import java.util.List;
+import java.util.Optional;
 
-import com.example.qnuquiz.dto.user.UserCreateDto;
+import com.example.qnuquiz.dto.user.UserRegisterDto;
+import com.example.qnuquiz.entity.Users;
 import com.example.qnuquiz.dto.user.UserDto;
 
 public interface UserService {
 
-    UserDto register(UserCreateDto dto);
+    UserDto register(UserRegisterDto dto);
 
     List<UserDto> getAllUsers();
+
+    Optional<Users> findByUsername(String username);
+
+    Object getCurrentUserProfile();
 }

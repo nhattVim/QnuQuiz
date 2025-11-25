@@ -5,7 +5,7 @@ import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
-import com.example.qnuquiz.dto.user.UserCreateDto;
+import com.example.qnuquiz.dto.user.UserRegisterDto;
 import com.example.qnuquiz.dto.user.UserDto;
 import com.example.qnuquiz.entity.Users;
 
@@ -31,5 +31,5 @@ public interface UserMapper {
     @Mapping(target = "mediaFileses", ignore = true)
     @Mapping(target = "classeses", ignore = true)
     @Mapping(target = "feedbacksesForReviewedBy", ignore = true)
-    Users toEntity(UserCreateDto dto);
+    Users toEntity(UserRegisterDto dto);
 }
