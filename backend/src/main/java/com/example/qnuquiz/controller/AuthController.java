@@ -17,6 +17,7 @@ import com.example.qnuquiz.entity.Users;
 import com.example.qnuquiz.security.JwtUtil;
 import com.example.qnuquiz.service.UserService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -49,7 +50,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserDto> register(@RequestBody UserRegisterDto dto) {
+    public ResponseEntity<UserDto> register(@Valid @RequestBody UserRegisterDto dto) {
         return ResponseEntity.ok(userService.register(dto));
     }
 }
