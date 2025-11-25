@@ -4,6 +4,7 @@ import 'package:frontend/models/exam_attempt_model.dart';
 import 'package:frontend/models/exam_model.dart';
 import 'package:frontend/screens/exam/widgets/exam_card.dart';
 import 'package:frontend/screens/quiz/quiz_screen.dart';
+import 'package:frontend/screens/student_exam_history_screen.dart';
 import 'package:frontend/services/exam_service.dart';
 
 class ExamListScreen extends StatefulWidget {
@@ -57,24 +58,34 @@ class _ExamListScreenState extends State<ExamListScreen> {
 
           return Column(
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 child: Row(
                   children: [
-                    Text(
+                    const Text(
                       "Sau đây",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Spacer(),
-                    Text(
-                      "Lịch sử",
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const StudentExamHistoryScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "Lịch sử",
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ],

@@ -13,9 +13,7 @@ import 'package:frontend/models/department_model.dart';
 import 'package:frontend/models/class_model.dart';
 import 'package:frontend/screens/home_screen.dart';
 import 'package:frontend/services/teacher_service.dart';
-import 'package:frontend/services/user_service.dart';
-// Thêm import màn hình lịch sử nếu có
-import 'package:frontend/screens/student_exam_history_screen.dart'; 
+import 'package:frontend/services/user_service.dart'; 
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -330,38 +328,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
 
                     // Role-specific fields
                     _buildRoleSpecificFields(user),
-
-                    // Nút "Lịch sử làm bài thi" chỉ dành cho STUDENT
-                    if (user.role == 'STUDENT') ...[
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        height: 50,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const StudentExamHistoryScreen(),
-                              ),
-                            );
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.green,
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          icon: const Icon(Icons.history),
-                          label: const Text(
-                            'Lịch sử làm bài thi',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                    ],
 
                     const SizedBox(height: 16),
                     // Save Button
