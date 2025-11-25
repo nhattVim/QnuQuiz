@@ -17,6 +17,8 @@ public interface ExamAttemptRepository extends JpaRepository<ExamAttempts, Long>
 
 	List<ExamAttempts> findByStudentsIdAndSubmittedTrueOrderByEndTimeDesc(Long studentId);
 
+	List<ExamAttempts> findByStudents_IdOrderByEndTimeDesc(Long studentId);
+
 	@Query("""
 			    SELECT new com.example.qnuquiz.dto.analytics.RankingDto(
 			        u.username,

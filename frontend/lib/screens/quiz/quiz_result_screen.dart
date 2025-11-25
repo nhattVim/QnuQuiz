@@ -1,20 +1,85 @@
 import 'package:flutter/material.dart';
+import 'package:frontend/models/exam_result_model.dart';
+import 'package:frontend/screens/quiz/quiz_review_screen.dart';
+import 'package:frontend/services/exam_service.dart';
 
 class QuizResultScreen extends StatelessWidget {
   final int totalQuestions;
-  final int correctAnswers;
+  final ExamResultModel result;
+  final int attemptId;
   final VoidCallback onBackHome;
 
   const QuizResultScreen({
     super.key,
     required this.totalQuestions,
-    required this.correctAnswers,
+    required this.result,
+    required this.attemptId,
     required this.onBackHome,
   });
 
+  Future<void> handleReviewExam(BuildContext context, int attemptId) async {
+    try {
+      // Hiển thị loading dialog
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext ctx) {
+          return const Dialog(
+            child: Padding(
+              padding: EdgeInsets.all(20),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text('Đang tải dữ liệu...'),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+
+      // Gọi API để lấy dữ liệu review
+      final examReview = await ExamService().reviewExamAttempt(attemptId);
+
+      // Đóng loading dialog
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Chuyển sang QuizReviewScreen với dữ liệu từ API
+      if (context.mounted) {
+        Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (context) => QuizReviewScreen(
+              examReview: examReview,
+              totalQuestions: totalQuestions,
+            ),
+          ),
+        );
+      }
+    } catch (e) {
+      // Đóng loading dialog nếu có lỗi
+      if (context.mounted) {
+        Navigator.of(context).pop();
+      }
+
+      // Hiển thị error message
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Lỗi: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final points = correctAnswers * 10; // Mỗi câu đúng = 10 điểm
+    final points = result.score;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -122,7 +187,7 @@ class QuizResultScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 20),
                               Text(
-                                '$correctAnswers/$totalQuestions',
+                                '$points/$totalQuestions',
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -173,14 +238,7 @@ class QuizResultScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: () {
-                        // TODO: Implement review functionality
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Review functionality coming soon'),
-                          ),
-                        );
-                      },
+                      onPressed: () => handleReviewExam(context, attemptId),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,

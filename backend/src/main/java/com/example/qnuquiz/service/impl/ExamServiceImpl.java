@@ -15,12 +15,14 @@ import org.springframework.stereotype.Service;
 import com.example.qnuquiz.dto.analytics.RankingDto;
 import com.example.qnuquiz.dto.exam.ExamAnswerReviewDTO;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
+import com.example.qnuquiz.dto.exam.ExamCategoryDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
 import com.example.qnuquiz.dto.exam.QuestionDTO;
 import com.example.qnuquiz.entity.ExamAnswers;
 import com.example.qnuquiz.entity.ExamAttempts;
+import com.example.qnuquiz.entity.ExamCategories;
 import com.example.qnuquiz.entity.Exams;
 import com.example.qnuquiz.entity.QuestionOptions;
 import com.example.qnuquiz.entity.Questions;
@@ -34,6 +36,8 @@ import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.repository.StudentRepository;
 import com.example.qnuquiz.repository.UserRepository;
+import com.example.qnuquiz.repository.ExamCategoryRepository;
+import com.example.qnuquiz.mapper.ExamCategoryMapper;
 import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.ExamService;
 
@@ -50,7 +54,9 @@ public class ExamServiceImpl implements ExamService {
     private final QuestionRepository questionRepo;
     private final UserRepository userRepository;
     private final StudentRepository studentRepository;
+    private final ExamCategoryRepository examCategoryRepository;
 
+    private final ExamCategoryMapper examCategoryMapper;
     private final ExamMapper examMapper;
 
     private final QuestionRepository questionRepository;
@@ -320,6 +326,40 @@ public class ExamServiceImpl implements ExamService {
     public List<RankingDto> rankingAllThisWeek() {
         Timestamp weekAgo = new Timestamp(System.currentTimeMillis() - 7L * 86400 * 1000);
         return examAttemptRepository.rankingAllThisWeek(weekAgo);
+    }
+
+    public List<ExamCategoryDto> getAllCategories() {
+        List<ExamCategories> categories = examCategoryRepository.findAll();
+
+        return categories.stream().map(cat -> {
+            ExamCategoryDto dto = examCategoryMapper.toDto(cat);
+
+            Long totalExams = examRepository.findByExamCategories_Id(cat.getId())
+                    .stream()
+                    .filter(exam -> !"DRAFT".equalsIgnoreCase(exam.getStatus()))
+                    .count();
+
+            dto.setTotalExams(totalExams);
+            return dto;
+        }).toList();
+    }
+
+    @Override
+    public List<ExamDto> getExamsByCategory(Long categoryId) {
+
+        examCategoryRepository.findById(categoryId)
+                .orElseThrow(() -> new RuntimeException("Exam category not found"));
+
+        List<Exams> exams = examRepository.findByExamCategories_Id(categoryId);
+
+        return exams.stream()
+                .filter(exam -> !"DRAFT".equalsIgnoreCase(exam.getStatus()))
+                .map(exam -> {
+                    ExamDto dto = examMapper.toDto(exam);
+                    dto.setStatus(getComputedStatus(exam));
+                    return dto;
+                })
+                .toList();
     }
 
 }

@@ -5,10 +5,14 @@ import 'package:frontend/models/nav_item.dart';
 import 'package:frontend/pages/dashboard_page.dart';
 import 'package:frontend/pages/faq_page.dart';
 import 'package:frontend/pages/my_exam_page.dart';
+import 'package:frontend/pages/category/category_page.dart';
 import 'package:frontend/pages/profile_page.dart';
 import 'package:frontend/pages/ranking_page.dart';
-import '../pages/exam_list_page.dart';
 import '../providers/user_provider.dart';
+
+/// =======================
+/// NAV ITEMS
+/// =======================
 
 const dashboardItem = NavItem(
   page: DashboardPage(),
@@ -18,12 +22,6 @@ const dashboardItem = NavItem(
 
 const examItem = NavItem(
   page: MyExamPage(),
-  icon: Icons.library_books_sharp,
-  label: "Exam",
-);
-
-const examItem2 = NavItem(
-  page: ExamListPage(),
   icon: Icons.library_books_sharp,
   label: "Exam",
 );
@@ -46,15 +44,27 @@ const profileItem = NavItem(
   label: "Profile",
 );
 
+const categoryItem = NavItem(
+  page: CategoryPage(),
+  icon: Icons.category_rounded,
+  label: "Chủ đề",
+);
+
 const adminNav = [examItem, dashboardItem, profileItem];
+
 const studentNav = [
-  rankingItem,
   dashboardItem,
-  examItem2,
+  categoryItem,
+  rankingItem,
   faqItem,
   profileItem,
 ];
-const teacherNav = [dashboardItem, examItem, rankingItem, profileItem];
+
+const teacherNav = [dashboardItem, examItem, profileItem];
+
+/// =======================
+/// HOME SCREEN
+/// =======================
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
