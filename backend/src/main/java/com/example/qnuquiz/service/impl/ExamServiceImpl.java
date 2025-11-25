@@ -1,6 +1,5 @@
 package com.example.qnuquiz.service.impl;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -28,16 +27,16 @@ import com.example.qnuquiz.entity.QuestionOptions;
 import com.example.qnuquiz.entity.Questions;
 import com.example.qnuquiz.entity.Students;
 import com.example.qnuquiz.entity.Users;
+import com.example.qnuquiz.mapper.ExamCategoryMapper;
 import com.example.qnuquiz.mapper.ExamMapper;
 import com.example.qnuquiz.repository.ExamAnswerRepository;
 import com.example.qnuquiz.repository.ExamAttemptRepository;
+import com.example.qnuquiz.repository.ExamCategoryRepository;
 import com.example.qnuquiz.repository.ExamRepository;
 import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.repository.StudentRepository;
 import com.example.qnuquiz.repository.UserRepository;
-import com.example.qnuquiz.repository.ExamCategoryRepository;
-import com.example.qnuquiz.mapper.ExamCategoryMapper;
 import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.ExamService;
 
@@ -81,14 +80,14 @@ public class ExamServiceImpl implements ExamService {
             // Nếu đã có thì cập nhật
             answer = existingOpt.get();
             answer.setQuestionOptions(option);
-            answer.setIsCorrect(option.getCorrect());
+            answer.setIsCorrect(option.isIsCorrect());
         } else {
             // Nếu chưa có thì tạo mới
             answer = new ExamAnswers();
             answer.setExamAttempts(attempt);
             answer.setQuestions(option.getQuestions());
             answer.setQuestionOptions(option);
-            answer.setIsCorrect(option.getCorrect());
+            answer.setIsCorrect(option.isIsCorrect());
             answer.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         }
 
@@ -123,7 +122,7 @@ public class ExamServiceImpl implements ExamService {
 
         long totalQuestions = answers.size();
 
-        attempt.setScore(BigDecimal.valueOf(correctCount));
+        attempt.setScore((int) correctCount);
         attempt.setSubmitted(true);
         attempt.setEndTime(Timestamp.from(Instant.now()));
         attemptRepo.save(attempt);

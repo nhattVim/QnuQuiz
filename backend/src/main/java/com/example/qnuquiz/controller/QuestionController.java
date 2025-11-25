@@ -44,8 +44,8 @@ public class QuestionController {
     }
 
     @GetMapping
-    public ResponseEntity<List<QuestionFullDto>> getQuestions(@RequestParam("examId") Long examId) {
-        return ResponseEntity.ok(questionService.getQuestions(examId));
+    public ResponseEntity<List<QuestionFullDto>> getAllQuestionsInExam(@RequestParam("examId") Long examId) {
+        return ResponseEntity.ok(questionService.getAllQuestionsInExam(examId));
     }
 
     @DeleteMapping("/delete")

@@ -1,7 +1,5 @@
 package com.example.qnuquiz.dto.analytics;
 
-import java.math.BigDecimal;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class RankingDto {
 
     private String username;
-    private BigDecimal score;
+    private Long score;
     private String fullName;
     private String avatarUrl;
 }

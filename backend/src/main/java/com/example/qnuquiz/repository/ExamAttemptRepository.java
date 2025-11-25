@@ -22,15 +22,14 @@ public interface ExamAttemptRepository extends JpaRepository<ExamAttempts, Long>
 	@Query("""
 			    SELECT new com.example.qnuquiz.dto.analytics.RankingDto(
 			        u.username,
-			        SUM(ea.score),
+    				COALESCE(SUM(ea.score), 0),
 			        u.fullName,
-			        COALESCE(mf.fileUrl, 'https://i.pinimg.com/736x/8f/1c/a2/8f1ca2029e2efceebd22fa05cca423d7.jpg')
+			        COALESCE(u.avatarUrl, 'https://i.pinimg.com/736x/8f/1c/a2/8f1ca2029e2efceebd22fa05cca423d7.jpg')
 			    )
 			    FROM ExamAttempts ea
 			    JOIN ea.students s
 			    JOIN s.users u
-			    LEFT JOIN u.mediaFiles mf
-			    GROUP BY u.username, u.fullName, mf.fileUrl
+			    GROUP BY u.username, u.fullName, u.avatarUrl
 			    ORDER BY SUM(ea.score) DESC
 			""")
 	List<RankingDto> rankingAll();
@@ -38,16 +37,15 @@ public interface ExamAttemptRepository extends JpaRepository<ExamAttempts, Long>
 	@Query("""
 			    SELECT new com.example.qnuquiz.dto.analytics.RankingDto(
 			        u.username,
-			        SUM(ea.score),
+    				COALESCE(SUM(ea.score), 0),
 			        u.fullName,
-			        COALESCE(mf.fileUrl, 'https://i.pinimg.com/736x/8f/1c/a2/8f1ca2029e2efceebd22fa05cca423d7.jpg')
+			        COALESCE(u.avatarUrl, 'https://i.pinimg.com/736x/8f/1c/a2/8f1ca2029e2efceebd22fa05cca423d7.jpg')
 			    )
 			    FROM ExamAttempts ea
 			    JOIN ea.students s
 			    JOIN s.users u
-			    LEFT JOIN u.mediaFiles mf
 			    WHERE ea.createdAt >= :fromDate
-			    GROUP BY u.username, u.fullName, mf.fileUrl
+			    GROUP BY u.username, u.fullName, u.avatarUrl
 			    ORDER BY SUM(ea.score) DESC
 			""")
 	List<RankingDto> rankingAllThisWeek(Timestamp fromDate);

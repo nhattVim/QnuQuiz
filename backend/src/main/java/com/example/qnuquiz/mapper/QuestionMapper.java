@@ -23,11 +23,9 @@ public interface QuestionMapper {
     @Mapping(target = "updatedAt", ignore = true)
     @Mapping(target = "exams", ignore = true)
     @Mapping(target = "ordering", ignore = true)
-    @Mapping(target = "points", ignore = true)
     Questions toEntity(QuestionImportDto dto);
 
     @Mapping(target = "options", ignore = true)
-    @Mapping(target = "point", source = "points")
     QuestionFullDto toQuestionFullDto(Questions questions);
 
     List<QuestionFullDto> toQuestionFullDtoList(List<Questions> questions);
