@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   full_name VARCHAR(256),
   email VARCHAR(256),
+  phone_number VARCHAR(16),
+  avatar_url TEXT,
   role user_role NOT NULL DEFAULT 'STUDENT',
   status user_status NOT NULL DEFAULT 'ACTIVE',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -70,6 +72,7 @@ CREATE TABLE IF NOT EXISTS departments (
 CREATE TABLE IF NOT EXISTS classes (
   id BIGSERIAL PRIMARY KEY,
   name VARCHAR(128) NOT NULL,
+  thumbnail_url TEXT,
   department_id BIGINT REFERENCES departments(id) ON DELETE SET NULL,
   advisor_teacher_id UUID REFERENCES users(id) ON DELETE SET NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -87,7 +90,7 @@ CREATE TABLE IF NOT EXISTS students (
   student_code VARCHAR(64) NOT NULL UNIQUE,
   class_id BIGINT REFERENCES classes(id) ON DELETE SET NULL,
   department_id BIGINT REFERENCES departments(id) ON DELETE SET NULL,
-  gpa NUMERIC(3,2),
+  gpa NUMERIC(3,2) CHECK (gpa >= 0 AND gpa <= 10),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -125,15 +128,22 @@ CREATE TABLE IF NOT EXISTS exams (
   id BIGSERIAL PRIMARY KEY,
   title VARCHAR(256) NOT NULL,
   description TEXT,
-  category_id BIGINT REFERENCES exam_categories(id) ON DELETE SET NULL, -- THÊM KHÓA NGOẠI VÀO BẢNG EXAMS
+  banner_url TEXT,
+  category_id BIGINT REFERENCES exam_categories(id) ON DELETE SET NULL,
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   start_time TIMESTAMPTZ,
   end_time TIMESTAMPTZ,
   random BOOLEAN NOT NULL DEFAULT FALSE,
+  max_questions INT,
   duration_minutes INT,
   status exam_status NOT NULL DEFAULT 'DRAFT',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  CONSTRAINT chk_exams_time CHECK (end_time > start_time),
+  CONSTRAINT chk_exams_random CHECK (
+    (random = FALSE) OR (random = TRUE AND max_questions > 0)
+  )
 );
 
 CREATE TRIGGER trg_exams_updated BEFORE UPDATE ON exams
@@ -151,7 +161,6 @@ CREATE TABLE IF NOT EXISTS questions (
   content TEXT NOT NULL,
   type question_type NOT NULL DEFAULT 'MULTIPLE_CHOICE',
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,
-  points NUMERIC(6,2) DEFAULT 1,
   ordering INT DEFAULT 0,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
@@ -185,7 +194,7 @@ CREATE TABLE IF NOT EXISTS exam_attempts (
   student_id BIGINT REFERENCES students(id) ON DELETE CASCADE,
   start_time TIMESTAMPTZ NOT NULL DEFAULT now(),
   end_time TIMESTAMPTZ,
-  score NUMERIC(8,3),
+  score INTEGER DEFAULT 0,
   submitted BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -259,7 +268,7 @@ CREATE TABLE IF NOT EXISTS leaderboard (
   id BIGSERIAL PRIMARY KEY,
   exam_id BIGINT REFERENCES exams(id) ON DELETE CASCADE,
   student_id BIGINT REFERENCES students(id) ON DELETE CASCADE,
-  score NUMERIC(8,3),
+  score INTEGER DEFAULT 0,
   rank INTEGER,
   generated_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -277,8 +286,9 @@ CREATE TABLE IF NOT EXISTS media_files (
   mime_type VARCHAR(128),
   size_bytes BIGINT,
   uploaded_by UUID REFERENCES users(id) ON DELETE SET NULL,
-  related_table VARCHAR(128),
-  related_id BIGINT,
+  related_table VARCHAR(128), 
+  related_id VARCHAR(256),
+   
   description TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );

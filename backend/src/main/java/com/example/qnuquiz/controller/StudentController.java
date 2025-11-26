@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.qnuquiz.dto.student.ExamHistoryDto;
 import com.example.qnuquiz.dto.student.StudentDto;
-import com.example.qnuquiz.dto.student.StudentProfileUpdateRequest;
 import com.example.qnuquiz.service.StudentService;
 
 import lombok.RequiredArgsConstructor;

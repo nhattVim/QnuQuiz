@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
@@ -89,7 +90,7 @@ public class QuestionServiceImpl implements QuestionService {
         QuestionOptions opt = new QuestionOptions();
         opt.setQuestions(question);
         opt.setContent(content);
-        opt.setCorrect(isCorrect);
+        opt.setIsCorrect(isCorrect);
         opt.setPosition(position);
         opt.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         questionOptionsRepository.save(opt);
@@ -110,7 +111,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     @Cacheable("allQuestionsOfExam")
-    public List<QuestionFullDto> getQuestions(Long examId) {
+    public List<QuestionFullDto> getAllQuestionsInExam(Long examId) {
         if (!examRepository.existsById(examId)) {
             throw new RuntimeException("Exam not found");
         }
@@ -123,7 +124,7 @@ public class QuestionServiceImpl implements QuestionService {
                                 .map(o -> QuestionOptionDto.builder()
                                         .id(o.getId())
                                         .content(o.getContent())
-                                        .correct(o.getCorrect())
+                                        .correct(o.isIsCorrect())
                                         .build())
                                 .toList())
                         .build())
@@ -136,5 +137,38 @@ public class QuestionServiceImpl implements QuestionService {
     public void deleteQuestion(List<Long> ids) {
         questionOptionsRepository.deleteAllByQuestions_IdIn(ids);
         questionsRepository.deleteAllById(ids);
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
+    public QuestionFullDto updateQuestion(QuestionFullDto dto) {
+        Questions question = questionsRepository.findById(dto.getId())
+                .orElseThrow(() -> new RuntimeException("Question not found"));
+
+        question.setContent(dto.getContent());
+
+        List<QuestionOptionDto> updatedOptions = dto.getOptions().stream()
+                .map(optionDto -> {
+                    QuestionOptions option = questionOptionsRepository.findById(optionDto.getId())
+                            .orElseThrow(() -> new RuntimeException("Option not found with id: " + optionDto.getId()));
+                    option.setContent(optionDto.getContent());
+                    option.setIsCorrect(optionDto.isCorrect());
+                    questionOptionsRepository.save(option);
+                    return QuestionOptionDto.builder()
+                            .id(option.getId())
+                            .content(option.getContent())
+                            .correct(option.isIsCorrect())
+                            .build();
+                })
+                .collect(Collectors.toList());
+
+        questionsRepository.save(question);
+
+        return QuestionFullDto.builder()
+                .id(question.getId())
+                .content(question.getContent())
+                .options(updatedOptions)
+                .build();
     }
 }

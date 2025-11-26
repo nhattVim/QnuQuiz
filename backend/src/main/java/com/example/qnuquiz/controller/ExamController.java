@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
+import com.example.qnuquiz.dto.exam.ExamCategoryDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
@@ -96,6 +97,16 @@ public class ExamController {
 	@GetMapping("/attempts/{attemptId}/review")
 	public ResponseEntity<ExamReviewDTO> reviewExam(@PathVariable Long attemptId) {
 		return ResponseEntity.ok(examService.reviewExamAttempt(attemptId));
+	}
+
+	@GetMapping("/categories")
+	public ResponseEntity<List<ExamCategoryDto>> getAllCategories() {
+    return ResponseEntity.ok(examService.getAllCategories());
+	}
+
+	@GetMapping("/categories/{categoryId}")
+	public ResponseEntity<List<ExamDto>> getExamsByCategory(@PathVariable Long categoryId) {
+    return ResponseEntity.ok(examService.getExamsByCategory(categoryId));
 	}
 
 	@GetMapping("/getAll")

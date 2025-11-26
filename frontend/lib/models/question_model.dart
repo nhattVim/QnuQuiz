@@ -15,7 +15,7 @@ class QuestionModel {
     return QuestionModel(
       id: json['id'] as int,
       content: json['content'],
-      options: json['options']
+      options: (json['options'] as List)
           .map<QuestionOptionModel>(
             (option) => QuestionOptionModel.fromJson(option),
           )
@@ -25,7 +25,6 @@ class QuestionModel {
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'content': content,
       'options': options.map((option) => option.toJson()).toList(),
     };

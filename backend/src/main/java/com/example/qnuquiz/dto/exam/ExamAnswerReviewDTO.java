@@ -13,6 +13,6 @@ public class ExamAnswerReviewDTO {
     private String type;
     private String studentAnswer; // text hoặc optionId
     private List<QuestionOptionDTO> options; // hiển thị cả đáp án
-    private boolean isCorrect;
+    private boolean correct;
 }
 

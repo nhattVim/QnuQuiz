@@ -12,4 +12,6 @@ import com.example.qnuquiz.entity.Exams;
 public interface ExamRepository extends JpaRepository<Exams, Long> {
 
     List<Exams> findByUsers_Id(UUID userId);
+    List<Exams> findByExamCategories_Id(Long categoryId);
+    Long countByExamCategories_Id(Long categoryId);
 }

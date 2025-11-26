@@ -1,23 +1,64 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_boxicons/flutter_boxicons.dart';
 
-class QuizHeader extends StatelessWidget {
+class QuizHeader extends StatefulWidget {
   final int currentQuestion;
   final int totalQuestions;
-  final String? timeRemaining;
+  final int? durationMinutes;
   final VoidCallback onBackPressed;
   final Function(int) onQuestionSelected;
-  final List<int?>? answeredQuestions; // Track câu đã trả lời
+  final List<int?>? answeredQuestions;
 
   const QuizHeader({
     super.key,
     required this.currentQuestion,
-    this.totalQuestions = 50,
-    this.timeRemaining = '5:30',
+    required this.totalQuestions,
+    required this.durationMinutes,
     required this.onBackPressed,
     required this.onQuestionSelected,
     this.answeredQuestions,
   });
+
+  @override
+  State<QuizHeader> createState() => _QuizHeaderState();
+}
+
+class _QuizHeaderState extends State<QuizHeader> {
+  late int remainingSeconds;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    remainingSeconds = (widget.durationMinutes ?? 0) * 60;
+    if (remainingSeconds > 0) {
+      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+        if (mounted) {
+          setState(() {
+            if (remainingSeconds > 0) {
+              remainingSeconds--;
+            } else {
+              _timer?.cancel();
+              // Optional: trigger auto-submit or notify user
+            }
+          });
+        }
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  String get formattedTime {
+    final minutes = remainingSeconds ~/ 60;
+    final seconds = remainingSeconds % 60;
+    return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
+  }
 
   void _showQuestionSelector(BuildContext context) {
     showModalBottomSheet(
@@ -39,17 +80,16 @@ class QuizHeader extends StatelessWidget {
                   mainAxisSpacing: 8,
                   crossAxisSpacing: 8,
                 ),
-                itemCount: totalQuestions,
+                itemCount: widget.totalQuestions,
                 itemBuilder: (context, index) {
                   final questionNumber = index + 1;
-                  final isCurrentQuestion = questionNumber == currentQuestion;
+                  final isCurrentQuestion =
+                      questionNumber == widget.currentQuestion;
                   final isAnswered =
-                      answeredQuestions != null &&
-                      answeredQuestions![index] != null;
-
+                      widget.answeredQuestions != null &&
+                      widget.answeredQuestions![index] != null;
                   Color bgColor = Colors.grey.shade200;
                   Color textColor = Colors.black;
-
                   if (isCurrentQuestion) {
                     bgColor = Colors.blue;
                     textColor = Colors.white;
@@ -57,10 +97,9 @@ class QuizHeader extends StatelessWidget {
                     bgColor = Colors.amber.shade200;
                     textColor = Colors.black87;
                   }
-
                   return GestureDetector(
                     onTap: () {
-                      onQuestionSelected(index);
+                      widget.onQuestionSelected(index);
                       Navigator.pop(context);
                     },
                     child: Container(
@@ -98,7 +137,7 @@ class QuizHeader extends StatelessWidget {
       elevation: 0,
       leading: IconButton(
         icon: const Icon(Boxicons.bx_arrow_back, color: Colors.black),
-        onPressed: onBackPressed,
+        onPressed: widget.onBackPressed,
       ),
       title: GestureDetector(
         onTap: () => _showQuestionSelector(context),
@@ -106,7 +145,7 @@ class QuizHeader extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Quiz $currentQuestion',
+              'Quiz ${widget.currentQuestion}',
               style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
@@ -120,32 +159,36 @@ class QuizHeader extends StatelessWidget {
       ),
       centerTitle: true,
       actions: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Center(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.schedule, color: Colors.white, size: 18),
-                  const SizedBox(width: 6),
-                  Text(
-                    timeRemaining ?? '5:30',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
+        if (widget.durationMinutes != null)
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.schedule, color: Colors.white, size: 18),
+                    const SizedBox(width: 6),
+                    Text(
+                      formattedTime,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
       ],
     );
   }
