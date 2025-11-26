@@ -30,7 +30,6 @@ public class Questions implements java.io.Serializable {
     private Exams exams;
     private Users users;
     private String content;
-    private String imageUrl;
     private String type;
     private Integer ordering;
     private Timestamp createdAt;
@@ -51,14 +50,13 @@ public class Questions implements java.io.Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public Questions(long id, Exams exams, Users users, String content, String imageUrl, String type, Integer ordering,
+    public Questions(long id, Exams exams, Users users, String content, String type, Integer ordering,
             Timestamp createdAt, Timestamp updatedAt, Set<ExamAnswers> examAnswerses,
             Set<QuestionOptions> questionOptionses, Set<Feedbacks> feedbackses) {
         this.id = id;
         this.exams = exams;
         this.users = users;
         this.content = content;
-        this.imageUrl = imageUrl;
         this.type = type;
         this.ordering = ordering;
         this.createdAt = createdAt;
@@ -106,15 +104,6 @@ public class Questions implements java.io.Serializable {
 
     public void setContent(String content) {
         this.content = content;
-    }
-
-    @Column(name = "image_url")
-    public String getImageUrl() {
-        return this.imageUrl;
-    }
-
-    public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
     }
 
     @Column(name = "type", nullable = false)

@@ -50,7 +50,6 @@ INSERT INTO exams (title, description, category_id, created_by, start_time, end_
 ('Kiểm tra 15p Mạng', '5 câu trắc nghiệm', 3, 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', NOW() + INTERVAL '3 days', NOW() + INTERVAL '3 days 2 hours', 15, 'PUBLISHED', NOW(), NOW(), TRUE);
 
 -- 8. QUESTIONS
--- Bỏ cột POINTS
 INSERT INTO questions (exam_id, content, type, created_by, created_at, updated_at) VALUES
 (1, 'Java là ngôn ngữ lập trình gì?', 'MULTIPLE_CHOICE', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', NOW(), NOW()), -- ID 1
 (1, 'Đa hình (Polymorphism) là một trong 4 tính chất của OOP. Đúng hay Sai?', 'TRUE_FALSE', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', NOW(), NOW()), -- ID 2

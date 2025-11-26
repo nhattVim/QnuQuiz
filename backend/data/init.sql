@@ -159,7 +159,6 @@ CREATE TABLE IF NOT EXISTS questions (
   id BIGSERIAL PRIMARY KEY,
   exam_id BIGINT NOT NULL REFERENCES exams(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
-  image_url TEXT,
   type question_type NOT NULL DEFAULT 'MULTIPLE_CHOICE',
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   ordering INT DEFAULT 0,

@@ -11,5 +11,4 @@ public class QuestionImportDto {
     private String option3;
     private String option4;
     private Integer correctAnswer;
-    private String imageUrl;
 }
