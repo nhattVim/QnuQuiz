@@ -12,7 +12,7 @@ public interface QuestionService {
 
     void importQuestionsFromExcel(MultipartFile file, UUID userId, Long examId) throws IOException;
 
-    List<QuestionFullDto> getQuestions(Long examId);
+    List<QuestionFullDto> getAllQuestionsInExam(Long examId);
 
     QuestionFullDto updateQuestion(QuestionFullDto dto);
 

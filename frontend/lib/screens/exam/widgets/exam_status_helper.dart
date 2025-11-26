@@ -29,22 +29,35 @@ class ExamStatusUI {
   }
 
   static String getButtonText(ExamModel exam) {
-    // Nếu exam đóng → show "Xem lại bài" (không cần check hasUnfinishedAttempt)
+    // CLOSED status
     if (exam.computedStatus == "closed") {
-      return "Xem lại bài";
+      // Nếu đã làm → show "Xem lại bài"
+      if (exam.hasAttempt) {
+        return "Xem lại bài";
+      }
+      // Nếu chưa làm → show "Chưa làm"
+      return "Chưa làm";
     }
 
-    // Nếu exam chưa mở → show "Chưa mở"
+    // UNOPENED status
     if (exam.computedStatus == "unopened") {
       return "Chưa mở";
     }
 
-    // Nếu exam active và có unfinished attempt → show "Tiếp tục"
-    if (exam.computedStatus == "active" && exam.hasUnfinishedAttempt) {
-      return "Tiếp tục";
+    // ACTIVE status
+    if (exam.computedStatus == "active") {
+      // Nếu có unfinished attempt → show "Tiếp tục"
+      if (exam.hasUnfinishedAttempt) {
+        return "Tiếp tục";
+      }
+      // Nếu đã làm (submitted) → show "Xem lại bài"
+      if (exam.hasAttempt) {
+        return "Xem lại bài";
+      }
+      // Chưa làm → show "Bắt đầu làm"
+      return "Bắt đầu làm";
     }
 
-    // Mặc định cho active → "Bắt đầu làm"
     return "Bắt đầu làm";
   }
 

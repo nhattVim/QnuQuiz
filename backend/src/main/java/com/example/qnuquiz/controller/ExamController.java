@@ -99,6 +99,13 @@ public class ExamController {
 		return ResponseEntity.ok(examService.reviewExamAttempt(attemptId));
 	}
 
+	// Lấy latest attempt của student cho exam (không tạo mới)
+	@GetMapping("/{examId}/latest-attempt")
+	@PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+	public ResponseEntity<ExamAttemptDto> getLatestAttempt(@PathVariable Long examId) {
+		return ResponseEntity.ok(examService.getLatestAttempt(examId));
+	}
+
 	@GetMapping("/categories")
 	public ResponseEntity<List<ExamCategoryDto>> getAllCategories() {
 		return ResponseEntity.ok(examService.getAllCategories());

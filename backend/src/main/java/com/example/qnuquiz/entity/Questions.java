@@ -1,8 +1,7 @@
 package com.example.qnuquiz.entity;
-
 // default package
 
-// Generated Nov 19, 2025, 9:07:13 AM by Hibernate Tools 7.1.3.Final
+// Generated Nov 25, 2025, 4:34:35 PM by Hibernate Tools 7.1.3.Final
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -16,7 +15,6 @@ import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.HashSet;
 import java.util.Set;
@@ -33,7 +31,6 @@ public class Questions implements java.io.Serializable {
     private Users users;
     private String content;
     private String type;
-    private BigDecimal points;
     private Integer ordering;
     private Timestamp createdAt;
     private Timestamp updatedAt;
@@ -53,15 +50,14 @@ public class Questions implements java.io.Serializable {
         this.updatedAt = updatedAt;
     }
 
-    public Questions(long id, Exams exams, Users users, String content, String type, BigDecimal points,
-            Integer ordering, Timestamp createdAt, Timestamp updatedAt, Set<ExamAnswers> examAnswerses,
+    public Questions(long id, Exams exams, Users users, String content, String type, Integer ordering,
+            Timestamp createdAt, Timestamp updatedAt, Set<ExamAnswers> examAnswerses,
             Set<QuestionOptions> questionOptionses, Set<Feedbacks> feedbackses) {
         this.id = id;
         this.exams = exams;
         this.users = users;
         this.content = content;
         this.type = type;
-        this.points = points;
         this.ordering = ordering;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
@@ -117,15 +113,6 @@ public class Questions implements java.io.Serializable {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    @Column(name = "points", precision = 6, scale = 2)
-    public BigDecimal getPoints() {
-        return this.points;
-    }
-
-    public void setPoints(BigDecimal points) {
-        this.points = points;
     }
 
     @Column(name = "ordering")

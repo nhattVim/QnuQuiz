@@ -3,6 +3,8 @@ import 'package:flutter_boxicons/flutter_boxicons.dart';
 import 'package:frontend/models/exam_model.dart';
 import 'package:frontend/screens/exam/widgets/exam_card.dart';
 import 'package:frontend/screens/quiz/quiz_screen.dart';
+import 'package:frontend/screens/quiz/quiz_review_screen.dart';
+import 'package:frontend/screens/student_exam_history_screen.dart';
 import 'package:frontend/services/exam_service.dart';
 
 class ExamListScreen extends StatefulWidget {
@@ -66,24 +68,37 @@ class _ExamListScreenState extends State<ExamListScreen> {
 
           return Column(
             children: [
-              const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
                 child: Row(
                   children: [
-                    Text(
+                    const Text(
                       "Sau đây",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Spacer(),
-                    Text(
-                      "Lịch sử",
-                      style: TextStyle(
-                        color: Colors.blue,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                    const Spacer(),
+                    GestureDetector(
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const StudentExamHistoryScreen(),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        "Lịch sử",
+                        style: TextStyle(
+                          color: Colors.blue,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ],
@@ -100,6 +115,8 @@ class _ExamListScreenState extends State<ExamListScreen> {
                       exam: exams[index],
                       onPressed: () =>
                           _handleExamPressed(context, exams[index]),
+                      onReviewPressed: () =>
+                          _handleReviewPressed(context, exams[index]),
                     );
                   },
                 ),
@@ -127,6 +144,42 @@ class _ExamListScreenState extends State<ExamListScreen> {
         ),
       ).then((_) {
         // Refresh exam list khi quay lại từ quiz
+        if (mounted) {
+          setState(() {
+            _loadExams();
+          });
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi: $e"), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  Future<void> _handleReviewPressed(
+    BuildContext context,
+    ExamModel exam,
+  ) async {
+    try {
+      // Get the latest attempt WITHOUT creating a new one
+      final attempt = await ExamService().getLatestAttempt(exam.id);
+
+      if (!mounted) return;
+
+      // Get review data
+      final reviewData = await ExamService().reviewExamAttempt(attempt.id);
+
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QuizReviewScreen(examReview: reviewData),
+        ),
+      ).then((_) {
+        // Refresh exam list khi quay lại từ review
         if (mounted) {
           setState(() {
             _loadExams();

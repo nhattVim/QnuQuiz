@@ -4,11 +4,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/nav_item.dart';
 import 'package:frontend/pages/dashboard_page.dart';
 import 'package:frontend/pages/faq_page.dart';
-import 'package:frontend/pages/leaderboard_page.dart';
 import 'package:frontend/pages/my_exam_page.dart';
 import 'package:frontend/pages/category/category_page.dart';
 import 'package:frontend/pages/profile_page.dart';
+import 'package:frontend/pages/ranking_page.dart';
 import '../providers/user_provider.dart';
+
+/// =======================
+/// NAV ITEMS
+/// =======================
 
 const dashboardItem = NavItem(
   page: DashboardPage(),
@@ -28,8 +32,8 @@ const faqItem = NavItem(
   label: "FAQ",
 );
 
-const leaderboardItem = NavItem(
-  page: LeaderboardPage(),
+const rankingItem = NavItem(
+  page: RankingPage(),
   icon: Icons.leaderboard_rounded,
   label: "BXH",
 );
@@ -47,15 +51,20 @@ const categoryItem = NavItem(
 );
 
 const adminNav = [examItem, dashboardItem, profileItem];
+
 const studentNav = [
   dashboardItem,
   categoryItem,
-  leaderboardItem,
+  rankingItem,
   faqItem,
   profileItem,
 ];
 
-const teacherNav = [examItem, dashboardItem, leaderboardItem, profileItem];
+const teacherNav = [dashboardItem, examItem, profileItem];
+
+/// =======================
+/// HOME SCREEN
+/// =======================
 
 class HomeScreen extends ConsumerStatefulWidget {
   const HomeScreen({super.key});
@@ -66,6 +75,7 @@ class HomeScreen extends ConsumerStatefulWidget {
 
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   int _currentIndex = 0;
+  final List<Widget?> _pages = List.filled(5, null);
 
   @override
   Widget build(BuildContext context) {
@@ -80,10 +90,19 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         ? adminNav
         : (user.role == 'TEACHER' ? teacherNav : studentNav);
 
+    if (_pages[_currentIndex] == null) {
+      _pages[_currentIndex] = navItems[_currentIndex].page;
+    }
+
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: navItems.map((e) => e.page).toList(),
+      body: Stack(
+        children: navItems.asMap().entries.map((entry) {
+          int index = entry.key;
+          return Offstage(
+            offstage: _currentIndex != index,
+            child: _pages[index] ?? const SizedBox(),
+          );
+        }).toList(),
       ),
       bottomNavigationBar: BottomAppBar(
         elevation: 8,

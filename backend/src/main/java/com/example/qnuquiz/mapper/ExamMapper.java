@@ -87,7 +87,7 @@ default void mapDetails(ExamAnswers entity, @MappingTarget ExamAnswerReviewDTO d
                 opt.getId(),
                 opt.getContent(),
 								opt.getPosition(),
-								opt.getCorrect()
+								opt.isIsCorrect()
             ))
             .toList();
 

@@ -13,7 +13,7 @@ import 'package:frontend/models/department_model.dart';
 import 'package:frontend/models/class_model.dart';
 import 'package:frontend/screens/home_screen.dart';
 import 'package:frontend/services/teacher_service.dart';
-import 'package:frontend/services/user_service.dart';
+import 'package:frontend/services/user_service.dart'; 
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});

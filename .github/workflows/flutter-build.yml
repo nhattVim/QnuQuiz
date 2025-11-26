@@ -1,0 +1,76 @@
+name: Flutter Debug Build & Release
+
+on:
+    push:
+        tags:
+            - "v*"
+
+permissions:
+    contents: write
+
+defaults:
+    run:
+        working-directory: frontend
+
+jobs:
+    build-and-release:
+        runs-on: macos-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6.0.0
+
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                  flutter-version: "3.35.7"
+
+            - name: Install dependencies
+              run: flutter pub get
+
+            - name: Clean Build
+              run: flutter clean
+
+            - name: Build Android debug APK
+              run: flutter build apk --debug
+
+            - name: Build iOS debug app (simulator)
+              run: flutter build ios --debug --no-codesign
+
+            - name: Zip and Move iOS App
+              run: |
+                  echo "Finding Runner.app in folder build/ios..."
+
+                  APP_PATH=$(find build/ios -name "Runner.app" -type d | head -n 1)
+
+                  if [ -z "$APP_PATH" ]; then
+                    echo "Error: Runner.app not found!"
+                    echo "Folder content:"
+                    ls -R build/ios
+                    exit 1
+                  fi
+
+                  echo "Found Runner.app: $APP_PATH"
+
+                  PARENT_DIR=$(dirname "$APP_PATH")
+                  cd "$PARENT_DIR"
+                  zip -r Runner.app.zip Runner.app
+
+                  echo "Move Runner.app.zip to frontend..."
+                  mv Runner.app.zip "$GITHUB_WORKSPACE/frontend/ios-simulator-build.zip"
+
+                  echo "Finished! File already at: frontend/ios-simulator-build.zip"
+
+            - name: Create Release and Upload Assets
+              uses: softprops/action-gh-release@v1
+              if: startsWith(github.ref, 'refs/tags/')
+              with:
+                  name: Release ${{ github.ref_name }}
+                  body: |
+                      ${{ github.event.inputs.release_note || format('Debug build for version {0}', github.ref_name) }}
+                      Includes Android APK and iOS app (simulator build).
+
+                  files: |
+                      frontend/build/app/outputs/flutter-apk/app-debug.apk
+                      frontend/ios-simulator-build.zip
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

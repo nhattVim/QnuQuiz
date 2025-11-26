@@ -1,6 +1,5 @@
 package com.example.qnuquiz.service.impl;
 
-import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -12,6 +11,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
+import com.example.qnuquiz.dto.analytics.RankingDto;
 import com.example.qnuquiz.dto.exam.ExamAnswerReviewDTO;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamCategoryDto;
@@ -27,16 +27,16 @@ import com.example.qnuquiz.entity.QuestionOptions;
 import com.example.qnuquiz.entity.Questions;
 import com.example.qnuquiz.entity.Students;
 import com.example.qnuquiz.entity.Users;
+import com.example.qnuquiz.mapper.ExamCategoryMapper;
 import com.example.qnuquiz.mapper.ExamMapper;
 import com.example.qnuquiz.repository.ExamAnswerRepository;
 import com.example.qnuquiz.repository.ExamAttemptRepository;
+import com.example.qnuquiz.repository.ExamCategoryRepository;
 import com.example.qnuquiz.repository.ExamRepository;
 import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.repository.StudentRepository;
 import com.example.qnuquiz.repository.UserRepository;
-import com.example.qnuquiz.repository.ExamCategoryRepository;
-import com.example.qnuquiz.mapper.ExamCategoryMapper;
 import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.ExamService;
 
@@ -80,14 +80,14 @@ public class ExamServiceImpl implements ExamService {
             // Nếu đã có thì cập nhật
             answer = existingOpt.get();
             answer.setQuestionOptions(option);
-            answer.setIsCorrect(option.getCorrect());
+            answer.setIsCorrect(option.isIsCorrect());
         } else {
             // Nếu chưa có thì tạo mới
             answer = new ExamAnswers();
             answer.setExamAttempts(attempt);
             answer.setQuestions(option.getQuestions());
             answer.setQuestionOptions(option);
-            answer.setIsCorrect(option.getCorrect());
+            answer.setIsCorrect(option.isIsCorrect());
             answer.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         }
 
@@ -122,7 +122,7 @@ public class ExamServiceImpl implements ExamService {
 
         long totalQuestions = answers.size();
 
-        attempt.setScore(BigDecimal.valueOf(correctCount));
+        attempt.setScore((int) correctCount * 10);
         attempt.setSubmitted(true);
         attempt.setEndTime(Timestamp.from(Instant.now()));
         attemptRepo.save(attempt);
@@ -325,7 +325,7 @@ public class ExamServiceImpl implements ExamService {
         return ExamReviewDTO.builder()
                 .examAttemptId(attempt.getId())
                 .examTitle(attempt.getExams().getTitle())
-                .score(attempt.getScore())
+                .score(attempt.getScore() != null ? attempt.getScore() : 0)
                 .answers(answerDTOs)
                 .build();
     }
@@ -349,6 +349,16 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    public List<RankingDto> rankingAll() {
+        return examAttemptRepository.rankingAll();
+    }
+
+    @Override
+    public List<RankingDto> rankingAllThisWeek() {
+        Timestamp weekAgo = new Timestamp(System.currentTimeMillis() - 7L * 86400 * 1000);
+        return examAttemptRepository.rankingAllThisWeek(weekAgo);
+    }
+
     public List<ExamCategoryDto> getAllCategories() {
         List<ExamCategories> categories = examCategoryRepository.findAll();
 
@@ -387,21 +397,17 @@ public class ExamServiceImpl implements ExamService {
                     String computedStatus = getComputedStatus(exam);
                     dto.setStatus(computedStatus);
 
-                    // Chỉ check latest attempt nếu status là active
-                    if ("active".equalsIgnoreCase(computedStatus)) {
-                        // Tìm attempt gần nhất (bất kể submitted hay chưa)
-                        var allAttempts = attemptRepo
-                                .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(exam.getId(), student.getId());
+                    // Tìm tất cả attempts của student cho exam này
+                    var allAttempts = attemptRepo
+                            .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(exam.getId(), student.getId());
 
-                        if (!allAttempts.isEmpty()) {
-                            // Check attempt gần nhất
-                            ExamAttempts latestAttempt = allAttempts.get(0);
-                            // Chỉ set hasUnfinishedAttempt=true nếu attempt gần nhất chưa submit
-                            dto.setHasUnfinishedAttempt(!latestAttempt.isSubmitted());
-                        } else {
-                            // Không có attempt nào → false
-                            dto.setHasUnfinishedAttempt(false);
-                        }
+                    // Set hasAttempt = true nếu có attempt (bất kể submitted hay không)
+                    dto.setHasAttempt(!allAttempts.isEmpty());
+
+                    if (!allAttempts.isEmpty()) {
+                        ExamAttempts latestAttempt = allAttempts.get(0);
+                        // Set hasUnfinishedAttempt=true chỉ khi attempt gần nhất chưa submit
+                        dto.setHasUnfinishedAttempt(!latestAttempt.isSubmitted());
                     } else {
                         dto.setHasUnfinishedAttempt(false);
                     }
@@ -409,6 +415,28 @@ public class ExamServiceImpl implements ExamService {
                     return dto;
                 })
                 .toList();
+    }
+
+    @Override
+    public ExamAttemptDto getLatestAttempt(Long examId) {
+        Users user = getCurrentAuthenticatedUser();
+        Students student = studentRepository.findByUsers(user)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        // Get all attempts ordered by createdAt DESC
+        var allAttempts = attemptRepo.findByExamsIdAndStudentsIdOrderByCreatedAtDesc(examId, student.getId());
+
+        if (allAttempts.isEmpty()) {
+            throw new RuntimeException("No attempts found for this exam");
+        }
+
+        ExamAttempts latestAttempt = allAttempts.get(0);
+        return ExamAttemptDto.builder()
+                .id(latestAttempt.getId())
+                .examId(latestAttempt.getExams().getId())
+                .startTime(latestAttempt.getStartTime())
+                .submit(latestAttempt.isSubmitted())
+                .build();
     }
 
 }

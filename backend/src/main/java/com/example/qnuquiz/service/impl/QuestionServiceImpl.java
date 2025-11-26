@@ -90,7 +90,7 @@ public class QuestionServiceImpl implements QuestionService {
         QuestionOptions opt = new QuestionOptions();
         opt.setQuestions(question);
         opt.setContent(content);
-        opt.setCorrect(isCorrect);
+        opt.setIsCorrect(isCorrect);
         opt.setPosition(position);
         opt.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         questionOptionsRepository.save(opt);
@@ -111,7 +111,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     @Cacheable("allQuestionsOfExam")
-    public List<QuestionFullDto> getQuestions(Long examId) {
+    public List<QuestionFullDto> getAllQuestionsInExam(Long examId) {
         if (!examRepository.existsById(examId)) {
             throw new RuntimeException("Exam not found");
         }
@@ -120,12 +120,11 @@ public class QuestionServiceImpl implements QuestionService {
                 .map(q -> QuestionFullDto.builder()
                         .id(q.getId())
                         .content(q.getContent())
-                        .point(q.getPoints())
                         .options(questionOptionsRepository.findByQuestions_Id(q.getId()).stream()
                                 .map(o -> QuestionOptionDto.builder()
                                         .id(o.getId())
                                         .content(o.getContent())
-                                        .correct(o.getCorrect())
+                                        .correct(o.isIsCorrect())
                                         .build())
                                 .toList())
                         .build())
@@ -154,12 +153,12 @@ public class QuestionServiceImpl implements QuestionService {
                     QuestionOptions option = questionOptionsRepository.findById(optionDto.getId())
                             .orElseThrow(() -> new RuntimeException("Option not found with id: " + optionDto.getId()));
                     option.setContent(optionDto.getContent());
-                    option.setCorrect(optionDto.isCorrect());
+                    option.setIsCorrect(optionDto.isCorrect());
                     questionOptionsRepository.save(option);
                     return QuestionOptionDto.builder()
                             .id(option.getId())
                             .content(option.getContent())
-                            .correct(option.getCorrect())
+                            .correct(option.isIsCorrect())
                             .build();
                 })
                 .collect(Collectors.toList());

@@ -2,6 +2,7 @@ package com.example.qnuquiz.service;
 
 import java.util.List;
 
+import com.example.qnuquiz.dto.analytics.RankingDto;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamCategoryDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
@@ -33,7 +34,14 @@ public interface ExamService {
 
 	List<ExamDto> getAllExams();
 
+	List<ExamDto> getExamsByCategory(Long categoryId);
+
+	ExamAttemptDto getLatestAttempt(Long examId);
+
+	List<RankingDto> rankingAll();
+
+	List<RankingDto> rankingAllThisWeek();
+
 	List<ExamCategoryDto> getAllCategories();
 
-	List<ExamDto> getExamsByCategory(Long categoryId);
 }

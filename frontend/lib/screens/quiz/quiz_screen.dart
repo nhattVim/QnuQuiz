@@ -4,6 +4,7 @@ import 'package:frontend/models/exam_result_model.dart';
 import 'package:frontend/models/question_model.dart';
 import 'package:frontend/services/exam_service.dart';
 import 'package:frontend/services/question_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'widgets/quiz_header.dart';
 import 'widgets/quiz_progress.dart';
 import 'widgets/quiz_question.dart';
@@ -54,7 +55,7 @@ class _QuizScreenState extends State<QuizScreen> {
   void initState() {
     super.initState();
     _quizDataFuture = _questionService.getQuestions(widget.examId);
-    _loadQuizData();
+    _loadQuizData().then((_) => _loadQuizState());
     _startTimer();
   }
 
@@ -63,6 +64,7 @@ class _QuizScreenState extends State<QuizScreen> {
     if (_isTimerRunning) {
       _timer.cancel();
     }
+    _saveQuizState();
     super.dispose();
   }
 
@@ -356,6 +358,34 @@ class _QuizScreenState extends State<QuizScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _saveQuizState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'quiz_state_${widget.attemptId}';
+    await prefs.setInt('${key}_currentQuestionIndex', currentQuestionIndex);
+    await prefs.setInt('${key}_remainingSeconds', _remainingSeconds);
+    await prefs.setStringList(
+      '${key}_answeredQuestions',
+      answeredQuestions.map((e) => e?.toString() ?? '').toList(),
+    );
+  }
+
+  Future<void> _loadQuizState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'quiz_state_${widget.attemptId}';
+    setState(() {
+      currentQuestionIndex = prefs.getInt('${key}_currentQuestionIndex') ?? 0;
+      _remainingSeconds =
+          prefs.getInt('${key}_remainingSeconds') ??
+          (widget.durationMinutes! * 60);
+      answeredQuestions =
+          (prefs.getStringList('${key}_answeredQuestions') ??
+                  List<String>.filled(quizData.length, ''))
+              .map((e) => e.isNotEmpty ? int.parse(e) : null)
+              .toList();
+      selectedAnswerIndex = answeredQuestions[currentQuestionIndex] ?? -1;
+    });
   }
 
   @override
