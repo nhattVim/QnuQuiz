@@ -137,15 +137,46 @@ public class ExamServiceImpl implements ExamService {
     @Override
     public ExamAttemptDto startExam(Long examId) {
         Users user = getCurrentAuthenticatedUser();
+
+        // Tìm student tương ứng với user
+        Students student = studentRepository.findByUsers(user)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
+        System.out.println("==> startExam called for exam: " + examId + ", student: " + student.getId());
+
+        // Tìm attempt gần nhất (bất kể submitted hay chưa)
+        var allAttempts = attemptRepo
+                .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(examId, student.getId());
+
+        System.out.println("==> Found " + allAttempts.size() + " total attempts");
+
+        // Kiểm tra attempt gần nhất
+        if (!allAttempts.isEmpty()) {
+            ExamAttempts latestAttempt = allAttempts.get(0);
+
+            // Nếu attempt gần nhất CHƯA submit (submitted = false) → return để continue
+            if (!latestAttempt.isSubmitted()) {
+                System.out.println("==> Returning existing unfinished attempt ID: " + latestAttempt.getId() +
+                        ", submitted: " + latestAttempt.isSubmitted());
+                return ExamAttemptDto.builder()
+                        .id(latestAttempt.getId())
+                        .examId(latestAttempt.getExams().getId())
+                        .startTime(latestAttempt.getStartTime())
+                        .submit(latestAttempt.isSubmitted())
+                        .build();
+            }
+            // Nếu attempt gần nhất ĐÃ submit (submitted = true) → tạo attempt mới
+            System.out.println(
+                    "==> Latest attempt ID: " + latestAttempt.getId() + " is already submitted. Creating NEW attempt");
+        }
+
+        // Tạo attempt mới
+        System.out.println("==> Creating NEW attempt for exam: " + examId);
         ExamAttempts attempt = new ExamAttempts();
 
         // Lấy exam
         attempt.setExams(examRepository.findById(examId)
                 .orElseThrow(() -> new RuntimeException("Exam not found")));
-
-        // Tìm student tương ứng với user
-        Students student = studentRepository.findByUsers(user)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
 
         // Gán student vào attempt
         attempt.setStudents(student);
@@ -154,6 +185,7 @@ public class ExamServiceImpl implements ExamService {
         attempt.setCreatedAt(new Timestamp(System.currentTimeMillis()));
 
         ExamAttempts saved = attemptRepo.save(attempt);
+        System.out.println("==> NEW attempt created with ID: " + saved.getId());
 
         return ExamAttemptDto.builder()
                 .id(saved.getId())
@@ -341,11 +373,39 @@ public class ExamServiceImpl implements ExamService {
 
         List<Exams> exams = examRepository.findByExamCategories_Id(categoryId);
 
+        // Get current student
+        UUID userId = SecurityUtils.getCurrentUserId();
+        Users user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        Students student = studentRepository.findByUsers(user)
+                .orElseThrow(() -> new RuntimeException("Student not found"));
+
         return exams.stream()
                 .filter(exam -> !"DRAFT".equalsIgnoreCase(exam.getStatus()))
                 .map(exam -> {
                     ExamDto dto = examMapper.toDto(exam);
-                    dto.setStatus(getComputedStatus(exam));
+                    String computedStatus = getComputedStatus(exam);
+                    dto.setStatus(computedStatus);
+
+                    // Chỉ check latest attempt nếu status là active
+                    if ("active".equalsIgnoreCase(computedStatus)) {
+                        // Tìm attempt gần nhất (bất kể submitted hay chưa)
+                        var allAttempts = attemptRepo
+                                .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(exam.getId(), student.getId());
+
+                        if (!allAttempts.isEmpty()) {
+                            // Check attempt gần nhất
+                            ExamAttempts latestAttempt = allAttempts.get(0);
+                            // Chỉ set hasUnfinishedAttempt=true nếu attempt gần nhất chưa submit
+                            dto.setHasUnfinishedAttempt(!latestAttempt.isSubmitted());
+                        } else {
+                            // Không có attempt nào → false
+                            dto.setHasUnfinishedAttempt(false);
+                        }
+                    } else {
+                        dto.setHasUnfinishedAttempt(false);
+                    }
+
                     return dto;
                 })
                 .toList();

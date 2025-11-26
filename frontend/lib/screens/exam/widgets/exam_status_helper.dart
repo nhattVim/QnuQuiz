@@ -29,16 +29,23 @@ class ExamStatusUI {
   }
 
   static String getButtonText(ExamModel exam) {
-    switch (exam.computedStatus) {
-      case "active":
-        return "Bắt đầu làm";
-      case "unopened":
-        return "Chưa mở";
-      case "closed":
-        return "Xem lại bài";
-      default:
-        return "";
+    // Nếu exam đóng → show "Xem lại bài" (không cần check hasUnfinishedAttempt)
+    if (exam.computedStatus == "closed") {
+      return "Xem lại bài";
     }
+
+    // Nếu exam chưa mở → show "Chưa mở"
+    if (exam.computedStatus == "unopened") {
+      return "Chưa mở";
+    }
+
+    // Nếu exam active và có unfinished attempt → show "Tiếp tục"
+    if (exam.computedStatus == "active" && exam.hasUnfinishedAttempt) {
+      return "Tiếp tục";
+    }
+
+    // Mặc định cho active → "Bắt đầu làm"
+    return "Bắt đầu làm";
   }
 
   static Color getButtonTextColor(ExamModel exam) {

@@ -41,6 +41,7 @@ class _QuizScreenState extends State<QuizScreen> {
   late Timer _timer;
   int _remainingSeconds = 0;
   bool _isTimeUp = false;
+  bool _isTimerRunning = false;
 
   final QuestionService _questionService = QuestionService();
   final ExamService _examService = ExamService();
@@ -59,7 +60,9 @@ class _QuizScreenState extends State<QuizScreen> {
 
   @override
   void dispose() {
-    _timer.cancel();
+    if (_isTimerRunning) {
+      _timer.cancel();
+    }
     super.dispose();
   }
 
@@ -68,19 +71,32 @@ class _QuizScreenState extends State<QuizScreen> {
       return; // Không có giới hạn thời gian
     }
 
-    _remainingSeconds = widget.durationMinutes! * 60;
+    // Nếu timer đã chạy, không khởi động lại
+    if (_isTimerRunning) {
+      return;
+    }
+
+    // Chỉ khởi tạo thời gian nếu chưa khởi tạo
+    if (_remainingSeconds == 0) {
+      _remainingSeconds = widget.durationMinutes! * 60;
+    }
+
+    _isTimerRunning = true;
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (_remainingSeconds > 0) {
-          _remainingSeconds--;
-        } else {
-          _remainingSeconds = 0;
-          _isTimeUp = true;
-          timer.cancel();
-          _showTimeUpDialog();
-        }
-      });
+      if (mounted) {
+        setState(() {
+          if (_remainingSeconds > 0) {
+            _remainingSeconds--;
+          } else {
+            _remainingSeconds = 0;
+            _isTimeUp = true;
+            _isTimerRunning = false;
+            timer.cancel();
+            _showTimeUpDialog();
+          }
+        });
+      }
     });
   }
 
@@ -308,10 +324,8 @@ class _QuizScreenState extends State<QuizScreen> {
           result: examResult,
           attemptId: widget.attemptId,
           onBackHome: () {
-            // Navigate về HomeScreen
-            Navigator.of(
-              context,
-            ).pushNamedAndRemoveUntil('/', (route) => false);
+            // Pop về ExamListScreen để trigger refresh
+            Navigator.pop(context);
           },
         ),
       ),
@@ -319,6 +333,12 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _showPauseDialog() {
+    // Dừng timer khi pause
+    if (_isTimerRunning) {
+      _timer.cancel();
+      _isTimerRunning = false;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -331,6 +351,8 @@ class _QuizScreenState extends State<QuizScreen> {
         },
         onContinue: () {
           Navigator.pop(context);
+          // Tiếp tục timer khi đóng dialog
+          _startTimer();
         },
       ),
     );
@@ -412,6 +434,7 @@ class _QuizScreenState extends State<QuizScreen> {
           onBackPressed: _showPauseDialog,
           answeredQuestions: answeredQuestions,
           durationMinutes: widget.durationMinutes,
+          remainingSeconds: _remainingSeconds,
           onQuestionSelected: (index) {
             setState(() {
               currentQuestionIndex = index;

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_boxicons/flutter_boxicons.dart';
 
@@ -6,6 +5,7 @@ class QuizHeader extends StatefulWidget {
   final int currentQuestion;
   final int totalQuestions;
   final int? durationMinutes;
+  final int remainingSeconds;
   final VoidCallback onBackPressed;
   final Function(int) onQuestionSelected;
   final List<int?>? answeredQuestions;
@@ -15,6 +15,7 @@ class QuizHeader extends StatefulWidget {
     required this.currentQuestion,
     required this.totalQuestions,
     required this.durationMinutes,
+    required this.remainingSeconds,
     required this.onBackPressed,
     required this.onQuestionSelected,
     this.answeredQuestions,
@@ -25,38 +26,14 @@ class QuizHeader extends StatefulWidget {
 }
 
 class _QuizHeaderState extends State<QuizHeader> {
-  late int remainingSeconds;
-  Timer? _timer;
-
-  @override
-  void initState() {
-    super.initState();
-    remainingSeconds = (widget.durationMinutes ?? 0) * 60;
-    if (remainingSeconds > 0) {
-      _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-        if (mounted) {
-          setState(() {
-            if (remainingSeconds > 0) {
-              remainingSeconds--;
-            } else {
-              _timer?.cancel();
-              // Optional: trigger auto-submit or notify user
-            }
-          });
-        }
-      });
-    }
-  }
-
   @override
   void dispose() {
-    _timer?.cancel();
     super.dispose();
   }
 
   String get formattedTime {
-    final minutes = remainingSeconds ~/ 60;
-    final seconds = remainingSeconds % 60;
+    final minutes = widget.remainingSeconds ~/ 60;
+    final seconds = widget.remainingSeconds % 60;
     return '${minutes.toString().padLeft(2, '0')}:${seconds.toString().padLeft(2, '0')}';
   }
 

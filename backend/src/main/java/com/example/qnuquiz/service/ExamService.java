@@ -34,6 +34,6 @@ public interface ExamService {
 	List<ExamDto> getAllExams();
 
 	List<ExamCategoryDto> getAllCategories();
-	
+
 	List<ExamDto> getExamsByCategory(Long categoryId);
 }

@@ -101,12 +101,12 @@ public class ExamController {
 
 	@GetMapping("/categories")
 	public ResponseEntity<List<ExamCategoryDto>> getAllCategories() {
-    return ResponseEntity.ok(examService.getAllCategories());
+		return ResponseEntity.ok(examService.getAllCategories());
 	}
 
 	@GetMapping("/categories/{categoryId}")
 	public ResponseEntity<List<ExamDto>> getExamsByCategory(@PathVariable Long categoryId) {
-    return ResponseEntity.ok(examService.getExamsByCategory(categoryId));
+		return ResponseEntity.ok(examService.getExamsByCategory(categoryId));
 	}
 
 	@GetMapping("/getAll")

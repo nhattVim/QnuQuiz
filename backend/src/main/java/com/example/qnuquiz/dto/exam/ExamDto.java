@@ -17,4 +17,5 @@ public class ExamDto {
     private boolean random;
     private Integer durationMinutes;
     private String status;
+    private boolean hasUnfinishedAttempt;
 }
