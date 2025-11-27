@@ -4,6 +4,7 @@ import java.util.Map;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -30,23 +31,25 @@ public class AuthController {
     private final JwtUtil jwtUtil;
 
     @PostMapping("/login")
-    public Map<String, Object> login(@RequestBody UserLoginDto request) {
-        String username = request.getUsername();
-        String password = request.getPassword();
+    public ResponseEntity<Map<String, Object>> login(@Valid @RequestBody UserLoginDto request) {
+        authManager.authenticate(new UsernamePasswordAuthenticationToken(
+                request.getUsername(),
+                request.getPassword()));
 
-        authManager.authenticate(new UsernamePasswordAuthenticationToken(username, password));
-        Users user = userService.findByUsername(username)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        Users user = userService.findByUsername(request.getUsername()).orElseThrow(
+                () -> new BadCredentialsException("Invalid username or password"));
 
         String token = jwtUtil.generateToken(user.getUsername());
 
-        return Map.of(
+        Map<String, Object> responseBody = Map.of(
                 "token", token,
                 "user", Map.of(
                         "id", user.getId(),
                         "username", user.getUsername(),
                         "email", user.getEmail(),
                         "role", user.getRole()));
+
+        return ResponseEntity.ok(responseBody);
     }
 
     @PostMapping("/register")

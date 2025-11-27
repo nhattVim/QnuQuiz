@@ -3,9 +3,9 @@ package com.example.qnuquiz.service;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.qnuquiz.dto.user.UserDto;
 import com.example.qnuquiz.dto.user.UserRegisterDto;
 import com.example.qnuquiz.entity.Users;
-import com.example.qnuquiz.dto.user.UserDto;
 
 public interface UserService {
 
