@@ -25,7 +25,6 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.example.qnuquiz.config.SecurityConfig;
 import com.example.qnuquiz.dto.exam.ExamAnswerReviewDTO;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamCategoryDto;
@@ -34,6 +33,7 @@ import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
 import com.example.qnuquiz.dto.exam.QuestionDTO;
 import com.example.qnuquiz.dto.exam.QuestionOptionDTO;
+import com.example.qnuquiz.exception.GlobalExceptionHandler;
 import com.example.qnuquiz.security.CustomUserDetailsService;
 import com.example.qnuquiz.security.JwtUtil;
 import com.example.qnuquiz.service.ExamService;
@@ -42,8 +42,7 @@ import jakarta.persistence.EntityNotFoundException;
 
 @WebMvcTest(ExamController.class)
 @AutoConfigureMockMvc(addFilters = false)
-@Import({TestExceptionHandler.class, SecurityConfig.class})
-
+@Import(GlobalExceptionHandler.class)
 class ExamControllerTest extends BaseTest {
     @Autowired
     private MockMvc mockMvc;
