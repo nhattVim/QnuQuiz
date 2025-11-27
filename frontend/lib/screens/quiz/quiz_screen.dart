@@ -4,6 +4,7 @@ import 'package:frontend/models/exam_result_model.dart';
 import 'package:frontend/models/question_model.dart';
 import 'package:frontend/services/exam_service.dart';
 import 'package:frontend/services/question_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'widgets/quiz_header.dart';
 import 'widgets/quiz_progress.dart';
 import 'widgets/quiz_question.dart';
@@ -41,6 +42,7 @@ class _QuizScreenState extends State<QuizScreen> {
   late Timer _timer;
   int _remainingSeconds = 0;
   bool _isTimeUp = false;
+  bool _isTimerRunning = false;
 
   final QuestionService _questionService = QuestionService();
   final ExamService _examService = ExamService();
@@ -53,13 +55,16 @@ class _QuizScreenState extends State<QuizScreen> {
   void initState() {
     super.initState();
     _quizDataFuture = _questionService.getQuestions(widget.examId);
-    _loadQuizData();
+    _loadQuizData().then((_) => _loadQuizState());
     _startTimer();
   }
 
   @override
   void dispose() {
-    _timer.cancel();
+    if (_isTimerRunning) {
+      _timer.cancel();
+    }
+    _saveQuizState();
     super.dispose();
   }
 
@@ -68,19 +73,32 @@ class _QuizScreenState extends State<QuizScreen> {
       return; // Không có giới hạn thời gian
     }
 
-    _remainingSeconds = widget.durationMinutes! * 60;
+    // Nếu timer đã chạy, không khởi động lại
+    if (_isTimerRunning) {
+      return;
+    }
+
+    // Chỉ khởi tạo thời gian nếu chưa khởi tạo
+    if (_remainingSeconds == 0) {
+      _remainingSeconds = widget.durationMinutes! * 60;
+    }
+
+    _isTimerRunning = true;
 
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      setState(() {
-        if (_remainingSeconds > 0) {
-          _remainingSeconds--;
-        } else {
-          _remainingSeconds = 0;
-          _isTimeUp = true;
-          timer.cancel();
-          _showTimeUpDialog();
-        }
-      });
+      if (mounted) {
+        setState(() {
+          if (_remainingSeconds > 0) {
+            _remainingSeconds--;
+          } else {
+            _remainingSeconds = 0;
+            _isTimeUp = true;
+            _isTimerRunning = false;
+            timer.cancel();
+            _showTimeUpDialog();
+          }
+        });
+      }
     });
   }
 
@@ -308,10 +326,8 @@ class _QuizScreenState extends State<QuizScreen> {
           result: examResult,
           attemptId: widget.attemptId,
           onBackHome: () {
-            // Navigate về HomeScreen
-            Navigator.of(
-              context,
-            ).pushNamedAndRemoveUntil('/', (route) => false);
+            // Pop về ExamListScreen để trigger refresh
+            Navigator.pop(context);
           },
         ),
       ),
@@ -319,6 +335,12 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _showPauseDialog() {
+    // Dừng timer khi pause
+    if (_isTimerRunning) {
+      _timer.cancel();
+      _isTimerRunning = false;
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -331,9 +353,39 @@ class _QuizScreenState extends State<QuizScreen> {
         },
         onContinue: () {
           Navigator.pop(context);
+          // Tiếp tục timer khi đóng dialog
+          _startTimer();
         },
       ),
     );
+  }
+
+  Future<void> _saveQuizState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'quiz_state_${widget.attemptId}';
+    await prefs.setInt('${key}_currentQuestionIndex', currentQuestionIndex);
+    await prefs.setInt('${key}_remainingSeconds', _remainingSeconds);
+    await prefs.setStringList(
+      '${key}_answeredQuestions',
+      answeredQuestions.map((e) => e?.toString() ?? '').toList(),
+    );
+  }
+
+  Future<void> _loadQuizState() async {
+    final prefs = await SharedPreferences.getInstance();
+    final key = 'quiz_state_${widget.attemptId}';
+    setState(() {
+      currentQuestionIndex = prefs.getInt('${key}_currentQuestionIndex') ?? 0;
+      _remainingSeconds =
+          prefs.getInt('${key}_remainingSeconds') ??
+          (widget.durationMinutes! * 60);
+      answeredQuestions =
+          (prefs.getStringList('${key}_answeredQuestions') ??
+                  List<String>.filled(quizData.length, ''))
+              .map((e) => e.isNotEmpty ? int.parse(e) : null)
+              .toList();
+      selectedAnswerIndex = answeredQuestions[currentQuestionIndex] ?? -1;
+    });
   }
 
   @override
@@ -412,6 +464,7 @@ class _QuizScreenState extends State<QuizScreen> {
           onBackPressed: _showPauseDialog,
           answeredQuestions: answeredQuestions,
           durationMinutes: widget.durationMinutes,
+          remainingSeconds: _remainingSeconds,
           onQuestionSelected: (index) {
             setState(() {
               currentQuestionIndex = index;

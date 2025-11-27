@@ -17,4 +17,7 @@ public class ExamDto {
     private boolean random;
     private Integer durationMinutes;
     private String status;
+    private boolean hasUnfinishedAttempt;
+    @Builder.Default
+    private boolean hasAttempt = false; // Có attempt (làm qua) hay chưa
 }

@@ -7,6 +7,8 @@ class ExamModel {
   final bool random;
   final int? durationMinutes;
   final String status;
+  final bool hasUnfinishedAttempt;
+  final bool hasAttempt;
 
   ExamModel({
     required this.id,
@@ -17,6 +19,8 @@ class ExamModel {
     required this.random,
     this.durationMinutes,
     required this.status,
+    this.hasUnfinishedAttempt = false,
+    this.hasAttempt = false,
   });
 
   String get computedStatus {
@@ -55,6 +59,8 @@ class ExamModel {
       random: json['random'] as bool,
       durationMinutes: json['durationMinutes'],
       status: json['status'],
+      hasUnfinishedAttempt: json['hasUnfinishedAttempt'] as bool? ?? false,
+      hasAttempt: json['hasAttempt'] as bool? ?? false,
     );
   }
 
@@ -67,6 +73,8 @@ class ExamModel {
       'random': random,
       'durationMinutes': durationMinutes,
       'status': status,
+      'hasUnfinishedAttempt': hasUnfinishedAttempt,
+      'hasAttempt': hasAttempt,
     };
   }
 }

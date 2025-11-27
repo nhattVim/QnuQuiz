@@ -187,4 +187,17 @@ class ExamService {
       throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
     }
   }
+
+  // Lấy latest attempt mà không tạo mới
+  Future getLatestAttempt(int examId) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.exams}/$examId/latest-attempt',
+      );
+      return ExamAttemptModel.fromJson(response.data);
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
 }

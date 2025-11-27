@@ -36,6 +36,8 @@ public interface ExamService {
 
 	List<ExamDto> getExamsByCategory(Long categoryId);
 
+	ExamAttemptDto getLatestAttempt(Long examId);
+
 	List<RankingDto> rankingAll();
 
 	List<RankingDto> rankingAllThisWeek();

@@ -7,8 +7,14 @@ import 'package:frontend/utils/datetime_format.dart';
 class ExamCard extends StatelessWidget {
   final ExamModel exam;
   final VoidCallback? onPressed;
+  final VoidCallback? onReviewPressed;
 
-  const ExamCard({super.key, required this.exam, this.onPressed});
+  const ExamCard({
+    super.key,
+    required this.exam,
+    this.onPressed,
+    this.onReviewPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +97,9 @@ class ExamCard extends StatelessWidget {
             height: 124,
             alignment: Alignment.bottomRight,
             child: ElevatedButton(
-              onPressed: buttonEnabled ? onPressed : null,
+              onPressed: buttonEnabled
+                  ? (buttonText == "Xem lại bài" ? onReviewPressed : onPressed)
+                  : null,
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   vertical: 8,

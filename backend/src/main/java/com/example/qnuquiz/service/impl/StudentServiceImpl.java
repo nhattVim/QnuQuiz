@@ -124,10 +124,10 @@ public class StudentServiceImpl implements StudentService {
 
         // Lấy tất cả các bài thi đã nộp của sinh viên
         List<ExamAttempts> attempts = examAttemptRepository
-            .findByStudents_IdOrderByEndTimeDesc(student.getId())
-            .stream()
-            .filter(a -> a.isSubmitted() || a.getEndTime() != null)
-            .collect(Collectors.toList());
+                .findByStudents_IdOrderByEndTimeDesc(student.getId())
+                .stream()
+                .filter(a -> a.isSubmitted() || a.getEndTime() != null)
+                .collect(Collectors.toList());
 
         return attempts.stream().map(attempt -> {
             ExamHistoryDto.ExamHistoryDtoBuilder builder = ExamHistoryDto.builder()
@@ -135,7 +135,7 @@ public class StudentServiceImpl implements StudentService {
                     .examId(attempt.getExams().getId())
                     .examTitle(attempt.getExams().getTitle())
                     .examDescription(attempt.getExams().getDescription())
-                    .score(attempt.getScore())
+                    .score(attempt.getScore() != null ? attempt.getScore() : 0)
                     .completionDate(attempt.getEndTime());
 
             // Tính tổng thời gian làm bài (phút)

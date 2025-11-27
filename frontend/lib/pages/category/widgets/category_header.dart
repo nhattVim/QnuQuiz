@@ -3,8 +3,15 @@ import 'package:flutter_boxicons/flutter_boxicons.dart';
 
 class CategoryHeader extends StatefulWidget {
   final Function(String) onSearchChanged;
+  final Function(String) onSortChanged;
+  final int totalCategories;
 
-  const CategoryHeader({super.key, required this.onSearchChanged});
+  const CategoryHeader({
+    super.key,
+    required this.onSearchChanged,
+    required this.onSortChanged,
+    this.totalCategories = 0,
+  });
 
   @override
   State<CategoryHeader> createState() => _CategoryHeaderState();
@@ -12,7 +19,7 @@ class CategoryHeader extends StatefulWidget {
 
 class _CategoryHeaderState extends State<CategoryHeader> {
   late TextEditingController _searchController;
-  bool _sortAsc = false;
+  String _sortOrder = 'desc'; // 'asc' hoặc 'desc'
 
   @override
   void initState() {
@@ -26,6 +33,13 @@ class _CategoryHeaderState extends State<CategoryHeader> {
     super.dispose();
   }
 
+  void _toggleSort() {
+    setState(() {
+      _sortOrder = _sortOrder == 'asc' ? 'desc' : 'asc';
+    });
+    widget.onSortChanged(_sortOrder);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -37,33 +51,31 @@ class _CategoryHeaderState extends State<CategoryHeader> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                '10 chủ đề',
-                style: TextStyle(
+              Text(
+                '${widget.totalCategories} chủ đề',
+                style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
               ),
               GestureDetector(
-                onTap: () {
-                  setState(() {
-                    _sortAsc = !_sortAsc;
-                  });
-                },
+                onTap: _toggleSort,
                 child: Row(
                   children: [
-                    const Text(
-                      'Mới nhất',
-                      style: TextStyle(
-                        fontSize: 14,
+                    Text(
+                      _sortOrder == 'desc' ? 'Mới nhất' : 'Cũ nhất',
+                      style: const TextStyle(
+                        fontSize: 16,
                         color: Colors.blue,
-                        fontWeight: FontWeight.w500,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                     const SizedBox(width: 4),
                     Icon(
-                      _sortAsc ? Boxicons.bx_sort_up : Boxicons.bx_sort_down,
+                      _sortOrder == 'desc'
+                          ? Boxicons.bx_sort_down
+                          : Boxicons.bx_sort_up,
                       color: Colors.blue,
                       size: 20,
                     ),

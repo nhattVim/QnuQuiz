@@ -79,7 +79,8 @@ class QuizResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final points = result.score;
+    final score = result.score;
+    final correctCount = result.correctCount;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -187,7 +188,7 @@ class QuizResultScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 20),
                               Text(
-                                '$points/$totalQuestions',
+                                '$correctCount/$totalQuestions',
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -210,7 +211,7 @@ class QuizResultScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                '$points điểm',
+                                '$score điểm',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -269,7 +270,7 @@ class QuizResultScreen extends StatelessWidget {
                         ),
                       ),
                       child: const Text(
-                        'Về trang chủ',
+                        'Thoát',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
