@@ -11,8 +11,8 @@ defaults:
         working-directory: frontend
 
 jobs:
-    build:
-        runs-on: macos-latest
+    quality_check:
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6.0.0
