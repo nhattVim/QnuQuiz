@@ -6,6 +6,10 @@ on:
     pull_request:
         branches: ["main", "dev"]
 
+defaults:
+    run:
+        working-directory: frontend
+
 jobs:
     build:
         runs-on: macos-latest
