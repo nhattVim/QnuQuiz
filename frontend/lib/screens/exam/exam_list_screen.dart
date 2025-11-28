@@ -18,20 +18,79 @@ class ExamListScreen extends StatefulWidget {
 
 class _ExamListScreenState extends State<ExamListScreen> {
   late Future<List<ExamModel>> futureExams;
-
-  // Add a key to force rebuild FutureBuilder
   late Key _futureBuilderKey;
+  final ExamService _examService = ExamService();
 
   @override
   void initState() {
     super.initState();
-    _futureBuilderKey = UniqueKey();
     _loadExams();
   }
 
   void _loadExams() {
-    futureExams = ExamService().getExamsByCategory(widget.categoryId);
-    _futureBuilderKey = UniqueKey(); // Force rebuild
+    setState(() {
+      futureExams = _examService.getExamsByCategory(widget.categoryId);
+      _futureBuilderKey = UniqueKey();
+    });
+  }
+
+  Future<void> _handleExamPressed(ExamModel exam) async {
+    try {
+      final attempt = await _examService.startExam(exam.id);
+
+      if (!mounted) return;
+
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QuizScreen(
+            examId: exam.id,
+            durationMinutes: exam.durationMinutes,
+            attemptId: attempt.id,
+          ),
+        ),
+      );
+
+      if (!mounted) return;
+
+      _loadExams();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi: $e"), backgroundColor: Colors.red),
+      );
+    }
+  }
+
+  Future<void> _handleReviewPressed(ExamModel exam) async {
+    try {
+      // 1. Lấy lượt thi mới nhất
+      final attempt = await _examService.getLatestAttempt(exam.id);
+      if (!mounted) return;
+
+      // 2. Lấy dữ liệu xem lại
+      final reviewData = await _examService.reviewExamAttempt(attempt.id);
+      if (!mounted) return;
+
+      // 3. Chuyển màn hình Review
+      await Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => QuizReviewScreen(examReview: reviewData),
+        ),
+      );
+
+      // 4. Sau khi quay lại, kiểm tra mounted
+      if (!mounted) return;
+
+      // 5. Refresh danh sách
+      _loadExams();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lỗi: $e"), backgroundColor: Colors.red),
+      );
+    }
   }
 
   @override
@@ -51,7 +110,6 @@ class _ExamListScreenState extends State<ExamListScreen> {
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
       ),
-
       body: FutureBuilder<List<ExamModel>>(
         key: _futureBuilderKey,
         future: futureExams,
@@ -104,7 +162,6 @@ class _ExamListScreenState extends State<ExamListScreen> {
                   ],
                 ),
               ),
-
               Expanded(
                 child: ListView.separated(
                   padding: const EdgeInsets.all(16),
@@ -113,10 +170,8 @@ class _ExamListScreenState extends State<ExamListScreen> {
                   itemBuilder: (context, index) {
                     return ExamCard(
                       exam: exams[index],
-                      onPressed: () =>
-                          _handleExamPressed(context, exams[index]),
-                      onReviewPressed: () =>
-                          _handleReviewPressed(context, exams[index]),
+                      onPressed: () => _handleExamPressed(exams[index]),
+                      onReviewPressed: () => _handleReviewPressed(exams[index]),
                     );
                   },
                 ),
@@ -126,71 +181,5 @@ class _ExamListScreenState extends State<ExamListScreen> {
         },
       ),
     );
-  }
-
-  Future<void> _handleExamPressed(BuildContext context, ExamModel exam) async {
-    try {
-      final attempt = await ExamService().startExam(exam.id);
-
-      if (!mounted) return;
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => QuizScreen(
-            examId: exam.id,
-            durationMinutes: exam.durationMinutes,
-            attemptId: attempt.id,
-          ),
-        ),
-      ).then((_) {
-        // Refresh exam list khi quay lại từ quiz
-        if (mounted) {
-          setState(() {
-            _loadExams();
-          });
-        }
-      });
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Lỗi: $e"), backgroundColor: Colors.red),
-      );
-    }
-  }
-
-  Future<void> _handleReviewPressed(
-    BuildContext context,
-    ExamModel exam,
-  ) async {
-    try {
-      // Get the latest attempt WITHOUT creating a new one
-      final attempt = await ExamService().getLatestAttempt(exam.id);
-
-      if (!mounted) return;
-
-      // Get review data
-      final reviewData = await ExamService().reviewExamAttempt(attempt.id);
-
-      if (!mounted) return;
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => QuizReviewScreen(examReview: reviewData),
-        ),
-      ).then((_) {
-        // Refresh exam list khi quay lại từ review
-        if (mounted) {
-          setState(() {
-            _loadExams();
-          });
-        }
-      });
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Lỗi: $e"), backgroundColor: Colors.red),
-      );
-    }
   }
 }

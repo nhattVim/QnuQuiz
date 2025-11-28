@@ -1,0 +1,31 @@
+name: Flutter CI
+
+on:
+    push:
+        branches: ["main", "dev"]
+    pull_request:
+        branches: ["main", "dev"]
+
+jobs:
+    build:
+        runs-on: macos-latest
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v6.0.0
+
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                  flutter-version: "3.35.7"
+
+            - name: Install dependencies
+              run: flutter pub get
+
+            - name: Clean Build
+              run: flutter clean
+
+            - name: Analyze code
+              run: flutter analyze
+
+            - name: Run widget & unit tests
+              run: flutter test

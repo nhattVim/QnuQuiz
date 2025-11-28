@@ -12,8 +12,12 @@ import '../models/user_model.dart';
 
 class UserService {
   final _log = Logger();
-  final Dio _dio = ApiService().dio;
-  static const _storage = FlutterSecureStorage();
+  final Dio _dio;
+  final FlutterSecureStorage _storage;
+
+  UserService({Dio? dio, FlutterSecureStorage? storage})
+      : _dio = dio ?? ApiService().dio,
+        _storage = storage ?? const FlutterSecureStorage();
 
   Future<void> clearUser() async {
     await _storage.delete(key: 'user');
