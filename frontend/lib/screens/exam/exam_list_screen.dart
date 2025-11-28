@@ -139,6 +139,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
           builder: (_) => QuizScreen(
             examId: exam.id,
             durationMinutes: exam.durationMinutes,
+            examTitle: exam.title,
             attemptId: attempt.id,
           ),
         ),

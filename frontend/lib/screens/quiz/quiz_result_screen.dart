@@ -8,6 +8,7 @@ class QuizResultScreen extends StatelessWidget {
   final ExamResultModel result;
   final int attemptId;
   final VoidCallback onBackHome;
+  final String examTitle;
 
   const QuizResultScreen({
     super.key,
@@ -15,6 +16,7 @@ class QuizResultScreen extends StatelessWidget {
     required this.result,
     required this.attemptId,
     required this.onBackHome,
+    required this.examTitle,
   });
 
   Future<void> handleReviewExam(BuildContext context, int attemptId) async {
@@ -149,9 +151,9 @@ class QuizResultScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          const Text(
-                            'Nhập học & thủ tục',
-                            style: TextStyle(
+                          Text(
+                            examTitle,
+                            style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: Colors.black87,
