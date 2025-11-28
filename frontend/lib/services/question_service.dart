@@ -8,7 +8,9 @@ import 'package:logger/logger.dart';
 
 class QuestionService {
   final _log = Logger();
-  final Dio _dio = ApiService().dio;
+  final Dio _dio;
+
+  QuestionService({Dio? dio}) : _dio = dio ?? ApiService().dio;
 
   Future<List<QuestionModel>> getQuestions(int examId) async {
     try {
