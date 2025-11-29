@@ -103,13 +103,9 @@ class _QuizScreenState extends State<QuizScreen> {
   }
 
   void _showTimeUpDialog() {
-    // Auto submit sau 5 giây nếu user không bấm nút
     Future.delayed(const Duration(seconds: 5), () {
       if (mounted && _isTimeUp) {
-        Navigator.of(
-          context,
-          rootNavigator: true,
-        ).pop(); // Đóng dialog nếu còn mở
+        Navigator.of(context, rootNavigator: true).pop();
         _autoSubmitExam();
       }
     });
@@ -145,6 +141,7 @@ class _QuizScreenState extends State<QuizScreen> {
 
     try {
       final examResult = await _submitAndFinishExam();
+      if (!mounted) return;
       _showResultScreen(examResult);
     } catch (e) {
       if (mounted) {
@@ -162,6 +159,7 @@ class _QuizScreenState extends State<QuizScreen> {
   Future<void> _loadQuizData() async {
     try {
       final data = await _quizDataFuture;
+      if (!mounted) return;
       setState(() {
         quizData = data;
         answeredQuestions = List<int?>.filled(quizData.length, null);
@@ -169,6 +167,7 @@ class _QuizScreenState extends State<QuizScreen> {
         errorMessage = null;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         isLoading = false;
         errorMessage = e.toString();
@@ -181,7 +180,7 @@ class _QuizScreenState extends State<QuizScreen> {
       final question = quizData[i];
       final selectedIndex = answeredQuestions[i];
 
-      if (selectedIndex == null) continue; // bỏ câu không trả lời
+      if (selectedIndex == null) continue;
 
       final selectedOption = question.options[selectedIndex];
 
@@ -266,11 +265,14 @@ class _QuizScreenState extends State<QuizScreen> {
       if (!mounted) return;
       _showResultScreen(examResult);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(SnackBar(content: Text('Lỗi khi nộp bài: $e')));
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
     }
   }
 
@@ -292,18 +294,23 @@ class _QuizScreenState extends State<QuizScreen> {
           ),
           ElevatedButton(
             onPressed: () async {
-              Navigator.pop(context); // đóng dialog
+              Navigator.pop(context);
               setState(() => isLoading = true);
 
               try {
                 final examResult = await _submitAndFinishExam();
+
+                if (!context.mounted) return;
                 _showResultScreen(examResult);
               } catch (e) {
+                if (!context.mounted) return;
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(SnackBar(content: Text('Lỗi khi nộp bài: $e')));
               } finally {
-                setState(() => isLoading = false);
+                if (mounted) {
+                  setState(() => isLoading = false);
+                }
               }
             },
             style: ElevatedButton.styleFrom(
@@ -375,6 +382,7 @@ class _QuizScreenState extends State<QuizScreen> {
   Future<void> _loadQuizState() async {
     final prefs = await SharedPreferences.getInstance();
     final key = 'quiz_state_${widget.attemptId}';
+    if (!mounted) return;
     setState(() {
       currentQuestionIndex = prefs.getInt('${key}_currentQuestionIndex') ?? 0;
       _remainingSeconds =
@@ -529,10 +537,8 @@ class _QuizScreenState extends State<QuizScreen> {
                     onPressed: (!_isTimeUp && selectedAnswerIndex != -1)
                         ? () {
                             if (_areAllQuestionsAnswered()) {
-                              // Tất cả câu đã trả lời → submit ngay
                               _handleCompleteQuiz();
                             } else {
-                              // Chưa trả lời hết → tiếp tục
                               _nextQuestion();
                             }
                           }

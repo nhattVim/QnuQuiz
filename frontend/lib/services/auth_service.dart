@@ -6,8 +6,14 @@ import '../constants/api_constants.dart';
 import '../models/user_model.dart';
 
 class AuthService {
-  static const _storage = FlutterSecureStorage();
+  final Dio _dio;
+  final FlutterSecureStorage _storage;
   final _log = Logger();
+
+  AuthService({Dio? dio, FlutterSecureStorage? storage})
+    : _dio = dio ?? Dio(BaseOptions(baseUrl: ApiConstants.baseUrl)),
+      _storage = storage ?? const FlutterSecureStorage();
+
   Future<String?> getToken() async => await _storage.read(key: 'auth_token');
 
   Future<bool> isLoggedIn() async {
@@ -19,10 +25,8 @@ class AuthService {
     required String username,
     required String password,
   }) async {
-    final dio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
-
     try {
-      final response = await dio.post(
+      final response = await _dio.post(
         '${ApiConstants.auth}/login',
         data: {'username': username, 'password': password},
       );

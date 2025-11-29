@@ -19,4 +19,13 @@ class RankingModel {
       avatarUrl: json['avatarUrl'] as String?,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'username': username,
+      'score': score,
+      'fullName': fullName,
+      'avatarUrl': avatarUrl,
+    };
+  }
 }

@@ -6,7 +6,9 @@ import 'package:logger/logger.dart';
 
 class AnalyticsService {
   final _log = Logger();
-  final Dio _dio = ApiService().dio;
+  final Dio _dio;
+
+  AnalyticsService({Dio? dio}) : _dio = dio ?? ApiService().dio;
 
   Future<List<RankingModel>> getRankingAll() async {
     try {
