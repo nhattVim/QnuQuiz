@@ -216,6 +216,7 @@ CREATE TABLE IF NOT EXISTS exam_answers (
 );
 
 CREATE INDEX IF NOT EXISTS idx_answers_attempt ON exam_answers(attempt_id);
+CREATE INDEX IF NOT EXISTS idx_answers_question_id ON exam_answers(question_id);
 
 -- ========================
 -- TABLE: feedbacks

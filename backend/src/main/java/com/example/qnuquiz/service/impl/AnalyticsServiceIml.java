@@ -100,8 +100,8 @@ public class AnalyticsServiceIml implements AnalyticsService {
 
         String sql = "WITH exam_total_points AS ( " +
                 "    SELECT e.id AS exam_id, " +
-                "           CASE WHEN e.max_questions IS NOT NULL THEN e.max_questions " +
-                "                ELSE COALESCE(SUM(q.points), 0) END AS total_points " +
+                "           CASE WHEN e.max_questions IS NOT NULL THEN e.max_questions * 10" +
+                "                ELSE (COUNT(q.id) * 10) END AS total_points " +
                 "    FROM exams e " +
                 "    LEFT JOIN questions q ON q.exam_id = e.id " +
                 "    GROUP BY e.id, e.max_questions " +
@@ -130,7 +130,7 @@ public class AnalyticsServiceIml implements AnalyticsService {
     @SuppressWarnings("unchecked")
     public List<StudentAttemptDto> getStudentAttempts(Long examId) {
         String sql = "SELECT s.student_code, u.full_name, c.name AS class_name, ea.start_time, ea.end_time, " +
-                "EXTRACT(EPOCH FROM (ea.end_time - ea.start_time))/60 AS duration_minutes, " +
+                "ROUND(EXTRACT(EPOCH FROM (ea.end_time - ea.start_time))/60, 2) AS duration_minutes, " +
                 "CAST(ea.score AS double precision) AS score, ea.submitted " +
                 "FROM exam_attempts ea JOIN students s ON ea.student_id = s.id " +
                 "JOIN users u ON s.user_id = u.id " +

@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 // import 'package:frontend/models/class_performance_model.dart';
@@ -39,6 +41,10 @@ class _ClassPerformanceTabState extends State<ClassPerformanceTab> {
                 _selectedExam!.examId.toInt(),
               ),
               builder: (data) {
+                double maxY =
+                    (data.map((e) => e.avgScorePerClass).reduce(max) * 1.2)
+                        .ceilToDouble();
+
                 return Padding(
                   padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
                   child: Column(
@@ -52,7 +58,7 @@ class _ClassPerformanceTabState extends State<ClassPerformanceTab> {
                         child: BarChart(
                           BarChartData(
                             alignment: BarChartAlignment.spaceAround,
-                            maxY: 10,
+                            maxY: maxY,
                             barTouchData: BarTouchData(
                               touchTooltipData: BarTouchTooltipData(
                                 getTooltipColor: (_) =>

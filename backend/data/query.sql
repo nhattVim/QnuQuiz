@@ -73,8 +73,8 @@ WITH exam_total_points AS (
     SELECT 
         e.id AS exam_id,
         CASE 
-            WHEN e.max_questions IS NOT NULL THEN e.max_questions
-            ELSE COALESCE(SUM(q.points), 0)
+            WHEN e.max_questions IS NOT NULL THEN e.max_questions * 10
+            ELSE (COUNT(q.id) * 10)
         END AS total_points
     FROM exams e
     LEFT JOIN questions q ON q.exam_id = e.id
@@ -83,7 +83,7 @@ WITH exam_total_points AS (
 
 SELECT 
     e.title,
-
+    etp.total_points,
     COUNT(ea.id) FILTER (
         WHERE (ea.score * 100.0 / etp.total_points) >= 90
     ) AS excellent_count, -- Giỏi
