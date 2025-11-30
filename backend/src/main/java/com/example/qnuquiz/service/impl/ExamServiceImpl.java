@@ -11,7 +11,6 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 
-import com.example.qnuquiz.dto.analytics.RankingDto;
 import com.example.qnuquiz.dto.exam.ExamAnswerReviewDTO;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamCategoryDto;
@@ -47,8 +46,6 @@ import lombok.AllArgsConstructor;
 public class ExamServiceImpl implements ExamService {
 
     private final ExamRepository examRepository;
-    private final ExamAttemptRepository attemptRepo;
-    private final ExamAnswerRepository answerRepo;
     private final QuestionOptionsRepository optionRepo;
     private final QuestionRepository questionRepo;
     private final UserRepository userRepository;
@@ -65,7 +62,7 @@ public class ExamServiceImpl implements ExamService {
     @Override
     public void submitAnswer(Long attemptId, Long questionId, Long optionId) {
         // 1. Lấy attempt
-        ExamAttempts attempt = attemptRepo.findById(attemptId)
+        ExamAttempts attempt = examAttemptRepository.findById(attemptId)
                 .orElseThrow(() -> new RuntimeException("Attempt not found: " + attemptId));
 
         // 2. Lấy option
@@ -73,7 +70,7 @@ public class ExamServiceImpl implements ExamService {
                 .orElseThrow(() -> new RuntimeException("Option not found: " + optionId));
 
         // 4. Kiểm tra xem đã có câu trả lời cho attempt + question chưa
-        Optional<ExamAnswers> existingOpt = answerRepo.findByExamAttemptsIdAndQuestionsId(attemptId, questionId);
+        Optional<ExamAnswers> existingOpt = examAnswerRepository.findByExamAttemptsIdAndQuestionsId(attemptId, questionId);
 
         ExamAnswers answer;
         if (existingOpt.isPresent()) {
@@ -92,12 +89,12 @@ public class ExamServiceImpl implements ExamService {
         }
 
         // 5. Lưu
-        answerRepo.save(answer);
+        examAnswerRepository.save(answer);
     }
 
     @Override
     public void submitEssay(Long attemptId, Long questionId, String answerText) {
-        ExamAttempts attempt = attemptRepo.findById(attemptId).orElseThrow();
+        ExamAttempts attempt = examAttemptRepository.findById(attemptId).orElseThrow();
         Questions question = questionRepo.findById(questionId).orElseThrow();
 
         ExamAnswers answer = new ExamAnswers();
@@ -106,15 +103,15 @@ public class ExamServiceImpl implements ExamService {
         answer.setAnswerText(answerText);
         answer.setIsCorrect(null); // chưa chấm
 
-        answerRepo.save(answer);
+        examAnswerRepository.save(answer);
     }
 
     @Override
     public ExamResultDto finishExam(Long attemptId) {
-        ExamAttempts attempt = attemptRepo.findById(attemptId)
+        ExamAttempts attempt = examAttemptRepository.findById(attemptId)
                 .orElseThrow(() -> new RuntimeException("Attempt not found"));
 
-        List<ExamAnswers> answers = answerRepo.findByExamAttempts_Id(attemptId);
+        List<ExamAnswers> answers = examAnswerRepository.findByExamAttempts_Id(attemptId);
 
         long correctCount = answers.stream()
                 .filter(a -> Boolean.TRUE.equals(a.getIsCorrect()))
@@ -125,7 +122,7 @@ public class ExamServiceImpl implements ExamService {
         attempt.setScore((int) correctCount * 10);
         attempt.setSubmitted(true);
         attempt.setEndTime(Timestamp.from(Instant.now()));
-        attemptRepo.save(attempt);
+        examAttemptRepository.save(attempt);
 
         return ExamResultDto.builder()
                 .score(attempt.getScore())
@@ -145,7 +142,7 @@ public class ExamServiceImpl implements ExamService {
         System.out.println("==> startExam called for exam: " + examId + ", student: " + student.getId());
 
         // Tìm attempt gần nhất (bất kể submitted hay chưa)
-        var allAttempts = attemptRepo
+        var allAttempts = examAttemptRepository
                 .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(examId, student.getId());
 
         System.out.println("==> Found " + allAttempts.size() + " total attempts");
@@ -184,7 +181,7 @@ public class ExamServiceImpl implements ExamService {
         attempt.setSubmitted(false);
         attempt.setCreatedAt(new Timestamp(System.currentTimeMillis()));
 
-        ExamAttempts saved = attemptRepo.save(attempt);
+        ExamAttempts saved = examAttemptRepository.save(attempt);
         System.out.println("==> NEW attempt created with ID: " + saved.getId());
 
         return ExamAttemptDto.builder()
@@ -348,17 +345,6 @@ public class ExamServiceImpl implements ExamService {
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
-    @Override
-    public List<RankingDto> rankingAll() {
-        return examAttemptRepository.rankingAll();
-    }
-
-    @Override
-    public List<RankingDto> rankingAllThisWeek() {
-        Timestamp weekAgo = new Timestamp(System.currentTimeMillis() - 7L * 86400 * 1000);
-        return examAttemptRepository.rankingAllThisWeek(weekAgo);
-    }
-
     public List<ExamCategoryDto> getAllCategories() {
         List<ExamCategories> categories = examCategoryRepository.findAll();
 
@@ -398,7 +384,7 @@ public class ExamServiceImpl implements ExamService {
                     dto.setStatus(computedStatus);
 
                     // Tìm tất cả attempts của student cho exam này
-                    var allAttempts = attemptRepo
+                    var allAttempts = examAttemptRepository
                             .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(exam.getId(), student.getId());
 
                     // Set hasAttempt = true nếu có attempt (bất kể submitted hay không)
@@ -424,7 +410,7 @@ public class ExamServiceImpl implements ExamService {
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
         // Get all attempts ordered by createdAt DESC
-        var allAttempts = attemptRepo.findByExamsIdAndStudentsIdOrderByCreatedAtDesc(examId, student.getId());
+        var allAttempts = examAttemptRepository.findByExamsIdAndStudentsIdOrderByCreatedAtDesc(examId, student.getId());
 
         if (allAttempts.isEmpty()) {
             throw new RuntimeException("No attempts found for this exam");

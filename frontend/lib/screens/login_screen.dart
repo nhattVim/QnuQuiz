@@ -66,8 +66,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
 
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -91,7 +93,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   style: TextStyle(
                     fontSize: 32.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 SizedBox(height: 16.h),
