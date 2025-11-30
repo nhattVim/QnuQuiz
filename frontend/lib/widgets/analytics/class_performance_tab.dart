@@ -2,8 +2,6 @@ import 'dart:math';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
-// import 'package:frontend/models/class_performance_model.dart';
-// import 'package:frontend/models/exam_analytics_model.dart';
 import 'package:frontend/models/analytics/class_performance_model.dart';
 import 'package:frontend/models/analytics/exam_analytics_model.dart';
 import 'package:frontend/services/analytics_service.dart';

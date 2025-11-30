@@ -7,7 +7,6 @@ import java.util.Set;
 
 import com.example.qnuquiz.dto.analytics.ClassPerformanceDto;
 import com.example.qnuquiz.dto.analytics.ExamAnalyticsDto;
-import com.example.qnuquiz.dto.analytics.QuestionAnalyticsDto;
 import com.example.qnuquiz.dto.analytics.ScoreDistributionDto;
 import com.example.qnuquiz.dto.analytics.StudentAttemptDto;
 
@@ -67,13 +66,6 @@ import jakarta.persistence.TemporalType;
                 @ColumnResult(name = "average_count", type = Long.class),
                 @ColumnResult(name = "fail_count", type = Long.class)
         })),
-        @SqlResultSetMapping(name = "QuestionAnalyticsDtoMapping", classes = @ConstructorResult(targetClass = QuestionAnalyticsDto.class, columns = {
-                @ColumnResult(name = "question_content", type = String.class),
-                @ColumnResult(name = "total_answers", type = Long.class),
-                @ColumnResult(name = "correct_count", type = Long.class),
-                @ColumnResult(name = "wrong_count", type = Long.class),
-                @ColumnResult(name = "correct_rate", type = Double.class)
-        }))
 })
 public class ExamAttempts implements java.io.Serializable {
 
