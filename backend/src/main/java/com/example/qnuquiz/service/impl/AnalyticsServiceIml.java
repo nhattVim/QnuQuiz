@@ -2,6 +2,7 @@ package com.example.qnuquiz.service.impl;
 
 import java.sql.Timestamp;
 import java.util.List;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -57,7 +58,7 @@ public class AnalyticsServiceIml implements AnalyticsService {
                 "WHERE e.created_by = :teacherId " +
                 "GROUP BY e.id, e.title ORDER BY e.created_at DESC";
         Query query = entityManager.createNativeQuery(sql, "ExamAnalyticsDtoMapping");
-        query.setParameter("teacherId", teacherId);
+        query.setParameter("teacherId", UUID.fromString(teacherId));
         return query.getResultList();
     }
 
@@ -90,7 +91,7 @@ public class AnalyticsServiceIml implements AnalyticsService {
     // "GROUP BY e.id, e.title";
     // Query query = entityManager.createNativeQuery(sql,
     // "ScoreDistributionDtoMapping");
-    // query.setParameter("teacherId", teacherId);
+    // query.setParameter("teacherId", UUID.fromString(teacherId));
     // return query.getResultList();
     // }
 
@@ -119,10 +120,8 @@ public class AnalyticsServiceIml implements AnalyticsService {
                 "WHERE e.created_by = :teacherId " +
                 "  AND ea.submitted = TRUE " +
                 "GROUP BY e.id, e.title, etp.total_points";
-
         Query query = entityManager.createNativeQuery(sql, "ScoreDistributionDtoMapping");
-        query.setParameter("teacherId", teacherId);
-
+        query.setParameter("teacherId", UUID.fromString(teacherId));
         return query.getResultList();
     }
 
