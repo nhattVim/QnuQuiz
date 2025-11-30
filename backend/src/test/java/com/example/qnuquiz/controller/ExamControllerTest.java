@@ -15,6 +15,7 @@ import java.util.Collections;
 import java.util.List;
 
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -54,6 +55,12 @@ class ExamControllerTest extends BaseTest {
     private CustomUserDetailsService customUserDetailsService;
     @MockitoBean
     private ExamService examService; // 👈 thay cho @MockBean
+
+    
+    @BeforeEach
+    void setup() {
+        setupSecurityContext("student", "password", "ROLE_STUDENT");
+    }
 
     @Test
     void testStartExamSuccess() throws Exception {

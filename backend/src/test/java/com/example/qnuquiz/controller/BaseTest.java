@@ -26,14 +26,19 @@ public abstract class BaseTest {
     protected MockMvc mockMvc;
 
     @BeforeEach
-    void setupSecurityContext() {
-        // giả lập user đăng nhập với role STUDENT
+    void clearSecurityContext() {
+        SecurityContextHolder.clearContext();
+    }
+
+    protected void setupSecurityContext(String username, String password, String role) {
         SecurityContext context = SecurityContextHolder.createEmptyContext();
         Authentication auth = new UsernamePasswordAuthenticationToken(
-                "student", "password",
-                List.of(new SimpleGrantedAuthority("ROLE_STUDENT"))
+                username,
+                password,
+                List.of(new SimpleGrantedAuthority(role))
         );
         context.setAuthentication(auth);
         SecurityContextHolder.setContext(context);
     }
+
 }
