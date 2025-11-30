@@ -9,6 +9,7 @@ import 'package:frontend/pages/category/category_page.dart';
 import 'package:frontend/pages/profile_page.dart';
 import 'package:frontend/pages/ranking_page.dart';
 import '../providers/user_provider.dart';
+import 'package:frontend/pages/teacher_analytics_page.dart';
 
 /// =======================
 /// NAV ITEMS
@@ -50,6 +51,12 @@ const categoryItem = NavItem(
   label: "Chủ đề",
 );
 
+const analyticsItem = NavItem(
+  page: TeacherAnalyticsPage(),
+  icon: Icons.bar_chart,
+  label: "Analytics",
+);
+
 const adminNav = [examItem, dashboardItem, profileItem];
 
 const studentNav = [
@@ -60,7 +67,7 @@ const studentNav = [
   profileItem,
 ];
 
-const teacherNav = [dashboardItem, examItem, profileItem];
+const teacherNav = [dashboardItem, examItem, analyticsItem, profileItem];
 
 /// =======================
 /// HOME SCREEN

@@ -3,9 +3,13 @@ package com.example.qnuquiz.entity;
 
 import java.sql.Timestamp;
 
+import com.example.qnuquiz.dto.analytics.QuestionAnalyticsDto;
+
 // Generated Nov 25, 2025, 4:34:35 PM by Hibernate Tools 7.1.3.Final
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ColumnResult;
+import jakarta.persistence.ConstructorResult;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -13,6 +17,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.SqlResultSetMapping;
+import jakarta.persistence.SqlResultSetMappings;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -22,6 +28,15 @@ import jakarta.persistence.TemporalType;
  */
 @Entity
 @Table(name = "exam_answers")
+@SqlResultSetMappings({
+        @SqlResultSetMapping(name = "QuestionAnalyticsDtoMapping", classes = @ConstructorResult(targetClass = QuestionAnalyticsDto.class, columns = {
+                @ColumnResult(name = "question_content", type = String.class),
+                @ColumnResult(name = "total_answers", type = Long.class),
+                @ColumnResult(name = "correct_count", type = Long.class),
+                @ColumnResult(name = "wrong_count", type = Long.class),
+                @ColumnResult(name = "correct_rate", type = Double.class)
+        }))
+})
 public class ExamAnswers implements java.io.Serializable {
 
     private long id;
