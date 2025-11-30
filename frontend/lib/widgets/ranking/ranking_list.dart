@@ -64,6 +64,20 @@ class _RankingListState extends State<RankingList> {
 
           final ranking = snapshot.data!;
 
+          List<RankingModel> fullRanking = List.from(ranking);
+
+          while (fullRanking.length < 6) {
+            fullRanking.add(
+              RankingModel(
+                username: "-",
+                score: 0,
+                fullName: "-",
+                avatarUrl:
+                    "https://i.pinimg.com/736x/8f/1c/a2/8f1ca2029e2efceebd22fa05cca423d7.jpg",
+              ),
+            );
+          }
+
           return Column(
             children: [
               Row(
@@ -101,21 +115,14 @@ class _RankingListState extends State<RankingList> {
                   child: ListView.separated(
                     padding: EdgeInsets.only(bottom: 20.h),
                     separatorBuilder: (_, _) => SizedBox(height: 16.h),
-                    // itemCount: ranking.length > 3
-                    //     ? ranking.length - 3
-                    //     : 0,
-                    // itemBuilder: (context, index) {
-                    //   final dataIndex = index + 3;
-                    //   return RankingListItem(
-                    //     rank: ranking[dataIndex],
-                    //     index: dataIndex + 1,
-                    //   );
-                    // },
-                    itemCount: ranking.length,
+                    itemCount: fullRanking.length > 3
+                        ? fullRanking.length - 3
+                        : 0,
                     itemBuilder: (context, index) {
+                      final dataIndex = index + 3;
                       return RankingListItem(
-                        rank: ranking[index],
-                        index: index + 1,
+                        rank: fullRanking[dataIndex],
+                        index: dataIndex + 1,
                       );
                     },
                   ),
