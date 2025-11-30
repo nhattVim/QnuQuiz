@@ -49,4 +49,26 @@ class AnalyticsService {
       throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
     }
   }
+
+  Future<List<RankingModel>> getRankingByExamId(int examId) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/ranking/$examId',
+      );
+      final data = response.data;
+
+      if (data is List) {
+        return data
+            .map((e) => RankingModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else if (data is Map && data.containsKey('message')) {
+        throw Exception(data['message']);
+      } else {
+        throw Exception('Unexpected data format: $data');
+      }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
 }
