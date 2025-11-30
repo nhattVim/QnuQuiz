@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/analytics/exam_analytics_model.dart';
 import 'package:frontend/widgets/analytics/async_data_builder.dart';
 
@@ -21,6 +22,12 @@ class OverviewTab extends StatelessWidget {
           itemBuilder: (context, index) {
             final exam = data[index];
             return Card(
+              elevation: 2,
+              margin: EdgeInsets.zero,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12.r),
+                side: BorderSide(color: theme.dividerColor),
+              ),
               child: Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -115,7 +122,7 @@ class _StatItem extends StatelessWidget {
 
     return Column(
       children: [
-        Icon(icon, size: 20, color: displayColor),
+        Icon(icon, size: 20.sp, color: displayColor),
         const SizedBox(height: 4),
         Text(
           value,

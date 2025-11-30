@@ -45,6 +45,7 @@ public class AnalyticsServiceIml implements AnalyticsService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<ExamAnalyticsDto> getExamAnalytics(String teacherId) {
         String sql = "SELECT e.id AS exam_id, e.title AS exam_title, " +
                 "COUNT(ea.id) AS total_attempts, " +
@@ -61,6 +62,7 @@ public class AnalyticsServiceIml implements AnalyticsService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<ClassPerformanceDto> getClassPerformance(Long examId) {
         String sql = "SELECT c.name AS class_name, COUNT(DISTINCT s.id) AS student_count, " +
                 "CAST(ROUND(AVG(ea.score), 2) AS double precision) AS avg_score_per_class " +
@@ -73,22 +75,59 @@ public class AnalyticsServiceIml implements AnalyticsService {
         return query.getResultList();
     }
 
+    // @Override
+    // @SuppressWarnings("unchecked")
+    // public List<ScoreDistributionDto> getScoreDistribution(String teacherId) {
+    // String sql = "SELECT e.title, " +
+    // "COUNT(ea.id) FILTER (WHERE ea.score >= 9) AS excellent_count, " +
+    // "COUNT(ea.id) FILTER (WHERE ea.score >= 7 AND ea.score < 9) AS good_count, "
+    // +
+    // "COUNT(ea.id) FILTER (WHERE ea.score >= 5 AND ea.score < 7) AS average_count,
+    // " +
+    // "COUNT(ea.id) FILTER (WHERE ea.score < 5) AS fail_count " +
+    // "FROM exams e JOIN exam_attempts ea ON e.id = ea.exam_id " +
+    // "WHERE e.created_by = :teacherId AND ea.submitted = TRUE " +
+    // "GROUP BY e.id, e.title";
+    // Query query = entityManager.createNativeQuery(sql,
+    // "ScoreDistributionDtoMapping");
+    // query.setParameter("teacherId", teacherId);
+    // return query.getResultList();
+    // }
+
     @Override
+    @SuppressWarnings("unchecked")
     public List<ScoreDistributionDto> getScoreDistribution(String teacherId) {
-        String sql = "SELECT e.title, " +
-                "COUNT(ea.id) FILTER (WHERE ea.score >= 9) AS excellent_count, " +
-                "COUNT(ea.id) FILTER (WHERE ea.score >= 7 AND ea.score < 9) AS good_count, " +
-                "COUNT(ea.id) FILTER (WHERE ea.score >= 5 AND ea.score < 7) AS average_count, " +
-                "COUNT(ea.id) FILTER (WHERE ea.score < 5) AS fail_count " +
-                "FROM exams e JOIN exam_attempts ea ON e.id = ea.exam_id " +
-                "WHERE e.created_by = :teacherId AND ea.submitted = TRUE " +
-                "GROUP BY e.id, e.title";
+
+        String sql = "WITH exam_total_points AS ( " +
+                "    SELECT e.id AS exam_id, " +
+                "           CASE WHEN e.max_questions IS NOT NULL THEN e.max_questions " +
+                "                ELSE COALESCE(SUM(q.points), 0) END AS total_points " +
+                "    FROM exams e " +
+                "    LEFT JOIN questions q ON q.exam_id = e.id " +
+                "    GROUP BY e.id, e.max_questions " +
+                ") " +
+                "SELECT e.title, " +
+                "       COUNT(ea.id) FILTER (WHERE (ea.score * 100.0 / etp.total_points) >= 90) AS excellent_count, " +
+                "       COUNT(ea.id) FILTER (WHERE (ea.score * 100.0 / etp.total_points) >= 70 " +
+                "                           AND (ea.score * 100.0 / etp.total_points) < 90) AS good_count, " +
+                "       COUNT(ea.id) FILTER (WHERE (ea.score * 100.0 / etp.total_points) >= 50 " +
+                "                           AND (ea.score * 100.0 / etp.total_points) < 70) AS average_count, " +
+                "       COUNT(ea.id) FILTER (WHERE (ea.score * 100.0 / etp.total_points) < 50) AS fail_count " +
+                "FROM exams e " +
+                "JOIN exam_attempts ea ON e.id = ea.exam_id " +
+                "JOIN exam_total_points etp ON etp.exam_id = e.id " +
+                "WHERE e.created_by = :teacherId " +
+                "  AND ea.submitted = TRUE " +
+                "GROUP BY e.id, e.title, etp.total_points";
+
         Query query = entityManager.createNativeQuery(sql, "ScoreDistributionDtoMapping");
         query.setParameter("teacherId", teacherId);
+
         return query.getResultList();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<StudentAttemptDto> getStudentAttempts(Long examId) {
         String sql = "SELECT s.student_code, u.full_name, c.name AS class_name, ea.start_time, ea.end_time, " +
                 "EXTRACT(EPOCH FROM (ea.end_time - ea.start_time))/60 AS duration_minutes, " +
@@ -103,11 +142,13 @@ public class AnalyticsServiceIml implements AnalyticsService {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public List<QuestionAnalyticsDto> getQuestionAnalytics(Long examId) {
         String sql = "SELECT q.content AS question_content, COUNT(ans.id) AS total_answers, " +
                 "COUNT(ans.id) FILTER (WHERE ans.is_correct = TRUE) AS correct_count, " +
                 "COUNT(ans.id) FILTER (WHERE ans.is_correct = FALSE) AS wrong_count, " +
-                "CAST(ROUND((COUNT(ans.id) FILTER (WHERE ans.is_correct = TRUE)::DECIMAL / COUNT(ans.id)) * 100, 2) AS double precision) AS correct_rate " +
+                "CAST(ROUND((COUNT(ans.id) FILTER (WHERE ans.is_correct = TRUE)::DECIMAL / COUNT(ans.id)) * 100, 2) AS double precision) AS correct_rate "
+                +
                 "FROM exam_answers ans JOIN questions q ON ans.question_id = q.id " +
                 "WHERE q.exam_id = :examId GROUP BY q.id, q.content ORDER BY correct_rate ASC";
         Query query = entityManager.createNativeQuery(sql, "QuestionAnalyticsDtoMapping");

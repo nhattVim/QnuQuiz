@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/analytics/exam_analytics_model.dart';
 import 'package:frontend/models/analytics/student_attempt_model.dart';
 import 'package:frontend/services/analytics_service.dart';
@@ -44,6 +45,14 @@ class _StudentAttemptsTabState extends State<StudentAttemptsTab> {
                   itemBuilder: (context, index) {
                     final item = data[index];
                     return Card(
+                      elevation: 2,
+                      margin: EdgeInsets.zero,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12.r),
+                        side: BorderSide(
+                          color: theme.dividerColor,
+                        ),
+                      ),
                       child: ListTile(
                         contentPadding: const EdgeInsets.symmetric(
                           horizontal: 16,

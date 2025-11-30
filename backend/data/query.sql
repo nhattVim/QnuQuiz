@@ -17,7 +17,7 @@ FROM
 LEFT JOIN 
     exam_attempts ea ON e.id = ea.exam_id
 WHERE 
-    e.created_by = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12' -- Thay thế bằng User ID của giáo viên
+    e.created_by = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12' 
 GROUP BY 
     e.id, e.title
 ORDER BY 
@@ -39,7 +39,7 @@ JOIN
 JOIN 
     classes c ON s.class_id = c.id
 WHERE 
-    ea.exam_id = 123 -- Thay thế bằng ID bài thi cụ thể
+    ea.exam_id = 1
     AND ea.submitted = TRUE
 GROUP BY 
     c.name
@@ -53,22 +53,66 @@ ORDER BY
 
 
 
+-- SELECT 
+--     e.title,
+--     COUNT(ea.id) FILTER (WHERE ea.score >= 9) AS excellent_count, -- Giỏi (>=9)
+--     COUNT(ea.id) FILTER (WHERE ea.score >= 7 AND ea.score < 9) AS good_count, -- Khá (7-9)
+--     COUNT(ea.id) FILTER (WHERE ea.score >= 5 AND ea.score < 7) AS average_count, -- Trung bình (5-7)
+--     COUNT(ea.id) FILTER (WHERE ea.score < 5) AS fail_count -- Trượt (<5)
+-- FROM 
+--     exams e
+-- JOIN 
+--     exam_attempts ea ON e.id = ea.exam_id
+-- WHERE 
+--     e.created_by = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12' 
+--     AND ea.submitted = TRUE
+-- GROUP BY 
+--     e.id, e.title;
+
+WITH exam_total_points AS (
+    SELECT 
+        e.id AS exam_id,
+        CASE 
+            WHEN e.max_questions IS NOT NULL THEN e.max_questions
+            ELSE COALESCE(SUM(q.points), 0)
+        END AS total_points
+    FROM exams e
+    LEFT JOIN questions q ON q.exam_id = e.id
+    GROUP BY e.id, e.max_questions
+)
+
 SELECT 
     e.title,
-    COUNT(ea.id) FILTER (WHERE ea.score >= 9) AS excellent_count, -- Giỏi (>=9)
-    COUNT(ea.id) FILTER (WHERE ea.score >= 7 AND ea.score < 9) AS good_count, -- Khá (7-9)
-    COUNT(ea.id) FILTER (WHERE ea.score >= 5 AND ea.score < 7) AS average_count, -- Trung bình (5-7)
-    COUNT(ea.id) FILTER (WHERE ea.score < 5) AS fail_count -- Trượt (<5)
+
+    COUNT(ea.id) FILTER (
+        WHERE (ea.score * 100.0 / etp.total_points) >= 90
+    ) AS excellent_count, -- Giỏi
+
+    COUNT(ea.id) FILTER (
+        WHERE (ea.score * 100.0 / etp.total_points) >= 70
+          AND (ea.score * 100.0 / etp.total_points) < 90
+    ) AS good_count, -- Khá
+
+    COUNT(ea.id) FILTER (
+        WHERE (ea.score * 100.0 / etp.total_points) >= 50
+          AND (ea.score * 100.0 / etp.total_points) < 70
+    ) AS average_count, -- Trung bình
+
+    COUNT(ea.id) FILTER (
+        WHERE (ea.score * 100.0 / etp.total_points) < 50
+    ) AS fail_count -- Trượt
+
 FROM 
     exams e
 JOIN 
     exam_attempts ea ON e.id = ea.exam_id
+JOIN 
+    exam_total_points etp ON etp.exam_id = e.id
 WHERE 
-    e.created_by = 'UUID_CUA_GIANG_VIEN'
+    e.created_by = 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12'
     AND ea.submitted = TRUE
 GROUP BY 
-    e.id, e.title;
-
+    e.id, e.title, etp.total_points;
 
 
 
@@ -93,7 +137,7 @@ JOIN
 LEFT JOIN 
     classes c ON s.class_id = c.id
 WHERE 
-    ea.exam_id = 123 -- ID bài thi
+    ea.exam_id = 1
 ORDER BY 
     ea.score DESC, ea.end_time ASC; -- Điểm cao nhất xếp trên, nộp sớm xếp trên
 
@@ -121,7 +165,7 @@ FROM
 JOIN 
     questions q ON ans.question_id = q.id
 WHERE 
-    q.exam_id = 123 -- ID bài thi
+    q.exam_id = 1
 GROUP BY 
     q.id, q.content
 ORDER BY 
