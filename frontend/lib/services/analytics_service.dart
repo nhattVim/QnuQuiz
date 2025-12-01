@@ -1,5 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:frontend/constants/api_constants.dart';
+import 'package:frontend/models/analytics/class_performance_model.dart';
+import 'package:frontend/models/analytics/exam_analytics_model.dart';
+import 'package:frontend/models/analytics/question_analytics_model.dart';
+import 'package:frontend/models/analytics/score_distribution_model.dart';
+import 'package:frontend/models/analytics/student_attempt_model.dart';
 import 'package:frontend/models/ranking_model.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:logger/logger.dart';
@@ -9,6 +14,106 @@ class AnalyticsService {
   final Dio _dio;
 
   AnalyticsService({Dio? dio}) : _dio = dio ?? ApiService().dio;
+
+  Future<List<ExamAnalytics>> getExamAnalytics(String teacherId) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/teacher/$teacherId/exams',
+      );
+      final data = response.data;
+
+      if (data is List) {
+        return data
+            .map((e) => ExamAnalytics.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Unexpected data format');
+      }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
+
+  Future<List<ClassPerformance>> getClassPerformance(int examId) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/exam/$examId/class-performance',
+      );
+      final data = response.data;
+
+      if (data is List) {
+        return data
+            .map((e) => ClassPerformance.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Unexpected data format');
+      }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
+
+  Future<List<ScoreDistribution>> getScoreDistribution(String teacherId) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/teacher/$teacherId/score-distribution',
+      );
+      final data = response.data;
+
+      if (data is List) {
+        return data
+            .map((e) => ScoreDistribution.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Unexpected data format');
+      }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
+
+  Future<List<StudentAttempt>> getStudentAttempts(int examId) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/exam/$examId/attempts',
+      );
+      final data = response.data;
+
+      if (data is List) {
+        return data
+            .map((e) => StudentAttempt.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Unexpected data format');
+      }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
+
+  Future<List<QuestionAnalytics>> getQuestionAnalytics(int examId) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/exam/$examId/question-analytics',
+      );
+      final data = response.data;
+
+      if (data is List) {
+        return data
+            .map((e) => QuestionAnalytics.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else {
+        throw Exception('Unexpected data format');
+      }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
 
   Future<List<RankingModel>> getRankingAll() async {
     try {
@@ -33,6 +138,28 @@ class AnalyticsService {
   Future<List<RankingModel>> getRankingAllThisWeek() async {
     try {
       final response = await _dio.get('${ApiConstants.analytics}/ranking/week');
+      final data = response.data;
+
+      if (data is List) {
+        return data
+            .map((e) => RankingModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else if (data is Map && data.containsKey('message')) {
+        throw Exception(data['message']);
+      } else {
+        throw Exception('Unexpected data format: $data');
+      }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
+
+  Future<List<RankingModel>> getRankingByExamId(int examId) async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/ranking/$examId',
+      );
       final data = response.data;
 
       if (data is List) {

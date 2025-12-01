@@ -1,12 +1,20 @@
 package com.example.qnuquiz.entity;
 
 import java.sql.Timestamp;
+import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+
+import com.example.qnuquiz.dto.analytics.ClassPerformanceDto;
+import com.example.qnuquiz.dto.analytics.ExamAnalyticsDto;
+import com.example.qnuquiz.dto.analytics.ScoreDistributionDto;
+import com.example.qnuquiz.dto.analytics.StudentAttemptDto;
 
 // Generated Nov 25, 2025, 4:34:35 PM by Hibernate Tools 7.1.3.Final
 
 import jakarta.persistence.Column;
+import jakarta.persistence.ColumnResult;
+import jakarta.persistence.ConstructorResult;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
@@ -15,6 +23,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
+import jakarta.persistence.SqlResultSetMapping;
+import jakarta.persistence.SqlResultSetMappings;
 import jakarta.persistence.Table;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -24,6 +34,39 @@ import jakarta.persistence.TemporalType;
  */
 @Entity
 @Table(name = "exam_attempts")
+@SqlResultSetMappings({
+        @SqlResultSetMapping(name = "StudentAttemptDtoMapping", classes = @ConstructorResult(targetClass = StudentAttemptDto.class, columns = {
+                @ColumnResult(name = "student_code", type = String.class),
+                @ColumnResult(name = "full_name", type = String.class),
+                @ColumnResult(name = "class_name", type = String.class),
+                @ColumnResult(name = "start_time", type = LocalDateTime.class),
+                @ColumnResult(name = "end_time", type = LocalDateTime.class),
+                @ColumnResult(name = "duration_minutes", type = Double.class),
+                @ColumnResult(name = "score", type = Double.class),
+                @ColumnResult(name = "submitted", type = Boolean.class)
+        })),
+        @SqlResultSetMapping(name = "ExamAnalyticsDtoMapping", classes = @ConstructorResult(targetClass = ExamAnalyticsDto.class, columns = {
+                @ColumnResult(name = "exam_id", type = Long.class),
+                @ColumnResult(name = "exam_title", type = String.class),
+                @ColumnResult(name = "total_attempts", type = Long.class),
+                @ColumnResult(name = "total_submitted", type = Long.class),
+                @ColumnResult(name = "avg_score", type = Double.class),
+                @ColumnResult(name = "max_score", type = Double.class),
+                @ColumnResult(name = "min_score", type = Double.class)
+        })),
+        @SqlResultSetMapping(name = "ClassPerformanceDtoMapping", classes = @ConstructorResult(targetClass = ClassPerformanceDto.class, columns = {
+                @ColumnResult(name = "class_name", type = String.class),
+                @ColumnResult(name = "student_count", type = Long.class),
+                @ColumnResult(name = "avg_score_per_class", type = Double.class)
+        })),
+        @SqlResultSetMapping(name = "ScoreDistributionDtoMapping", classes = @ConstructorResult(targetClass = ScoreDistributionDto.class, columns = {
+                @ColumnResult(name = "title", type = String.class),
+                @ColumnResult(name = "excellent_count", type = Long.class),
+                @ColumnResult(name = "good_count", type = Long.class),
+                @ColumnResult(name = "average_count", type = Long.class),
+                @ColumnResult(name = "fail_count", type = Long.class)
+        })),
+})
 public class ExamAttempts implements java.io.Serializable {
 
     private long id;
