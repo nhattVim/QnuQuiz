@@ -13,7 +13,7 @@ import 'widgets/quiz_completion_dialog.dart';
 import 'quiz_result_screen.dart';
 
 class QuizScreen extends StatefulWidget {
-  final String quizTitle;
+  final String examTitle;
   final int totalQuestions;
   final int examId;
   final int attemptId;
@@ -21,7 +21,7 @@ class QuizScreen extends StatefulWidget {
 
   const QuizScreen({
     super.key,
-    this.quizTitle = 'Quiz',
+    required this.examTitle,
     this.totalQuestions = 50,
     required this.examId,
     required this.attemptId,
@@ -332,6 +332,7 @@ class _QuizScreenState extends State<QuizScreen> {
           totalQuestions: quizData.length,
           result: examResult,
           attemptId: widget.attemptId,
+          examTitle: widget.examTitle,
           onBackHome: () {
             // Pop về ExamListScreen để trigger refresh
             Navigator.pop(context);

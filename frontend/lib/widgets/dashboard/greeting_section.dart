@@ -10,7 +10,7 @@ class GreetingSection extends StatelessWidget {
     return Row(
       children: [
         const CircleAvatar(
-          radius: 24,
+          radius: 20,
           backgroundColor: Colors.brown,
           child: Icon(Icons.person, color: Colors.white),
         ),
@@ -21,11 +21,11 @@ class GreetingSection extends StatelessWidget {
           children: [
             Text(
               "Xin chào, $username 👋",
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
             const Text(
               "Hãy bắt đầu câu đố nào!",
-              style: TextStyle(color: Colors.black54),
+              style: TextStyle(color: Colors.black54, fontSize: 12),
             ),
           ],
         ),
@@ -41,20 +41,21 @@ class GreetingSection extends StatelessWidget {
               child: const Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Boxicons.bx_bolt_circle, color: Colors.amber),
+                  Icon(Boxicons.bx_bolt_circle, color: Colors.amber, size: 20),
                   SizedBox(width: 4),
                   Text(
                     "1000",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                   ),
                 ],
               ),
             ),
             const SizedBox(width: 8),
             CircleAvatar(
+              radius: 18,
               backgroundColor: Colors.grey.shade100,
               child: IconButton(
-                icon: const Icon(Boxicons.bx_bell),
+                icon: const Icon(Boxicons.bx_bell, size: 20),
                 onPressed: () {},
               ),
             ),

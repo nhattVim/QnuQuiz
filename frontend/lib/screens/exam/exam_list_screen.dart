@@ -47,6 +47,7 @@ class _ExamListScreenState extends State<ExamListScreen> {
             examId: exam.id,
             durationMinutes: exam.durationMinutes,
             attemptId: attempt.id,
+            examTitle: exam.title,
           ),
         ),
       );
