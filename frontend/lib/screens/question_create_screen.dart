@@ -267,10 +267,7 @@ class _QuestionCreateScreenState extends State<QuestionCreateScreen> {
         'options': options,
       };
 
-      final newQuestion = await _questionService.createQuestion(
-        newQuestionData,
-        widget.examId,
-      );
+      await _questionService.createQuestion(newQuestionData, widget.examId);
 
       if (!mounted) return;
 
