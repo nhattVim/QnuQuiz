@@ -57,6 +57,17 @@ class UserService {
     }
   }
 
+  Future<List<UserModel>> getAllUsers() async {
+    try {
+      final response = await _dio.get(ApiConstants.users);
+      final List<dynamic> data = response.data;
+      return data.map((user) => UserModel.fromJson(user)).toList();
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi lấy danh sách người dùng');
+    }
+  }
+
   Future<dynamic> getCurrentUserProfile() async {
     try {
       final response = await _dio.get('${ApiConstants.users}/me');

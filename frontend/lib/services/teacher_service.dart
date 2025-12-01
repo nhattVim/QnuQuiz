@@ -20,6 +20,19 @@ class TeacherService {
     }
   }
 
+  Future<List<TeacherModel>> getAllTeachers() async {
+    try {
+      final response = await _dio.get(ApiConstants.teachers);
+      final List<dynamic> data = response.data;
+      return data.map((teacher) => TeacherModel.fromJson(teacher)).toList();
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi lấy danh sách giảng viên',
+      );
+    }
+  }
+
   Future<TeacherModel> updateProfile({
     required String fullName,
     required String email,
