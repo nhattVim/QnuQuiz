@@ -55,7 +55,14 @@ class _QuizScreenState extends State<QuizScreen> {
   void initState() {
     super.initState();
     _quizDataFuture = _questionService.getQuestions(widget.examId);
-    _loadQuizData().then((_) => _loadQuizState());
+
+    // Only load state when quizData is not empty
+    _loadQuizData().then((_) {
+      if (quizData.isNotEmpty) {
+        _loadQuizState();
+      }
+    });
+
     _startTimer();
   }
 
@@ -381,17 +388,32 @@ class _QuizScreenState extends State<QuizScreen> {
   Future<void> _loadQuizState() async {
     final prefs = await SharedPreferences.getInstance();
     final key = 'quiz_state_${widget.attemptId}';
-    if (!mounted) return;
+
+    final savedAnswers = prefs.getStringList('${key}_answeredQuestions');
+
     setState(() {
       currentQuestionIndex = prefs.getInt('${key}_currentQuestionIndex') ?? 0;
+
       _remainingSeconds =
           prefs.getInt('${key}_remainingSeconds') ??
           (widget.durationMinutes! * 60);
-      answeredQuestions =
-          (prefs.getStringList('${key}_answeredQuestions') ??
-                  List<String>.filled(quizData.length, ''))
-              .map((e) => e.isNotEmpty ? int.parse(e) : null)
-              .toList();
+
+      if (savedAnswers != null) {
+        answeredQuestions = savedAnswers
+            .map((e) => e.isNotEmpty ? int.parse(e) : null)
+            .toList();
+
+        if (answeredQuestions.length != quizData.length) {
+          answeredQuestions = List<int?>.filled(quizData.length, null);
+        }
+      } else {
+        answeredQuestions = List<int?>.filled(quizData.length, null);
+      }
+
+      if (currentQuestionIndex >= quizData.length) {
+        currentQuestionIndex = 0;
+      }
+
       selectedAnswerIndex = answeredQuestions[currentQuestionIndex] ?? -1;
     });
   }
