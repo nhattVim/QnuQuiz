@@ -26,6 +26,7 @@ void main() {
         random: false,
         status: 'active',
         durationMinutes: 30,
+        categoryId: 1,
       );
       final json = exam.toJson();
 
@@ -37,6 +38,7 @@ void main() {
       expect(deserialized.title, exam.title);
       expect(deserialized.description, exam.description);
       expect(deserialized.durationMinutes, exam.durationMinutes);
+      expect(deserialized.categoryId, exam.categoryId);
     });
 
     test('ExamAttemptModel serialization/deserialization', () {
@@ -111,6 +113,7 @@ void main() {
       random: false,
       status: 'active',
       durationMinutes: 30,
+      categoryId: 1,
     );
 
     final mockExamAttempt = ExamAttemptModel(

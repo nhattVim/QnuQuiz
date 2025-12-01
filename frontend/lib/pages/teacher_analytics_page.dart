@@ -33,11 +33,14 @@ class _TeacherAnalyticsPageState extends State<TeacherAnalyticsPage>
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: const Text(
           'Thống kê & Báo cáo',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         bottom: TabBar(
+          padding: EdgeInsets.zero,
+          tabAlignment: TabAlignment.start,
           controller: _tabController,
           isScrollable: true,
           labelColor: colorScheme.primary,

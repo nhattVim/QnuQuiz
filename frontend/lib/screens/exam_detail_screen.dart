@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/exam_model.dart';
 import 'package:frontend/models/question_model.dart';
+import 'package:frontend/screens/question_create_screen.dart';
 import 'package:frontend/screens/question_edit_screen.dart';
 import 'package:frontend/services/exam_service.dart';
 import 'package:frontend/services/question_service.dart';
@@ -123,8 +124,21 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
         ),
         floatingActionButton: !_isDeleting
             ? FloatingActionButton(
-                onPressed: () {
-                  // TODO: Navigate to create question screen
+                onPressed: () async {
+                  final result = await Navigator.push<bool?>(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) =>
+                          QuestionCreateScreen(examId: widget.exam.id),
+                    ),
+                  );
+
+                  if (result == true) {
+                    setState(() {
+                      _questionsFuture =
+                          _questionService.getQuestions(widget.exam.id);
+                    });
+                  }
                 },
                 tooltip: 'Tạo câu hỏi mới',
                 child: const Icon(Icons.add),
@@ -586,6 +600,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
       random: widget.exam.random,
       durationMinutes: int.tryParse(_durationController.text),
       status: _status,
+      categoryId: widget.exam.categoryId,
     );
 
     try {

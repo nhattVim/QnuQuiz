@@ -95,4 +95,21 @@ class QuestionService {
       throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
     }
   }
+
+  Future<QuestionModel> createQuestion(
+    Map<String, dynamic> questionData,
+    int examId,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.questions}/create',
+        data: questionData,
+        queryParameters: {'examId': examId},
+      );
+      return QuestionModel.fromJson(response.data);
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi khi tạo câu hỏi');
+    }
+  }
 }
