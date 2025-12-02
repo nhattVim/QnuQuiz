@@ -1,25 +1,10 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/health_service.dart';
-import '../services/auth_service.dart';
-
-enum AppStartupState { checkingHealth, serverDown, loggedIn, loggedOut }
-
-class AppStartupResult {
-  final AppStartupState state;
-  final bool isServerUp;
-  final bool? isLoggedIn;
-
-  AppStartupResult({
-    required this.state,
-    required this.isServerUp,
-    this.isLoggedIn,
-  });
-}
+import 'package:frontend/providers/service_providers.dart';
 
 final appStartupProvider =
     AsyncNotifierProvider<AppStartupNotifier, AppStartupResult>(
-      // AppStartupNotifier.new,
       () => AppStartupNotifier(),
     );
 
@@ -38,7 +23,7 @@ class AppStartupNotifier extends AsyncNotifier<AppStartupResult> {
   Future<AppStartupResult> _checkHealthAndLogin() async {
     state = const AsyncValue.loading();
 
-    final isServerUp = await HealthService().checkHealth();
+    final isServerUp = await ref.read(healthServiceProvider).checkHealth();
 
     if (!isServerUp) {
       _retryTimer?.cancel();
@@ -54,7 +39,9 @@ class AppStartupNotifier extends AsyncNotifier<AppStartupResult> {
     }
 
     // Server up → check login
-    final isLoggedIn = await AuthService().isLoggedIn();
+    final isLoggedIn = await ref
+        .read(authServiceProvider)
+        .isLoggedIn(); // Use provider
 
     if (isLoggedIn) {
       return AppStartupResult(
@@ -71,3 +58,17 @@ class AppStartupNotifier extends AsyncNotifier<AppStartupResult> {
     }
   }
 }
+
+class AppStartupResult {
+  final AppStartupState state;
+  final bool isServerUp;
+  final bool? isLoggedIn;
+
+  AppStartupResult({
+    required this.state,
+    required this.isServerUp,
+    this.isLoggedIn,
+  });
+}
+
+enum AppStartupState { checkingHealth, serverDown, loggedIn, loggedOut }

@@ -19,45 +19,10 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final user = ref.watch(userProvider);
+    final userAsyncValue = ref.watch(userProvider);
 
-    // if (authState == AuthState.authenticated) {
-    //   WidgetsBinding.instance.addPostFrameCallback((_) {
-    //     if (mounted) {
-    //       print(user!.role + user.fullName!);
-    //       if (user != null && user.role == 'ADMIN') {
-    //         Navigator.pushReplacement(
-    //           context,
-    //           MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
-    //         );
-    //       } else {
-    //         ScaffoldMessenger.of(context).showSnackBar(
-    //           const SnackBar(
-    //             content: Text('Bạn không có quyền truy cập trang quản trị'),
-    //             backgroundColor: Colors.red,
-    //           ),
-    //         );
-    //         ref.read(authProvider.notifier).logout();
-    //       }
-    //     }
-    //   });
-    // }
-
-    // Auto redirect after login
-    if (authState == AuthState.authenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
-          );
-        }
-      });
-    }
-
-    // Display error
     ref.listen<AuthState>(authProvider, (previous, next) {
-      if (next == AuthState.error && mounted) {
+      if (next == AuthState.error) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Đăng nhập thất bại'),
@@ -66,6 +31,43 @@ class _AdminLoginPageState extends ConsumerState<AdminLoginPage> {
         );
       }
     });
+
+    if (authState == AuthState.authenticated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          userAsyncValue.when(
+            data: (user) {
+              if (user != null && user.role == 'ADMIN') {
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AdminDashboardPage()),
+                );
+              } else if (user != null) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Bạn không có quyền truy cập trang quản trị'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                ref.read(authProvider.notifier).logout();
+              }
+            },
+            loading: () {},
+            error: (err, stack) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Lỗi tải thông tin người dùng. Vui lòng đăng nhập lại.',
+                  ),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              ref.read(authProvider.notifier).logout();
+            },
+          );
+        }
+      });
+    }
 
     return Scaffold(
       appBar: AppBar(title: const Text('Admin Login')),

@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 import 'package:frontend/admin/widgets/user_form_dialog.dart';
 import 'package:frontend/models/user_model.dart';
-import 'package:frontend/services/user_service.dart';
+import 'package:frontend/providers/service_providers.dart'; // Import service providers
 
-class UserManagementPage extends StatefulWidget {
+class UserManagementPage extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget
   const UserManagementPage({super.key});
 
   @override
-  State<UserManagementPage> createState() => _UserManagementPageState();
+  ConsumerState<UserManagementPage> createState() => _UserManagementPageState();
 }
 
-class _UserManagementPageState extends State<UserManagementPage> {
-  final UserService _userService = UserService();
+class _UserManagementPageState extends ConsumerState<UserManagementPage> {
+  // Removed direct instantiation:
+  // final UserService _userService = UserService();
   late Future<List<UserModel>> _usersFuture;
 
   @override
@@ -21,8 +23,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
   }
 
   void _fetchUsers() {
+    final userService = ref.read(userServiceProvider); // Get service from provider
     setState(() {
-      _usersFuture = _userService.getAllUsers();
+      _usersFuture = userService.getAllUsers();
     });
   }
 
@@ -33,11 +36,12 @@ class _UserManagementPageState extends State<UserManagementPage> {
         user: user,
         onSave: (newUser) async {
           final scaffoldMessenger = ScaffoldMessenger.of(context);
+          final userService = ref.read(userServiceProvider); // Get service from provider
           try {
             if (user == null) {
-              await _userService.createUser(newUser);
+              await userService.createUser(newUser);
             } else {
-              await _userService.updateUser(newUser);
+              await userService.updateUser(newUser);
             }
             if (!mounted) return;
             _fetchUsers();
@@ -70,8 +74,9 @@ class _UserManagementPageState extends State<UserManagementPage> {
             onPressed: () async {
               final navigator = Navigator.of(context);
               final scaffoldMessenger = ScaffoldMessenger.of(context);
+              final userService = ref.read(userServiceProvider); // Get service from provider
               try {
-                await _userService.deleteUser(userId);
+                await userService.deleteUser(userId);
                 if (!mounted) return;
                 _fetchUsers();
                 scaffoldMessenger.showSnackBar(

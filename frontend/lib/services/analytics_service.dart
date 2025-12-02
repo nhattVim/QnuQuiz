@@ -14,9 +14,11 @@ import 'package:logger/logger.dart';
 
 class AnalyticsService {
   final _log = Logger();
-  final Dio _dio;
+  final ApiService _apiService;
 
-  AnalyticsService({Dio? dio}) : _dio = dio ?? ApiService().dio;
+  AnalyticsService(this._apiService);
+
+  Dio get _dio => _apiService.dio;
 
   Future<List<ExamAnalytics>> getExamAnalytics(String teacherId) async {
     try {
@@ -186,7 +188,9 @@ class AnalyticsService {
       return UserAnalyticsModel.fromJson(response.data);
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);
-      throw Exception(e.response?.data?['message'] ?? 'Lỗi lấy thống kê người dùng');
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi lấy thống kê người dùng',
+      );
     }
   }
 
@@ -196,17 +200,23 @@ class AnalyticsService {
       return AdminExamAnalyticsModel.fromJson(response.data);
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);
-      throw Exception(e.response?.data?['message'] ?? 'Lỗi lấy thống kê bài thi');
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi lấy thống kê bài thi',
+      );
     }
   }
 
   Future<AdminQuestionAnalyticsModel> getAdminQuestionAnalytics() async {
     try {
-      final response = await _dio.get('${ApiConstants.analytics}/admin/questions');
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/admin/questions',
+      );
       return AdminQuestionAnalyticsModel.fromJson(response.data);
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);
-      throw Exception(e.response?.data?['message'] ?? 'Lỗi lấy thống kê câu hỏi');
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi lấy thống kê câu hỏi',
+      );
     }
   }
 }

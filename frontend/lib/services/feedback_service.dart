@@ -6,7 +6,11 @@ import 'package:logger/logger.dart';
 
 class FeedbackService {
   final _log = Logger();
-  final Dio _dio = ApiService().dio;
+  final ApiService _apiService;
+
+  FeedbackService(this._apiService);
+
+  Dio get _dio => _apiService.dio;
 
   Future<List<FeedbackModel>> getAllFeedbacks() async {
     try {
@@ -15,7 +19,9 @@ class FeedbackService {
       return data.map((json) => FeedbackModel.fromJson(json)).toList();
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);
-      throw Exception(e.response?.data?['message'] ?? 'Lỗi lấy danh sách phản hồi');
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi lấy danh sách phản hồi',
+      );
     }
   }
 

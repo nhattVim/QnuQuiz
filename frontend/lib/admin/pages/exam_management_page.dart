@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 import 'package:frontend/admin/widgets/exam_form_dialog.dart';
 import 'package:frontend/models/exam_model.dart';
-import 'package:frontend/services/exam_service.dart';
+import 'package:frontend/providers/service_providers.dart'; // Import service providers
 
-class ExamManagementPage extends StatefulWidget {
+class ExamManagementPage extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget
   const ExamManagementPage({super.key});
 
   @override
-  State<ExamManagementPage> createState() => _ExamManagementPageState();
+  ConsumerState<ExamManagementPage> createState() => _ExamManagementPageState();
 }
 
-class _ExamManagementPageState extends State<ExamManagementPage> {
-  final ExamService _examService = ExamService();
+class _ExamManagementPageState extends ConsumerState<ExamManagementPage> {
+  // Removed direct instantiation:
+  // final ExamService _examService = ExamService();
   late Future<List<ExamModel>> _examsFuture;
 
   @override
@@ -21,8 +23,9 @@ class _ExamManagementPageState extends State<ExamManagementPage> {
   }
 
   void _fetchExams() {
+    final examService = ref.read(examServiceProvider); // Get service from provider
     setState(() {
-      _examsFuture = _examService.getAllExams();
+      _examsFuture = examService.getAllExams();
     });
   }
 
@@ -33,11 +36,12 @@ class _ExamManagementPageState extends State<ExamManagementPage> {
         exam: exam,
         onSave: (newExam) async {
           final scaffoldMessenger = ScaffoldMessenger.of(context);
+          final examService = ref.read(examServiceProvider); // Get service from provider
           try {
             if (exam == null) {
-              await _examService.createExam(newExam);
+              await examService.createExam(newExam);
             } else {
-              await _examService.updateExam(newExam);
+              await examService.updateExam(newExam);
             }
             if (!mounted) return;
             _fetchExams();
@@ -70,8 +74,9 @@ class _ExamManagementPageState extends State<ExamManagementPage> {
             onPressed: () async {
               final navigator = Navigator.of(context);
               final scaffoldMessenger = ScaffoldMessenger.of(context);
+              final examService = ref.read(examServiceProvider); // Get service from provider
               try {
-                await _examService.deleteExam(examId);
+                await examService.deleteExam(examId);
                 if (!mounted) return;
                 _fetchExams();
                 scaffoldMessenger.showSnackBar(

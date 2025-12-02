@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 import 'package:frontend/models/exam_category_model.dart';
 import 'package:frontend/models/exam_model.dart';
-import 'package:frontend/services/exam_service.dart';
+import 'package:frontend/providers/service_providers.dart'; // Import service providers
 
-class ExamFormDialog extends StatefulWidget {
+class ExamFormDialog extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget
   final ExamModel? exam; // Null for create, not null for edit
   final Function(ExamModel) onSave;
 
   const ExamFormDialog({super.key, this.exam, required this.onSave});
 
   @override
-  State<ExamFormDialog> createState() => _ExamFormDialogState();
+  ConsumerState<ExamFormDialog> createState() => _ExamFormDialogState();
 }
 
-class _ExamFormDialogState extends State<ExamFormDialog> {
+class _ExamFormDialogState extends ConsumerState<ExamFormDialog> {
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _descriptionController;
@@ -36,7 +37,7 @@ class _ExamFormDialogState extends State<ExamFormDialog> {
     _durationMinutesController = TextEditingController(
       text: widget.exam?.durationMinutes?.toString() ?? '',
     );
-    _categoriesFuture = ExamService().getAllCategories();
+    _categoriesFuture = ref.read(examServiceProvider).getAllCategories(); // Use provider
 
     if (widget.exam != null) {
       _categoriesFuture.then((categories) {

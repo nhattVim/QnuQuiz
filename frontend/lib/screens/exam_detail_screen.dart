@@ -2,27 +2,27 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/exam_model.dart';
 import 'package:frontend/models/question_model.dart';
+import 'package:frontend/providers/service_providers.dart';
 import 'package:frontend/screens/question_create_screen.dart';
 import 'package:frontend/screens/question_edit_screen.dart';
-import 'package:frontend/services/exam_service.dart';
-import 'package:frontend/services/question_service.dart';
 import 'package:intl/intl.dart';
 
-class ExamDetailScreen extends StatefulWidget {
+class ExamDetailScreen extends ConsumerStatefulWidget {
   final ExamModel exam;
   const ExamDetailScreen({super.key, required this.exam});
 
   @override
-  State<ExamDetailScreen> createState() => _ExamDetailScreenState();
+  ConsumerState<ExamDetailScreen> createState() => _ExamDetailScreenState();
 }
 
-class _ExamDetailScreenState extends State<ExamDetailScreen> {
+class _ExamDetailScreenState extends ConsumerState<ExamDetailScreen> {
   // Services
-  final _examService = ExamService();
-  final _questionService = QuestionService();
+  late final _examService;
+  late final _questionService;
 
   // Model
   ExamModel? _updatedExam;
@@ -47,6 +47,8 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
   @override
   void initState() {
     super.initState();
+    _examService = ref.read(examServiceProvider);
+    _questionService = ref.read(questionServiceProvider);
     _titleController = TextEditingController(text: widget.exam.title);
     _descriptionController = TextEditingController(
       text: widget.exam.description,

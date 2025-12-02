@@ -1,25 +1,24 @@
-import 'package:flutter/material.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/models/analytics/admin_exam_analytics_model.dart';
 import 'package:frontend/models/analytics/admin_question_analytics_model.dart';
 import 'package:frontend/models/analytics/exam_analytics_model.dart';
 import 'package:frontend/models/analytics/score_distribution_model.dart';
 import 'package:frontend/models/analytics/user_analytics_model.dart';
 import 'package:frontend/models/teacher_model.dart';
+import 'package:frontend/providers/service_providers.dart';
 import 'package:frontend/services/analytics_service.dart';
 import 'package:frontend/services/teacher_service.dart';
 
-class AnalyticsPage extends StatefulWidget {
+class AnalyticsPage extends ConsumerStatefulWidget {
   const AnalyticsPage({super.key});
 
   @override
-  State<AnalyticsPage> createState() => _AnalyticsPageState();
+  ConsumerState<AnalyticsPage> createState() => _AnalyticsPageState();
 }
 
-class _AnalyticsPageState extends State<AnalyticsPage> {
-  final TeacherService _teacherService = TeacherService();
-  final AnalyticsService _analyticsService = AnalyticsService();
-
+class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
   late Future<List<TeacherModel>> _teachersFuture;
   late Future<UserAnalyticsModel> _userAnalyticsFuture;
   late Future<AdminExamAnalyticsModel> _adminExamAnalyticsFuture;
@@ -31,22 +30,28 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
   @override
   void initState() {
     super.initState();
-    _fetchAdminAnalytics();
-    _fetchTeacherAnalytics();
+    final analyticsService = ref.read(analyticsServiceProvider);
+    final teacherService = ref.read(teacherServiceProvider);
+
+    _fetchAdminAnalytics(analyticsService);
+    _fetchTeacherAnalytics(teacherService, analyticsService);
   }
 
-  void _fetchAdminAnalytics() {
-    _userAnalyticsFuture = _analyticsService.getUserAnalytics();
-    _adminExamAnalyticsFuture = _analyticsService.getAdminExamAnalytics();
-    _adminQuestionAnalyticsFuture = _analyticsService
+  void _fetchAdminAnalytics(AnalyticsService analyticsService) {
+    _userAnalyticsFuture = analyticsService.getUserAnalytics();
+    _adminExamAnalyticsFuture = analyticsService.getAdminExamAnalytics();
+    _adminQuestionAnalyticsFuture = analyticsService
         .getAdminQuestionAnalytics();
   }
 
-  void _fetchTeacherAnalytics() {
-    _teachersFuture = _teacherService.getAllTeachers();
+  void _fetchTeacherAnalytics(
+    TeacherService teacherService,
+    AnalyticsService analyticsService,
+  ) {
+    _teachersFuture = teacherService.getAllTeachers();
     _teachersFuture.then((teachers) {
       for (var teacher in teachers) {
-        _analyticsService.getExamAnalytics(teacher.id.toString()).then((
+        analyticsService.getExamAnalytics(teacher.id.toString()).then((
           analytics,
         ) {
           if (mounted) {
@@ -55,7 +60,7 @@ class _AnalyticsPageState extends State<AnalyticsPage> {
             });
           }
         });
-        _analyticsService.getScoreDistribution(teacher.id.toString()).then((
+        analyticsService.getScoreDistribution(teacher.id.toString()).then((
           distributions,
         ) {
           if (mounted) {

@@ -10,7 +10,11 @@ import 'package:logger/logger.dart';
 
 class ExamService {
   final _log = Logger();
-  final Dio _dio = ApiService().dio;
+  final ApiService _apiService;
+
+  ExamService(this._apiService);
+
+  Dio get _dio => _apiService.dio;
 
   Future<List<ExamModel>> getExamsByUserId(bool sort) async {
     try {

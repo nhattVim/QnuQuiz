@@ -79,7 +79,7 @@ public class QuestionController {
         }
     }
 
-    @PostMapping
+    @PostMapping("/create")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
     public ResponseEntity<QuestionDTO> createQuestion(@RequestBody QuestionDTO dto,
             @RequestParam("examId") Long examId) {

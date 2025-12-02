@@ -1,19 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:frontend/services/question_service.dart';
+import 'package:frontend/providers/service_providers.dart';
 
-class QuestionCreateScreen extends StatefulWidget {
+class QuestionCreateScreen extends ConsumerStatefulWidget {
   final int examId;
   const QuestionCreateScreen({super.key, required this.examId});
 
   @override
-  State<QuestionCreateScreen> createState() => _QuestionCreateScreenState();
+  ConsumerState<QuestionCreateScreen> createState() =>
+      _QuestionCreateScreenState();
 }
 
-class _QuestionCreateScreenState extends State<QuestionCreateScreen> {
-  // Services
-  final _questionService = QuestionService();
-
+class _QuestionCreateScreenState extends ConsumerState<QuestionCreateScreen> {
   // Controllers
   final _contentController = TextEditingController();
   final List<TextEditingController> _optionControllers = [];
@@ -250,8 +249,6 @@ class _QuestionCreateScreenState extends State<QuestionCreateScreen> {
     setState(() => _isSaving = true);
 
     try {
-      // The backend expects a DTO. I'll construct it here.
-      // I'll assume the 'type' is 'MULTIPLE_CHOICE'.
       final options = List<Map<String, dynamic>>.generate(
         _optionControllers.length,
         (index) => {
@@ -267,7 +264,9 @@ class _QuestionCreateScreenState extends State<QuestionCreateScreen> {
         'options': options,
       };
 
-      await _questionService.createQuestion(newQuestionData, widget.examId);
+      await ref
+          .read(questionServiceProvider)
+          .createQuestion(newQuestionData, widget.examId);
 
       if (!mounted) return;
 

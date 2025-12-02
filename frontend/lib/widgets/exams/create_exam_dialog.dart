@@ -1,23 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/exam_category_model.dart';
 import 'package:frontend/models/exam_model.dart';
-import 'package:frontend/services/exam_service.dart';
+import 'package:frontend/providers/service_providers.dart'; // Import service providers
 import 'package:intl/intl.dart';
 
-class CreateExamDialog extends StatefulWidget {
+class CreateExamDialog extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget
   const CreateExamDialog({super.key});
 
   @override
-  State<CreateExamDialog> createState() => _CreateExamDialogState();
+  ConsumerState<CreateExamDialog> createState() => _CreateExamDialogState();
 }
 
-class _CreateExamDialogState extends State<CreateExamDialog> {
+class _CreateExamDialogState extends ConsumerState<CreateExamDialog> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descController = TextEditingController();
   final _durationController = TextEditingController();
-  final _examService = ExamService();
+  // Removed direct instantiation:
+  // final _examService = ExamService();
 
   String _status = 'DRAFT';
   int _category = 1;
@@ -229,7 +231,7 @@ class _CreateExamDialogState extends State<CreateExamDialog> {
       dt == null ? "Chưa chọn" : DateFormat('dd/MM/yyyy HH:mm').format(dt);
 
   void _loadCategories() async {
-    final data = await _examService.getAllCategories();
+    final data = await ref.read(examServiceProvider).getAllCategories(); // Use provider
     setState(() {
       _categoryOptions = data;
     });
@@ -292,7 +294,7 @@ class _CreateExamDialogState extends State<CreateExamDialog> {
         random: _random,
         categoryId: _category,
       );
-      await _examService.createExam(newExam);
+      await ref.read(examServiceProvider).createExam(newExam); // Use provider
       if (!mounted) return;
       Navigator.pop(context, true);
     } catch (e) {

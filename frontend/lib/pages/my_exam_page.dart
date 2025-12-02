@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/exam_model.dart';
+import 'package:frontend/providers/service_providers.dart';
 import 'package:frontend/screens/exam_detail_screen.dart';
-import 'package:frontend/services/exam_service.dart';
 import 'package:frontend/widgets/exams/create_exam_dialog.dart';
 import 'package:intl/intl.dart';
 
@@ -173,15 +174,14 @@ class ExamCard extends StatelessWidget {
   }
 }
 
-class MyExamPage extends StatefulWidget {
+class MyExamPage extends ConsumerStatefulWidget {
   const MyExamPage({super.key});
 
   @override
-  State<MyExamPage> createState() => _MyExamPageState();
+  ConsumerState<MyExamPage> createState() => _MyExamPageState();
 }
 
-class _MyExamPageState extends State<MyExamPage> {
-  final _examService = ExamService();
+class _MyExamPageState extends ConsumerState<MyExamPage> {
   bool _sortDesc = true;
   late Future<List<ExamModel>> _examsFuture;
 
@@ -340,7 +340,7 @@ class _MyExamPageState extends State<MyExamPage> {
               style: TextStyle(color: theme.colorScheme.error),
             ),
             onPressed: () {
-              _examService.deleteExam(exam.id);
+              ref.read(examServiceProvider).deleteExam(exam.id);
               _refreshExams();
               Navigator.of(ctx).pop();
             },
@@ -363,7 +363,7 @@ class _MyExamPageState extends State<MyExamPage> {
 
   void _refreshExams() {
     setState(() {
-      _examsFuture = _examService.getExamsByUserId(_sortDesc);
+      _examsFuture = ref.read(examServiceProvider).getExamsByUserId(_sortDesc);
     });
   }
 

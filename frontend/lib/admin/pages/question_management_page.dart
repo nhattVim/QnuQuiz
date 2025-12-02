@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 import 'package:frontend/admin/widgets/question_form_dialog.dart';
 import 'package:frontend/models/question_model.dart';
-import 'package:frontend/services/question_service.dart';
+import 'package:frontend/providers/service_providers.dart'; // Import service providers
 
-class QuestionManagementPage extends StatefulWidget {
+class QuestionManagementPage extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget
   const QuestionManagementPage({super.key});
 
   @override
-  State<QuestionManagementPage> createState() => _QuestionManagementPageState();
+  ConsumerState<QuestionManagementPage> createState() => _QuestionManagementPageState();
 }
 
-class _QuestionManagementPageState extends State<QuestionManagementPage> {
-  final QuestionService _questionService = QuestionService();
+class _QuestionManagementPageState extends ConsumerState<QuestionManagementPage> {
+  // Removed direct instantiation:
+  // final QuestionService _questionService = QuestionService();
   late Future<List<QuestionModel>> _questionsFuture;
 
   @override
@@ -21,8 +23,9 @@ class _QuestionManagementPageState extends State<QuestionManagementPage> {
   }
 
   void _fetchQuestions() {
+    final questionService = ref.read(questionServiceProvider); // Get service from provider
     setState(() {
-      _questionsFuture = _questionService.getAllQuestions();
+      _questionsFuture = questionService.getAllQuestions();
     });
   }
 
@@ -33,10 +36,11 @@ class _QuestionManagementPageState extends State<QuestionManagementPage> {
         question: question,
         onSave: (newQuestion, examId) async {
           final scaffoldMessenger = ScaffoldMessenger.of(context);
+          final questionService = ref.read(questionServiceProvider); // Get service from provider
           try {
             if (question == null) {
               if (examId != null) {
-                await _questionService.createQuestion(newQuestion.toJson(), examId);
+                await questionService.createQuestion(newQuestion.toJson(), examId);
               } else {
                 // Handle error: examId is required for new questions
                 scaffoldMessenger.showSnackBar(
@@ -45,7 +49,7 @@ class _QuestionManagementPageState extends State<QuestionManagementPage> {
                 return;
               }
             } else {
-              await _questionService.updateQuestion(newQuestion);
+              await questionService.updateQuestion(newQuestion);
             }
             if (!mounted) return;
             _fetchQuestions();
@@ -78,8 +82,9 @@ class _QuestionManagementPageState extends State<QuestionManagementPage> {
             onPressed: () async {
               final navigator = Navigator.of(context);
               final scaffoldMessenger = ScaffoldMessenger.of(context);
+              final questionService = ref.read(questionServiceProvider); // Get service from provider
               try {
-                await _questionService.deleteQuestions([questionId]);
+                await questionService.deleteQuestions([questionId]);
                 if (!mounted) return;
                 _fetchQuestions();
                 scaffoldMessenger.showSnackBar(

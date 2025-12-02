@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 import 'package:frontend/models/feedback_model.dart';
-import 'package:frontend/services/feedback_service.dart';
+import 'package:frontend/providers/service_providers.dart'; // Import service providers
 import 'package:intl/intl.dart';
 
-class FeedbackManagementPage extends StatefulWidget {
+class FeedbackManagementPage extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget
   const FeedbackManagementPage({super.key});
 
   @override
-  State<FeedbackManagementPage> createState() => _FeedbackManagementPageState();
+  ConsumerState<FeedbackManagementPage> createState() => _FeedbackManagementPageState();
 }
 
-class _FeedbackManagementPageState extends State<FeedbackManagementPage> {
-  final FeedbackService _feedbackService = FeedbackService();
+class _FeedbackManagementPageState extends ConsumerState<FeedbackManagementPage> {
+  // Removed direct instantiation:
+  // final FeedbackService _feedbackService = FeedbackService();
   late Future<List<FeedbackModel>> _feedbacksFuture;
 
   @override
@@ -21,8 +23,9 @@ class _FeedbackManagementPageState extends State<FeedbackManagementPage> {
   }
 
   void _fetchFeedbacks() {
+    final feedbackService = ref.read(feedbackServiceProvider); // Get service from provider
     setState(() {
-      _feedbacksFuture = _feedbackService.getAllFeedbacks();
+      _feedbacksFuture = feedbackService.getAllFeedbacks();
     });
   }
 
@@ -41,8 +44,9 @@ class _FeedbackManagementPageState extends State<FeedbackManagementPage> {
             onPressed: () async {
               final navigator = Navigator.of(context);
               final scaffoldMessenger = ScaffoldMessenger.of(context);
+              final feedbackService = ref.read(feedbackServiceProvider); // Get service from provider
               try {
-                await _feedbackService.deleteFeedback(feedbackId);
+                await feedbackService.deleteFeedback(feedbackId);
                 _fetchFeedbacks();
                 scaffoldMessenger.showSnackBar(
                   const SnackBar(content: Text('Feedback deleted successfully!')),
