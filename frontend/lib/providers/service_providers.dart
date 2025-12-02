@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/services/analytics_service.dart';
+import 'package:frontend/services/announcement_service.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:frontend/services/auth_service.dart';
 import 'package:frontend/services/class_service.dart';
@@ -62,4 +63,8 @@ final teacherServiceProvider = Provider<TeacherService>((ref) {
 final userServiceProvider = Provider<UserService>((ref) {
   final apiService = ref.watch(apiServiceProvider);
   return UserService(apiService);
+});
+
+final announcementServiceProvider = Provider<AnnouncementService>((ref) {
+  return AnnouncementService(ref.watch(apiServiceProvider));
 });

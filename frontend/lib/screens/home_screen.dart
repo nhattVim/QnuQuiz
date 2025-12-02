@@ -10,6 +10,7 @@ import 'package:frontend/pages/profile_page.dart';
 import 'package:frontend/pages/ranking_page.dart';
 import '../providers/user_provider.dart';
 import 'package:frontend/pages/teacher_analytics_page.dart';
+import 'package:frontend/pages/notification_page.dart';
 
 /// =======================
 /// NAV ITEMS
@@ -57,6 +58,12 @@ const analyticsItem = NavItem(
   label: "Analytics",
 );
 
+const notificationItem = NavItem(
+  page: NotificationPage(),
+  icon: Icons.notifications,
+  label: "Thông báo",
+);
+
 const adminNav = [examItem, dashboardItem, profileItem];
 
 const studentNav = [
@@ -67,7 +74,7 @@ const studentNav = [
   profileItem,
 ];
 
-const teacherNav = [dashboardItem, examItem, analyticsItem, profileItem];
+const teacherNav = [dashboardItem, examItem, analyticsItem, notificationItem, profileItem];
 
 /// =======================
 /// HOME SCREEN

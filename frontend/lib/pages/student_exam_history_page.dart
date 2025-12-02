@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/models/exam_history_model.dart';
 import 'package:frontend/providers/service_providers.dart';
+import 'package:intl/intl.dart';
 
 class ExamHistoryDetailPage extends StatelessWidget {
   final ExamHistoryModel history;
@@ -80,7 +81,7 @@ class StudentExamHistoryPage extends ConsumerWidget {
                   subtitle: Text(
                     "Điểm: ${item.score}\n"
                     "Thời gian: ${item.durationMinutes} phút\n"
-                    "Ngày hoàn thành: ${item.completionDate}",
+                    "Ngày hoàn thành: ${item.completionDate != null ? DateFormat('dd/MM/yyyy HH:mm').format(item.completionDate!) : 'N/A'}",
                   ),
                   trailing: const Icon(Icons.arrow_forward_ios),
                   onTap: () {
