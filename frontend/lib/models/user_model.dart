@@ -1,5 +1,5 @@
 class UserModel {
-  final String id;
+  final String? id;
   final String username;
   final String email;
   final String role;
@@ -7,7 +7,7 @@ class UserModel {
   final String? phoneNumber;
 
   UserModel({
-    required this.id,
+    this.id,
     required this.username,
     required this.email,
     required this.role,
@@ -17,12 +17,12 @@ class UserModel {
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
     return UserModel(
-      id: json['id'],
-      username: json['username'],
-      email: json['email'],
-      role: json['role'],
-      fullName: json['fullName'],
-      phoneNumber: json['phoneNumber'],
+      id: json['id'] as String?,
+      username: json['username'] as String,
+      email: json['email'] as String,
+      role: json['role'] as String,
+      fullName: json['fullName'] as String?,
+      phoneNumber: json['phoneNumber'] as String?,
     );
   }
 

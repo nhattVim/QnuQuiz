@@ -68,6 +68,41 @@ class UserService {
     }
   }
 
+  Future<UserModel> createUser(UserModel user) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.users,
+        data: user.toJson(),
+      );
+      return UserModel.fromJson(response.data);
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi tạo người dùng');
+    }
+  }
+
+  Future<UserModel> updateUser(UserModel user) async {
+    try {
+      final response = await _dio.put(
+        '${ApiConstants.users}/${user.id}',
+        data: user.toJson(),
+      );
+      return UserModel.fromJson(response.data);
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi cập nhật người dùng');
+    }
+  }
+
+  Future<void> deleteUser(String userId) async {
+    try {
+      await _dio.delete('${ApiConstants.users}/$userId');
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi xóa người dùng');
+    }
+  }
+
   Future<dynamic> getCurrentUserProfile() async {
     try {
       final response = await _dio.get('${ApiConstants.users}/me');

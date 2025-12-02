@@ -135,8 +135,9 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
 
                   if (result == true) {
                     setState(() {
-                      _questionsFuture =
-                          _questionService.getQuestions(widget.exam.id);
+                      _questionsFuture = _questionService.getQuestions(
+                        widget.exam.id,
+                      );
                     });
                   }
                 },
@@ -339,7 +340,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
               question: question,
               index: index + 1,
               isSelected: isSelected,
-              onSelected: () => _onSelectQuestion(question.id),
+              onSelected: () => _onSelectQuestion(question.id!),
             );
           },
         );
@@ -385,7 +386,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
             if (updatedQuestion != null) {
               setState(() {
                 final questionIndex = _questionsList.indexWhere(
-                  (q) => q.id == updatedQuestion.id,
+                  (q) => q.id == updatedQuestion.id!,
                 );
                 if (questionIndex != -1) {
                   _questionsList[questionIndex] = updatedQuestion;
@@ -410,7 +411,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
                   ),
                 ),
           title: Text(
-            question.content,
+            question.content ?? '',
             style: const TextStyle(fontWeight: FontWeight.w600),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -641,7 +642,7 @@ class _ExamDetailScreenState extends State<ExamDetailScreen> {
   void _toggleSelectAll(bool? value) {
     setState(() {
       if (value == true) {
-        _selectedQuestions.addAll(_questionsList.map((q) => q.id));
+        _selectedQuestions.addAll(_questionsList.map((q) => q.id!));
       } else {
         _selectedQuestions.clear();
       }

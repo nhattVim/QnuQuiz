@@ -189,11 +189,11 @@ class _QuizScreenState extends State<QuizScreen> {
 
       if (selectedIndex == null) continue;
 
-      final selectedOption = question.options[selectedIndex];
+      final selectedOption = question.options![selectedIndex];
 
       await _examService.submitAnswer(
         attemptId: widget.attemptId,
-        questionId: question.id,
+        questionId: question.id!,
         optionId: selectedOption.id,
       );
     }
@@ -481,7 +481,7 @@ class _QuizScreenState extends State<QuizScreen> {
     }
 
     final currentQuestion = quizData[currentQuestionIndex];
-    final correctOptionIndex = currentQuestion.options.indexWhere(
+    final correctOptionIndex = currentQuestion.options!.indexWhere(
       (option) => option.correct,
     );
 
@@ -526,7 +526,7 @@ class _QuizScreenState extends State<QuizScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: QuizQuestion(
-                  questionText: currentQuestion.content,
+                  questionText: currentQuestion.content ?? '',
                   imageUrl: null,
                 ),
               ),
@@ -537,7 +537,7 @@ class _QuizScreenState extends State<QuizScreen> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: QuizAnswerOptions(
-                  answers: currentQuestion.options
+                  answers: currentQuestion.options!
                       .map((o) => o.content)
                       .toList(),
                   selectedAnswerIndex: selectedAnswerIndex,

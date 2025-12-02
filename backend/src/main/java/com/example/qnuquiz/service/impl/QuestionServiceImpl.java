@@ -183,6 +183,23 @@ public class QuestionServiceImpl implements QuestionService {
     }
 
     @Override
+    public List<QuestionDTO> getAllQuestions() {
+        return questionsRepository.findAll().stream()
+                .map(q -> QuestionDTO.builder()
+                        .id(q.getId())
+                        .content(q.getContent())
+                        .options(questionOptionsRepository.findByQuestions_Id(q.getId()).stream()
+                                .map(o -> QuestionOptionDto.builder()
+                                        .id(o.getId())
+                                        .content(o.getContent())
+                                        .correct(o.isIsCorrect())
+                                        .build())
+                                .toList())
+                        .build())
+                .toList();
+    }
+
+    @Override
     @Transactional
     @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
     public QuestionDTO createQuestion(QuestionDTO dto, Long examId) {

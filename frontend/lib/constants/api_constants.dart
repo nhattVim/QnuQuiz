@@ -9,4 +9,6 @@ class ApiConstants {
   static const String students = '/api/students';
   static const String teachers = '/api/teachers';
   static const String analytics = '/api/analytics';
+  static const String feedbacks = '/api/feedbacks';
+  static const String notifications = '/api/notifications';
 }

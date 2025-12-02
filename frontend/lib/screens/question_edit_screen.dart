@@ -116,7 +116,7 @@ class _QuestionEditScreenState extends State<QuestionEditScreen> {
   void initState() {
     super.initState();
     _contentController = TextEditingController(text: widget.question.content);
-    _options = List.from(widget.question.options);
+    _options = List.from(widget.question.options ?? []);
     _optionControllers = _options
         .map((option) => TextEditingController(text: option.content))
         .toList();
