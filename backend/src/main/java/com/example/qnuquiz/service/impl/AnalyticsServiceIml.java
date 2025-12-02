@@ -11,7 +11,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.time.DayOfWeek;
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
@@ -36,8 +39,11 @@ public class AnalyticsServiceIml implements AnalyticsService {
 
     @Override
     public List<RankingDto> rankingAllThisWeek() {
-        Timestamp weekAgo = new Timestamp(System.currentTimeMillis() - 7L * 86400 * 1000);
-        return examAttemptRepository.rankingAllThisWeek(weekAgo);
+        LocalDate today = LocalDate.now();
+        LocalDate monday = today.with(DayOfWeek.MONDAY);
+        LocalDateTime mondayStart = monday.atStartOfDay();
+        Timestamp fromDate = Timestamp.valueOf(mondayStart);
+        return examAttemptRepository.rankingAllThisWeek(fromDate);
     }
 
     @Override
@@ -161,10 +167,12 @@ public class AnalyticsServiceIml implements AnalyticsService {
     public AdminExamAnalyticsDto getExamAnalyticsAdmin() {
         long totalExams = examRepository.count();
 
-        // Assuming an exam is active if its end time is in the future or it has no end time and start time is in past
+        // Assuming an exam is active if its end time is in the future or it has no end
+        // time and start time is in past
         long activeExams = examRepository.findAll().stream()
                 .filter(exam -> exam.getEndTime() == null || exam.getEndTime().after(Timestamp.from(Instant.now())))
-                .filter(exam -> exam.getStartTime() == null || exam.getStartTime().before(Timestamp.from(Instant.now())))
+                .filter(exam -> exam.getStartTime() == null
+                        || exam.getStartTime().before(Timestamp.from(Instant.now())))
                 .count();
 
         long totalQuestions = questionRepository.count();
@@ -175,7 +183,6 @@ public class AnalyticsServiceIml implements AnalyticsService {
         double averageAttemptsPerExam = allExams.isEmpty() ? 0 : (double) totalAttempts / allExams.size();
 
         Double overallAverageScore = examAttemptRepository.findAverageScoreOverall();
-
 
         return AdminExamAnalyticsDto.builder()
                 .totalExams(totalExams)
@@ -196,10 +203,11 @@ public class AnalyticsServiceIml implements AnalyticsService {
         long totalOptions = questionOptionsRepository.count();
         double averageOptionsPerQuestion = totalQuestions == 0 ? 0 : (double) totalOptions / totalQuestions;
 
-        // This would require a more complex query to count how many times each question appears in exam_attempts
+        // This would require a more complex query to count how many times each question
+        // appears in exam_attempts
         // For simplicity, we'll assume each question is used at least once in an exam.
-        double averageUsageInExams = totalQuestions == 0 ? 0 : (double) examAttemptRepository.countDistinctExamsWithQuestions() / totalQuestions;
-
+        double averageUsageInExams = totalQuestions == 0 ? 0
+                : (double) examAttemptRepository.countDistinctExamsWithQuestions() / totalQuestions;
 
         return AdminQuestionAnalyticsDto.builder()
                 .totalQuestions(totalQuestions)
