@@ -38,5 +38,4 @@ public interface ExamService {
 	ExamAttemptDto getLatestAttempt(Long examId);
 
 	List<ExamCategoryDto> getAllCategories();
-
 }

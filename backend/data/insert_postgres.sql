@@ -85,10 +85,10 @@ INSERT INTO exam_answers (attempt_id, question_id, selected_option_id, is_correc
 (2, 1, 1, FALSE, NOW()); -- Sai
 
 -- 12. FEEDBACKS
-INSERT INTO feedbacks (user_id, question_id, content, status, reviewed_by, reviewed_at, created_at) VALUES
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 2, 'Câu hỏi 2 (True/False) hình như có vấn đề ạ.', 'PENDING', NULL, NULL, NOW()),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16', 1, 'Câu 1 nên có thêm giải thích.', 'REVIEWED', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', NOW(), NOW()),
-('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 3, 'Câu 3 đáp án A là SELECT mới đúng.', 'RESOLVED', 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', NOW(), NOW());
+INSERT INTO feedbacks (user_id, question_id, content, rating, status, created_at, reviewed_by, reviewed_at, teacher_reply) VALUES
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 2, 'Câu hỏi 2 (True/False) hình như có vấn đề ạ.', 3, 'PENDING', NOW(), NULL, NULL, NULL),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a16', 1, 'Câu 1 nên có thêm giải thích.', 4, 'REVIEWED', NOW(), 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12', NOW(), 'Cảm ơn góp ý, câu hỏi đã được bổ sung giải thích.'),
+('a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a15', 3, 'Câu 3 đáp án A là SELECT mới đúng.', 5, 'RESOLVED', NOW(), 'a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a13', NOW(), 'Đã chỉnh đáp án lại cho chính xác.');
 
 -- 13. ANNOUNCEMENTS
 INSERT INTO announcements (title, content, author_id, target, target_class_id, target_department_id, created_at, published_at) VALUES

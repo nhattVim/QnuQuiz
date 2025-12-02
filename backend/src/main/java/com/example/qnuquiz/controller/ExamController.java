@@ -22,8 +22,12 @@ import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
 import com.example.qnuquiz.dto.exam.QuestionDTO;
+import com.example.qnuquiz.dto.feedback.CreateFeedbackRequest;
+import com.example.qnuquiz.dto.feedback.FeedbackDto;
 import com.example.qnuquiz.service.ExamService;
+import com.example.qnuquiz.service.FeedbackService;
 
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -33,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 public class ExamController {
 
 	private final ExamService examService;
+	private final FeedbackService feedbackService;
 
 	@GetMapping("/user")
 	@PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
@@ -109,6 +114,15 @@ public class ExamController {
 	@GetMapping("/categories")
 	public ResponseEntity<List<ExamCategoryDto>> getAllCategories() {
 		return ResponseEntity.ok(examService.getAllCategories());
+	}
+
+	// Feedback tổng thể cho bài thi (rating + comment)
+	@PostMapping("/{examId}/feedback")
+	public ResponseEntity<FeedbackDto> addExamFeedback(@PathVariable Long examId,
+			@Valid @RequestBody CreateFeedbackRequest request) {
+		request.setExamId(examId);
+		request.setQuestionId(null);
+		return ResponseEntity.ok(feedbackService.createFeedback(request));
 	}
 
 	@GetMapping("/categories/{categoryId}")

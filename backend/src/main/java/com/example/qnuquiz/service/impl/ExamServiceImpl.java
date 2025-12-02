@@ -206,6 +206,7 @@ public class ExamServiceImpl implements ExamService {
         return examMapper.toDto(saved);
     }
 
+
     @Override
     public List<ExamDto> getExamsByUserId(String sort) {
         Users user = getCurrentAuthenticatedUser();

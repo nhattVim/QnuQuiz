@@ -11,8 +11,10 @@ public class FeedbackDto {
 
     private Long id;
     private String questionContent;
+		private Integer rating;
     private String userName;
     private String reviewedBy;
+		private String teacherReply;
     private String content;
     private String status;
     private Timestamp createdAt;

@@ -24,31 +24,36 @@ import jakarta.persistence.TemporalType;
 public class Feedbacks implements java.io.Serializable {
 
     private long id;
+	private Exams exams;
     private Questions questions;
     private Users usersByUserId;
     private Users usersByReviewedBy;
     private String content;
+	private Integer rating;
     private String status;
     private Timestamp createdAt;
     private Timestamp reviewedAt;
+	private String teacherReply;
 
     public Feedbacks() {
     }
 
-    public Feedbacks(long id, String content, String status, Timestamp createdAt) {
+	public Feedbacks(long id, String content, Integer rating, String status, Timestamp createdAt) {
         this.id = id;
         this.content = content;
+		this.rating = rating;
         this.status = status;
         this.createdAt = createdAt;
     }
 
     public Feedbacks(long id, Questions questions, Users usersByUserId, Users usersByReviewedBy, String content,
-            String status, Timestamp createdAt, Timestamp reviewedAt) {
+			Integer rating, String status, Timestamp createdAt, Timestamp reviewedAt) {
         this.id = id;
         this.questions = questions;
         this.usersByUserId = usersByUserId;
         this.usersByReviewedBy = usersByReviewedBy;
         this.content = content;
+		this.rating = rating;
         this.status = status;
         this.createdAt = createdAt;
         this.reviewedAt = reviewedAt;
@@ -64,6 +69,16 @@ public class Feedbacks implements java.io.Serializable {
     public void setId(long id) {
         this.id = id;
     }
+
+	@ManyToOne(fetch = FetchType.LAZY)
+	@JoinColumn(name = "exam_id")
+	public Exams getExams() {
+		return exams;
+	}
+
+	public void setExams(Exams exams) {
+		this.exams = exams;
+	}
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "question_id")
@@ -104,6 +119,15 @@ public class Feedbacks implements java.io.Serializable {
         this.content = content;
     }
 
+	@Column(name = "rating")
+	public Integer getRating() {
+		return rating;
+	}
+
+	public void setRating(Integer rating) {
+		this.rating = rating;
+	}
+
     @Column(name = "status", nullable = false)
     public String getStatus() {
         return this.status;
@@ -132,5 +156,14 @@ public class Feedbacks implements java.io.Serializable {
     public void setReviewedAt(Timestamp reviewedAt) {
         this.reviewedAt = reviewedAt;
     }
+
+	@Column(name = "teacher_reply")
+	public String getTeacherReply() {
+		return teacherReply;
+	}
+
+	public void setTeacherReply(String teacherReply) {
+		this.teacherReply = teacherReply;
+	}
 
 }
