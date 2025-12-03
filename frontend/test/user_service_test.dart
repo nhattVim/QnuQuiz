@@ -7,10 +7,7 @@ import 'package:frontend/models/student_model.dart';
 import 'package:frontend/models/teacher_model.dart';
 import 'package:frontend/models/user_model.dart';
 import 'package:frontend/services/user_service.dart';
-import 'package:frontend/services/api_service.dart';
 import 'package:mocktail/mocktail.dart';
-
-class MockApiService extends Mock implements ApiService {}
 
 class MockDio extends Mock implements Dio {}
 
@@ -20,14 +17,11 @@ void main() {
   late UserService userService;
   late MockDio mockDio;
   late MockFlutterSecureStorage mockStorage;
-  late MockApiService mockApiService;
 
   setUp(() {
     mockDio = MockDio();
     mockStorage = MockFlutterSecureStorage();
-    mockApiService = MockApiService();
-    when(() => mockApiService.dio).thenReturn(mockDio);
-    userService = UserService(mockApiService, storage: mockStorage);
+    userService = UserService(dio: mockDio, storage: mockStorage);
   });
 
   group('UserService', () {

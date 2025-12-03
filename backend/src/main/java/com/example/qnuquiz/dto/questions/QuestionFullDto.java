@@ -7,14 +7,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-//DTO cho Question
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class QuestionDTO {
+public class QuestionFullDto {
+
     private long id;
     private String content;
-    private String type; // "ESSAY" hoặc "MULTIPLE_CHOICE"
     private List<QuestionOptionDto> options;
 }

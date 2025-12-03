@@ -1,21 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/exam_history_model.dart';
 import 'package:frontend/screens/quiz/quiz_review_screen.dart';
-import 'package:frontend/providers/service_providers.dart';
+import 'package:frontend/services/exam_service.dart';
+import 'package:frontend/services/student_service.dart';
 import 'package:intl/intl.dart';
 
-class StudentExamHistoryScreen extends ConsumerStatefulWidget {
+class StudentExamHistoryScreen extends StatefulWidget {
   const StudentExamHistoryScreen({super.key});
 
   @override
-  ConsumerState<StudentExamHistoryScreen> createState() =>
+  State<StudentExamHistoryScreen> createState() =>
       _StudentExamHistoryScreenState();
 }
 
-class _StudentExamHistoryScreenState
-    extends ConsumerState<StudentExamHistoryScreen> {
+class _StudentExamHistoryScreenState extends State<StudentExamHistoryScreen> {
+  final _studentService = StudentService();
+  final _examService = ExamService();
   late Future<List<ExamHistoryModel>> _historyFuture;
 
   @override
@@ -333,9 +334,7 @@ class _StudentExamHistoryScreenState
       );
 
       // Gọi API để lấy dữ liệu review
-      final examReview = await ref
-          .read(examServiceProvider)
-          .reviewExamAttempt(attemptId);
+      final examReview = await _examService.reviewExamAttempt(attemptId);
 
       // Đóng loading dialog
       if (context.mounted) {
@@ -369,7 +368,7 @@ class _StudentExamHistoryScreenState
 
   void _loadHistory() {
     setState(() {
-      _historyFuture = ref.read(studentServiceProvider).getExamHistory();
+      _historyFuture = _studentService.getExamHistory();
     });
   }
 }

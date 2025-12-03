@@ -16,18 +16,16 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.qnuquiz.dto.questions.QuestionDTO;
+import com.example.qnuquiz.dto.questions.QuestionFullDto;
 import com.example.qnuquiz.dto.questions.QuestionOptionDto;
 import com.example.qnuquiz.entity.Exams;
 import com.example.qnuquiz.entity.QuestionOptions;
 import com.example.qnuquiz.entity.Questions;
 import com.example.qnuquiz.entity.Users;
-import com.example.qnuquiz.mapper.QuestionMapper;
 import com.example.qnuquiz.repository.ExamRepository;
 import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.repository.UserRepository;
-import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.QuestionService;
 
 import jakarta.transaction.Transactional;
@@ -41,7 +39,6 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionOptionsRepository questionOptionsRepository;
     private final UserRepository userRepository;
     private final ExamRepository examRepository;
-    private final QuestionMapper questionMapper;
 
     @Override
     @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
@@ -114,13 +111,13 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     @Cacheable("allQuestionsOfExam")
-    public List<QuestionDTO> getAllQuestionsInExam(Long examId) {
+    public List<QuestionFullDto> getAllQuestionsInExam(Long examId) {
         if (!examRepository.existsById(examId)) {
             throw new RuntimeException("Exam not found");
         }
 
         return questionsRepository.findByExamsId(examId).stream()
-                .map(q -> QuestionDTO.builder()
+                .map(q -> QuestionFullDto.builder()
                         .id(q.getId())
                         .content(q.getContent())
                         .options(questionOptionsRepository.findByQuestions_Id(q.getId()).stream()
@@ -145,7 +142,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     @Transactional
     @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
-    public QuestionDTO updateQuestion(QuestionDTO dto) {
+    public QuestionFullDto updateQuestion(QuestionFullDto dto) {
         Questions question = questionsRepository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
@@ -168,80 +165,10 @@ public class QuestionServiceImpl implements QuestionService {
 
         questionsRepository.save(question);
 
-        return QuestionDTO.builder()
+        return QuestionFullDto.builder()
                 .id(question.getId())
                 .content(question.getContent())
                 .options(updatedOptions)
-                .build();
-    }
-
-    private Users getCurrentAuthenticatedUser() {
-        UUID userId = SecurityUtils.getCurrentUserId();
-        userId = userId == null ? null : userId;
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-    }
-
-    @Override
-    public List<QuestionDTO> getAllQuestions() {
-        return questionsRepository.findAll().stream()
-                .map(q -> QuestionDTO.builder()
-                        .id(q.getId())
-                        .content(q.getContent())
-                        .options(questionOptionsRepository.findByQuestions_Id(q.getId()).stream()
-                                .map(o -> QuestionOptionDto.builder()
-                                        .id(o.getId())
-                                        .content(o.getContent())
-                                        .correct(o.isIsCorrect())
-                                        .build())
-                                .toList())
-                        .build())
-                .toList();
-    }
-
-    @Override
-    @Transactional
-    @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
-    public QuestionDTO createQuestion(QuestionDTO dto, Long examId) {
-        Exams exam = examRepository.findById(examId)
-                .orElseThrow(() -> new RuntimeException("Exam not found with id: " + examId));
-
-        Users user = getCurrentAuthenticatedUser();
-
-        if (!exam.getUsers().getId().equals(user.getId())) {
-            throw new RuntimeException("You are not allowed to add questions to this exam");
-        }
-
-        Questions question = questionMapper.toEntity(dto);
-        question.setExams(exam);
-        question.setUsers(user);
-
-        List<Questions> allQuestions = questionsRepository.findByExamsId(exam.getId());
-        question.setOrdering(allQuestions.size() + 1);
-        question.setType(dto.getType());
-
-        question.setCreatedAt(new Timestamp(System.currentTimeMillis()));
-        question.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
-
-        Questions savedQuestion = questionsRepository.save(question);
-
-        dto.getOptions().forEach(optionDto -> createOption(savedQuestion, optionDto.getContent(), optionDto.isCorrect(),
-                optionDto.getPosition()));
-
-        List<QuestionOptionDto> createdOptions = questionOptionsRepository.findByQuestions_Id(savedQuestion.getId())
-                .stream()
-                .map(opt -> QuestionOptionDto.builder()
-                        .id(opt.getId())
-                        .content(opt.getContent())
-                        .correct(opt.isIsCorrect())
-                        .position(opt.getPosition())
-                        .build())
-                .collect(Collectors.toList());
-
-        return QuestionDTO.builder()
-                .id(savedQuestion.getId())
-                .content(savedQuestion.getContent())
-                .options(createdOptions)
                 .build();
     }
 }

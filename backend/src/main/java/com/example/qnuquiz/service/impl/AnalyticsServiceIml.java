@@ -1,33 +1,30 @@
 package com.example.qnuquiz.service.impl;
 
-import com.example.qnuquiz.dto.analytics.*;
-import com.example.qnuquiz.entity.Exams;
-import com.example.qnuquiz.repository.*;
-import com.example.qnuquiz.service.AnalyticsService;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
-import jakarta.persistence.Query;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
 import java.sql.Timestamp;
-import java.time.DayOfWeek;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.stereotype.Service;
+
+import com.example.qnuquiz.dto.analytics.ClassPerformanceDto;
+import com.example.qnuquiz.dto.analytics.ExamAnalyticsDto;
+import com.example.qnuquiz.dto.analytics.QuestionAnalyticsDto;
+import com.example.qnuquiz.dto.analytics.RankingDto;
+import com.example.qnuquiz.dto.analytics.ScoreDistributionDto;
+import com.example.qnuquiz.dto.analytics.StudentAttemptDto;
+import com.example.qnuquiz.repository.ExamAttemptRepository;
+import com.example.qnuquiz.service.AnalyticsService;
+
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Query;
+import lombok.AllArgsConstructor;
+
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class AnalyticsServiceIml implements AnalyticsService {
 
     private final ExamAttemptRepository examAttemptRepository;
-    private final UserRepository userRepository;
-    private final ExamRepository examRepository;
-    private final QuestionRepository questionRepository;
-    private final QuestionOptionsRepository questionOptionsRepository;
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -39,11 +36,8 @@ public class AnalyticsServiceIml implements AnalyticsService {
 
     @Override
     public List<RankingDto> rankingAllThisWeek() {
-        LocalDate today = LocalDate.now();
-        LocalDate monday = today.with(DayOfWeek.MONDAY);
-        LocalDateTime mondayStart = monday.atStartOfDay();
-        Timestamp fromDate = Timestamp.valueOf(mondayStart);
-        return examAttemptRepository.rankingAllThisWeek(fromDate);
+        Timestamp weekAgo = new Timestamp(System.currentTimeMillis() - 7L * 86400 * 1000);
+        return examAttemptRepository.rankingAllThisWeek(weekAgo);
     }
 
     @Override
@@ -81,6 +75,25 @@ public class AnalyticsServiceIml implements AnalyticsService {
         query.setParameter("examId", examId);
         return query.getResultList();
     }
+
+    // @Override
+    // @SuppressWarnings("unchecked")
+    // public List<ScoreDistributionDto> getScoreDistribution(String teacherId) {
+    // String sql = "SELECT e.title, " +
+    // "COUNT(ea.id) FILTER (WHERE ea.score >= 9) AS excellent_count, " +
+    // "COUNT(ea.id) FILTER (WHERE ea.score >= 7 AND ea.score < 9) AS good_count, "
+    // +
+    // "COUNT(ea.id) FILTER (WHERE ea.score >= 5 AND ea.score < 7) AS average_count,
+    // " +
+    // "COUNT(ea.id) FILTER (WHERE ea.score < 5) AS fail_count " +
+    // "FROM exams e JOIN exam_attempts ea ON e.id = ea.exam_id " +
+    // "WHERE e.created_by = :teacherId AND ea.submitted = TRUE " +
+    // "GROUP BY e.id, e.title";
+    // Query query = entityManager.createNativeQuery(sql,
+    // "ScoreDistributionDtoMapping");
+    // query.setParameter("teacherId", UUID.fromString(teacherId));
+    // return query.getResultList();
+    // }
 
     @Override
     @SuppressWarnings("unchecked")
@@ -140,81 +153,5 @@ public class AnalyticsServiceIml implements AnalyticsService {
         Query query = entityManager.createNativeQuery(sql, "QuestionAnalyticsDtoMapping");
         query.setParameter("examId", examId);
         return query.getResultList();
-    }
-
-    @Override
-    public UserAnalyticsDto getUserAnalytics() {
-        long totalUsers = userRepository.count();
-
-        Timestamp thirtyDaysAgo = Timestamp.from(Instant.now().minus(30, ChronoUnit.DAYS));
-        long newUsersThisMonth = userRepository.countByCreatedAtAfter(thirtyDaysAgo);
-
-        long studentsCount = userRepository.countByRole("STUDENT");
-        long teachersCount = userRepository.countByRole("TEACHER");
-        long adminCount = userRepository.countByRole("ADMIN");
-
-        return UserAnalyticsDto.builder()
-                .totalUsers(totalUsers)
-                .newUsersThisMonth(newUsersThisMonth)
-                .activeUsers(totalUsers) // For now, consider all users active
-                .studentsCount(studentsCount)
-                .teachersCount(teachersCount)
-                .adminCount(adminCount)
-                .build();
-    }
-
-    @Override
-    public AdminExamAnalyticsDto getExamAnalyticsAdmin() {
-        long totalExams = examRepository.count();
-
-        // Assuming an exam is active if its end time is in the future or it has no end
-        // time and start time is in past
-        long activeExams = examRepository.findAll().stream()
-                .filter(exam -> exam.getEndTime() == null || exam.getEndTime().after(Timestamp.from(Instant.now())))
-                .filter(exam -> exam.getStartTime() == null
-                        || exam.getStartTime().before(Timestamp.from(Instant.now())))
-                .count();
-
-        long totalQuestions = questionRepository.count();
-        List<Exams> allExams = examRepository.findAll();
-        double averageQuestionsPerExam = allExams.isEmpty() ? 0 : (double) totalQuestions / allExams.size();
-
-        long totalAttempts = examAttemptRepository.count();
-        double averageAttemptsPerExam = allExams.isEmpty() ? 0 : (double) totalAttempts / allExams.size();
-
-        Double overallAverageScore = examAttemptRepository.findAverageScoreOverall();
-
-        return AdminExamAnalyticsDto.builder()
-                .totalExams(totalExams)
-                .activeExams(activeExams)
-                .averageQuestionsPerExam(averageQuestionsPerExam)
-                .averageAttemptsPerExam(averageAttemptsPerExam)
-                .overallAverageScore(overallAverageScore != null ? overallAverageScore : 0.0)
-                .build();
-    }
-
-    @Override
-    public AdminQuestionAnalyticsDto getQuestionAnalyticsAdmin() {
-        long totalQuestions = questionRepository.count();
-
-        long multipleChoiceQuestions = questionRepository.countByType("MULTIPLE_CHOICE");
-        long trueFalseQuestions = questionRepository.countByType("TRUE_FALSE"); // Assuming TRUE_FALSE as another type
-
-        long totalOptions = questionOptionsRepository.count();
-        double averageOptionsPerQuestion = totalQuestions == 0 ? 0 : (double) totalOptions / totalQuestions;
-
-        // This would require a more complex query to count how many times each question
-        // appears in exam_attempts
-        // For simplicity, we'll assume each question is used at least once in an exam.
-        double averageUsageInExams = totalQuestions == 0 ? 0
-                : (double) examAttemptRepository.countDistinctExamsWithQuestions() / totalQuestions;
-
-        return AdminQuestionAnalyticsDto.builder()
-                .totalQuestions(totalQuestions)
-                .multipleChoiceQuestions(multipleChoiceQuestions)
-                .trueFalseQuestions(trueFalseQuestions)
-                .averageOptionsPerQuestion(averageOptionsPerQuestion)
-                .averageUsageInExams(averageUsageInExams)
-                .build();
     }
 }

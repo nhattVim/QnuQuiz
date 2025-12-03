@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/ranking_model.dart';
-import 'package:frontend/providers/service_providers.dart';
+import 'package:frontend/services/analytics_service.dart';
 import 'package:frontend/widgets/ranking/custom_sliding_control.dart';
 import 'package:frontend/widgets/ranking/ranking_list.dart';
 
-class RankingPage extends ConsumerStatefulWidget {
+class RankingPage extends StatefulWidget {
   const RankingPage({super.key});
 
   @override
-  ConsumerState<RankingPage> createState() => _RankingPageState();
+  State<RankingPage> createState() => _RankingPageState();
 }
 
-class _RankingPageState extends ConsumerState<RankingPage> {
+class _RankingPageState extends State<RankingPage> {
+  final _analyticsService = AnalyticsService();
   bool isWeeklySelected = true;
   late Future<List<RankingModel>> _rankingFuture;
 
@@ -24,11 +24,10 @@ class _RankingPageState extends ConsumerState<RankingPage> {
   }
 
   void _loadData() {
-    final analyticsService = ref.read(analyticsServiceProvider);
     setState(() {
       _rankingFuture = isWeeklySelected
-          ? analyticsService.getRankingAllThisWeek()
-          : analyticsService.getRankingAll();
+          ? _analyticsService.getRankingAllThisWeek()
+          : _analyticsService.getRankingAll();
     });
   }
 

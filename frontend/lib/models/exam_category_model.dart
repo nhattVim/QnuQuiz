@@ -16,12 +16,4 @@ class ExamCategoryModel {
       totalExams: json['totalExams'] ?? 0,
     );
   }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-      'totalExams': totalExams,
-    };
-  }
 }

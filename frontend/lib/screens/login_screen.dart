@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:frontend/providers/user_provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/link_text.dart';
 import 'home_screen.dart';
@@ -42,49 +41,30 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-    final userAsyncValue = ref.watch(userProvider);
 
     // Auto redirect after login
     if (authState == AuthState.authenticated) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) {
-          userAsyncValue.when(
-            data: (user) {
-              if (user != null) {
-                if (user.role == 'ADMIN') {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text(
-                        'Tài khoản quản trị không thể truy cập trang này',
-                      ),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  ref.read(authProvider.notifier).logout();
-                } else {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HomeScreen()),
-                  );
-                }
-              }
-            },
-            loading: () {},
-            error: (err, stack) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text(
-                    'Lỗi tải thông tin người dùng. Vui lòng đăng nhập lại.',
-                  ),
-                  backgroundColor: Colors.red,
-                ),
-              );
-              ref.read(authProvider.notifier).logout();
-            },
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
           );
         }
       });
     }
+
+    // Display error
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      if (next == AuthState.error && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Đăng nhập thất bại'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    });
 
     final theme = Theme.of(context);
 

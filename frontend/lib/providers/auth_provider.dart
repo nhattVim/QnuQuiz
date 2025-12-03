@@ -1,20 +1,17 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/providers/service_providers.dart';
+import 'package:flutter_riverpod/legacy.dart';
 import 'package:frontend/providers/user_provider.dart';
-import 'package:frontend/services/auth_service.dart';
 
-final authProvider = NotifierProvider<AuthNotifier, AuthState>(
-  AuthNotifier.new,
+import '../services/auth_service.dart';
+
+final authProvider = StateNotifierProvider<AuthNotifier, AuthState>(
+  (ref) => AuthNotifier(ref),
 );
 
-class AuthNotifier extends Notifier<AuthState> {
-  late final AuthService _authService;
-
-  @override
-  AuthState build() {
-    _authService = ref.read(authServiceProvider);
-    return AuthState.initial;
-  }
+class AuthNotifier extends StateNotifier<AuthState> {
+  final Ref ref;
+  final _authService = AuthService();
+  AuthNotifier(this.ref) : super(AuthState.initial);
 
   Future<void> login(String username, String password) async {
     state = AuthState.loading;

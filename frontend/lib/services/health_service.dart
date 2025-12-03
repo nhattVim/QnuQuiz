@@ -1,16 +1,11 @@
 import 'package:dio/dio.dart';
-import 'package:frontend/services/api_service.dart';
 import 'package:logger/logger.dart';
 
 import '../constants/api_constants.dart';
 
 class HealthService {
+  final Dio _dio = Dio(BaseOptions(baseUrl: ApiConstants.baseUrl));
   final _log = Logger();
-  final ApiService _apiService;
-
-  HealthService(this._apiService);
-
-  Dio get _dio => _apiService.dio;
 
   Future<bool> checkHealth() async {
     try {

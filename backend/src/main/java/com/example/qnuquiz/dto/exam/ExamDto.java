@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@NoArgsConstructor
+@NoArgsConstructor 
 @AllArgsConstructor
 public class ExamDto {
 
@@ -22,7 +22,6 @@ public class ExamDto {
     private Integer durationMinutes;
     private String status;
     private boolean hasUnfinishedAttempt;
-    private long categoryId;
     @Builder.Default
     private boolean hasAttempt = false; // Có attempt (làm qua) hay chưa
 }

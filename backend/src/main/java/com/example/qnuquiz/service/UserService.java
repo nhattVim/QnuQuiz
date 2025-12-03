@@ -16,10 +16,4 @@ public interface UserService {
     Optional<Users> findByUsername(String username);
 
     Object getCurrentUserProfile();
-
-    UserDto createUser(UserDto userDto);
-
-    UserDto updateUser(String id, UserDto userDto);
-
-    void deleteUser(String id);
 }

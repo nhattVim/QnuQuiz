@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.Collections;
@@ -31,8 +32,8 @@ import com.example.qnuquiz.dto.exam.ExamCategoryDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
-import com.example.qnuquiz.dto.questions.QuestionDTO;
-import com.example.qnuquiz.dto.questions.QuestionOptionDto;
+import com.example.qnuquiz.dto.exam.QuestionDTO;
+import com.example.qnuquiz.dto.exam.QuestionOptionDTO;
 import com.example.qnuquiz.exception.GlobalExceptionHandler;
 import com.example.qnuquiz.security.CustomUserDetailsService;
 import com.example.qnuquiz.security.JwtUtil;
@@ -173,16 +174,18 @@ class ExamControllerTest extends BaseTest {
                         .id(10L)
                         .content("What is Java?")
                         .type("ESSAY")
+                        .points(BigDecimal.valueOf(5))
                         .options(Collections.emptyList())
                         .build(),
                 QuestionDTO.builder()
                         .id(11L)
                         .content("Which of the following are OOP concepts?")
                         .type("MULTIPLE_CHOICE")
+                        .points(BigDecimal.valueOf(10))
                         .options(List.of(
-                        		QuestionOptionDto.builder().id(1L).content("Encapsulation").correct(true).build(),
-                        		QuestionOptionDto.builder().id(2L).content("Polymorphism").correct(true).build(),
-                        		QuestionOptionDto.builder().id(3L).content("Recursion").correct(false).build()
+                        		QuestionOptionDTO.builder().id(1L).content("Encapsulation").correct(true).build(),
+                        		QuestionOptionDTO.builder().id(2L).content("Polymorphism").correct(true).build(),
+                        		QuestionOptionDTO.builder().id(3L).content("Recursion").correct(false).build()
                         ))
                         .build()
         );
@@ -234,9 +237,9 @@ class ExamControllerTest extends BaseTest {
                                 .type("MULTIPLE_CHOICE")
                                 .studentAnswer("Encapsulation, Polymorphism")
                                 .options(List.of(
-                                		QuestionOptionDto.builder().id(1L).content("Encapsulation").correct(true).build(),
-                                		QuestionOptionDto.builder().id(2L).content("Polymorphism").correct(true).build(),
-                                		QuestionOptionDto.builder().id(3L).content("Recursion").correct(false).build()
+                                		QuestionOptionDTO.builder().id(1L).content("Encapsulation").correct(true).build(),
+                                		QuestionOptionDTO.builder().id(2L).content("Polymorphism").correct(true).build(),
+                                		QuestionOptionDTO.builder().id(3L).content("Recursion").correct(false).build()
                                 ))
                                 .correct(true)
                                 .build()

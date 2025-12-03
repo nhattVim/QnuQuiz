@@ -5,82 +5,22 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:frontend/constants/api_constants.dart';
 import 'package:frontend/models/student_model.dart';
 import 'package:frontend/models/teacher_model.dart';
-import 'package:frontend/models/user_model.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:logger/logger.dart';
 
+import '../models/user_model.dart';
+
 class UserService {
   final _log = Logger();
-  final ApiService _apiService;
+  final Dio _dio;
   final FlutterSecureStorage _storage;
 
-  UserService(this._apiService, {FlutterSecureStorage? storage})
-    : _storage = storage ?? const FlutterSecureStorage();
-
-  Dio get _dio => _apiService.dio;
+  UserService({Dio? dio, FlutterSecureStorage? storage})
+      : _dio = dio ?? ApiService().dio,
+        _storage = storage ?? const FlutterSecureStorage();
 
   Future<void> clearUser() async {
     await _storage.delete(key: 'user');
-  }
-
-  Future<UserModel> createUser(UserModel user) async {
-    try {
-      final response = await _dio.post(ApiConstants.users, data: user.toJson());
-      return UserModel.fromJson(response.data);
-    } on DioException catch (e) {
-      _log.e(e.response?.data ?? e.message);
-      throw Exception(e.response?.data?['message'] ?? 'Lỗi tạo người dùng');
-    }
-  }
-
-  Future<void> deleteUser(String userId) async {
-    try {
-      await _dio.delete('${ApiConstants.users}/$userId');
-    } on DioException catch (e) {
-      _log.e(e.response?.data ?? e.message);
-      throw Exception(e.response?.data?['message'] ?? 'Lỗi xóa người dùng');
-    }
-  }
-
-  Future<List<UserModel>> getAllUsers() async {
-    try {
-      final response = await _dio.get(ApiConstants.users);
-      final List<dynamic> data = response.data;
-      return data.map((user) => UserModel.fromJson(user)).toList();
-    } on DioException catch (e) {
-      _log.e(e.response?.data ?? e.message);
-      throw Exception(
-        e.response?.data?['message'] ?? 'Lỗi lấy danh sách người dùng',
-      );
-    }
-  }
-
-  Future<dynamic> getCurrentUserProfile() async {
-    try {
-      final response = await _dio.get('${ApiConstants.users}/me');
-      final Map<String, dynamic> data = response.data;
-
-      final user = await getUser();
-      if (user == null) throw Exception("Không tìm thấy thông tin user local");
-
-      final String role = user.role;
-
-      switch (role) {
-        case 'STUDENT':
-          return StudentModel.fromJson(data);
-        case 'TEACHER':
-          return TeacherModel.fromJson(data);
-        case 'ADMIN':
-          return UserModel.fromJson(data);
-        default:
-          return UserModel.fromJson(data);
-      }
-    } on DioException catch (e) {
-      _log.e(e.response?.data ?? e.message);
-      throw Exception(
-        e.response?.data?['message'] ?? 'Lỗi lấy thông tin người dùng',
-      );
-    }
   }
 
   Future<UserModel?> getUser() async {
@@ -117,17 +57,28 @@ class UserService {
     }
   }
 
-  Future<UserModel> updateUser(UserModel user) async {
+  Future<dynamic> getCurrentUserProfile() async {
     try {
-      final response = await _dio.put(
-        '${ApiConstants.users}/${user.id}',
-        data: user.toJson(),
-      );
-      return UserModel.fromJson(response.data);
+      final response = await _dio.get('${ApiConstants.users}/me');
+      final Map<String, dynamic> data = response.data;
+
+      final user = await getUser();
+      final String role = user!.role;
+
+      switch (role) {
+        case 'STUDENT':
+          return StudentModel.fromJson(data);
+        case 'TEACHER':
+          return TeacherModel.fromJson(data);
+        case 'ADMIN':
+          return UserModel.fromJson(data);
+        default:
+          return UserModel.fromJson(data);
+      }
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);
       throw Exception(
-        e.response?.data?['message'] ?? 'Lỗi cập nhật người dùng',
+        e.response?.data?['message'] ?? 'Lỗi lấy thông tin người dùng',
       );
     }
   }

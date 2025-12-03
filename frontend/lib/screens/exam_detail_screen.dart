@@ -2,26 +2,23 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/exam_model.dart';
 import 'package:frontend/models/question_model.dart';
-import 'package:frontend/providers/service_providers.dart';
-import 'package:frontend/screens/question_create_screen.dart';
 import 'package:frontend/screens/question_edit_screen.dart';
 import 'package:frontend/services/exam_service.dart';
 import 'package:frontend/services/question_service.dart';
 import 'package:intl/intl.dart';
 
-class ExamDetailScreen extends ConsumerStatefulWidget {
+class ExamDetailScreen extends StatefulWidget {
   final ExamModel exam;
   const ExamDetailScreen({super.key, required this.exam});
 
   @override
-  ConsumerState<ExamDetailScreen> createState() => _ExamDetailScreenState();
+  State<ExamDetailScreen> createState() => _ExamDetailScreenState();
 }
 
-class _ExamDetailScreenState extends ConsumerState<ExamDetailScreen> {
+class _ExamDetailScreenState extends State<ExamDetailScreen> {
   // Services
   late final ExamService _examService;
   late final QuestionService _questionService;
@@ -49,8 +46,6 @@ class _ExamDetailScreenState extends ConsumerState<ExamDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _examService = ref.read(examServiceProvider);
-    _questionService = ref.read(questionServiceProvider);
     _titleController = TextEditingController(text: widget.exam.title);
     _descriptionController = TextEditingController(
       text: widget.exam.description,
@@ -128,22 +123,8 @@ class _ExamDetailScreenState extends ConsumerState<ExamDetailScreen> {
         ),
         floatingActionButton: !_isDeleting
             ? FloatingActionButton(
-                onPressed: () async {
-                  final result = await Navigator.push<bool?>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) =>
-                          QuestionCreateScreen(examId: widget.exam.id),
-                    ),
-                  );
-
-                  if (result == true) {
-                    setState(() {
-                      _questionsFuture = _questionService.getQuestions(
-                        widget.exam.id,
-                      );
-                    });
-                  }
+                onPressed: () {
+                  // TODO: Navigate to create question screen
                 },
                 tooltip: 'Tạo câu hỏi mới',
                 child: const Icon(Icons.add),
@@ -344,7 +325,7 @@ class _ExamDetailScreenState extends ConsumerState<ExamDetailScreen> {
               question: question,
               index: index + 1,
               isSelected: isSelected,
-              onSelected: () => _onSelectQuestion(question.id!),
+              onSelected: () => _onSelectQuestion(question.id),
             );
           },
         );
@@ -390,7 +371,7 @@ class _ExamDetailScreenState extends ConsumerState<ExamDetailScreen> {
             if (updatedQuestion != null) {
               setState(() {
                 final questionIndex = _questionsList.indexWhere(
-                  (q) => q.id == updatedQuestion.id!,
+                  (q) => q.id == updatedQuestion.id,
                 );
                 if (questionIndex != -1) {
                   _questionsList[questionIndex] = updatedQuestion;
@@ -415,7 +396,7 @@ class _ExamDetailScreenState extends ConsumerState<ExamDetailScreen> {
                   ),
                 ),
           title: Text(
-            question.content ?? '',
+            question.content,
             style: const TextStyle(fontWeight: FontWeight.w600),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -605,7 +586,6 @@ class _ExamDetailScreenState extends ConsumerState<ExamDetailScreen> {
       random: widget.exam.random,
       durationMinutes: int.tryParse(_durationController.text),
       status: _status,
-      categoryId: widget.exam.categoryId,
     );
 
     try {
@@ -646,7 +626,7 @@ class _ExamDetailScreenState extends ConsumerState<ExamDetailScreen> {
   void _toggleSelectAll(bool? value) {
     setState(() {
       if (value == true) {
-        _selectedQuestions.addAll(_questionsList.map((q) => q.id!));
+        _selectedQuestions.addAll(_questionsList.map((q) => q.id));
       } else {
         _selectedQuestions.clear();
       }

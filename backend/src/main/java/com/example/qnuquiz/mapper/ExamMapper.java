@@ -12,9 +12,9 @@ import com.example.qnuquiz.dto.exam.AnswerResultDto;
 import com.example.qnuquiz.dto.exam.ExamAnswerReviewDTO;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
+import com.example.qnuquiz.dto.exam.QuestionDTO;
 import com.example.qnuquiz.dto.exam.QuestionExamDto;
-import com.example.qnuquiz.dto.questions.QuestionDTO;
-import com.example.qnuquiz.dto.questions.QuestionOptionDto;
+import com.example.qnuquiz.dto.exam.QuestionOptionDTO;
 import com.example.qnuquiz.entity.ExamAnswers;
 import com.example.qnuquiz.entity.ExamAttempts;
 import com.example.qnuquiz.entity.Exams;
@@ -33,12 +33,11 @@ public interface ExamMapper {
 	AnswerResultDto toAnswerResultDto(Questions q, ExamAnswers answer, List<QuestionOptions> options,
 			BigDecimal points);
 
-	@Mapping(target = "hasAttempt", ignore = true)
-	@Mapping(target = "hasUnfinishedAttempt", ignore = true)
-	@Mapping(source = "examCategories.id", target = "categoryId")
 	ExamDto toDto(Exams entity);
 
 	List<ExamDto> toListDto(List<Exams> entity);
+
+	QuestionDTO toQuestionDTO(Questions entity);
 
 	@Mapping(target = "questionId", ignore = true)
 	@Mapping(target = "questionContent", ignore = true)
@@ -55,45 +54,44 @@ public interface ExamMapper {
 	@Mapping(target = "users", ignore = true)
 	@Mapping(target = "questionses", ignore = true)
 	@Mapping(target = "examCategories", ignore = true)
-	@Mapping(target = "bannerUrl", ignore = true)
-	@Mapping(target = "maxQuestions", ignore = true)
 	Exams toEntity(ExamDto dto);
 
 	List<ExamDto> toDtoList(List<Exams> exams);
 
-	default String safe(Object o) {
-		return o == null ? null : o.toString();
-	}
+default String safe(Object o) {
+    return o == null ? null : o.toString();
+}
 
-	@AfterMapping
-	default void mapDetails(ExamAnswers entity, @MappingTarget ExamAnswerReviewDTO dto) {
-		// Lấy question
-		var q = entity.getQuestions();
-		dto.setQuestionId(q.getId());
-		dto.setQuestionContent(q.getContent());
-		dto.setType(q.getType());
+@AfterMapping
+default void mapDetails(ExamAnswers entity, @MappingTarget ExamAnswerReviewDTO dto) {
+    // Lấy question
+    var q = entity.getQuestions();
+    dto.setQuestionId(q.getId());
+    dto.setQuestionContent(q.getContent());
+    dto.setType(q.getType());
 
-		// Lấy studentAnswer
-		if (entity.getQuestionOptions() != null) {
-			// user chọn theo option
-			dto.setStudentAnswer(String.valueOf(entity.getQuestionOptions().getId()));
-		} else {
-			// dạng text
-			dto.setStudentAnswer(entity.getAnswerText());
-		}
+    // Lấy studentAnswer
+    if (entity.getQuestionOptions() != null) {
+        // user chọn theo option
+        dto.setStudentAnswer(String.valueOf(entity.getQuestionOptions().getId()));
+    } else {
+        // dạng text
+        dto.setStudentAnswer(entity.getAnswerText());
+    }
 
-		// Lấy toàn bộ options của câu hỏi
-		if (q.getQuestionOptionses() != null) {
-			List<QuestionOptionDto> optionDTOs = q.getQuestionOptionses()
-					.stream()
-					.map(opt -> new QuestionOptionDto(
-							opt.getId(),
-							opt.getContent(),
-							opt.getPosition(),
-							opt.isIsCorrect()))
-					.toList();
+    // Lấy toàn bộ options của câu hỏi
+    if (q.getQuestionOptionses() != null) {
+        List<QuestionOptionDTO> optionDTOs = q.getQuestionOptionses()
+            .stream()
+            .map(opt -> new QuestionOptionDTO(
+                opt.getId(),
+                opt.getContent(),
+								opt.getPosition(),
+								opt.isIsCorrect()
+            ))
+            .toList();
 
-			dto.setOptions(optionDTOs);
-		}
-	}
+        dto.setOptions(optionDTOs);
+    }
+}
 }

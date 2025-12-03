@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/question_model.dart';
 import 'package:frontend/models/question_option_model.dart';
-import 'package:frontend/providers/service_providers.dart';
+import 'package:frontend/services/question_service.dart';
 
-class QuestionEditScreen extends ConsumerStatefulWidget {
+class QuestionEditScreen extends StatefulWidget {
   final QuestionModel question;
   const QuestionEditScreen({super.key, required this.question});
 
   @override
-  ConsumerState<QuestionEditScreen> createState() => _QuestionEditScreenState();
+  State<QuestionEditScreen> createState() => _QuestionEditScreenState();
 }
 
-class _QuestionEditScreenState extends ConsumerState<QuestionEditScreen> {
+class _QuestionEditScreenState extends State<QuestionEditScreen> {
+  // Services
+  final _questionService = QuestionService();
+
   // Controllers
   late TextEditingController _contentController;
   late List<TextEditingController> _optionControllers;
@@ -114,7 +116,7 @@ class _QuestionEditScreenState extends ConsumerState<QuestionEditScreen> {
   void initState() {
     super.initState();
     _contentController = TextEditingController(text: widget.question.content);
-    _options = List.from(widget.question.options ?? []);
+    _options = List.from(widget.question.options);
     _optionControllers = _options
         .map((option) => TextEditingController(text: option.content))
         .toList();
@@ -224,9 +226,7 @@ class _QuestionEditScreenState extends ConsumerState<QuestionEditScreen> {
     );
 
     try {
-      final result = await ref
-          .read(questionServiceProvider)
-          .updateQuestion(updatedQuestion);
+      final result = await _questionService.updateQuestion(updatedQuestion);
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(

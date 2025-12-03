@@ -31,7 +31,6 @@ public class FeedbackController {
     private final FeedbackService feedbackService;
 
 		@GetMapping
-		@PreAuthorize("hasRole('ADMIN')")
 		public ResponseEntity<List<FeedbackDto>> getAllFeedbacks() {
 			return ResponseEntity.ok(feedbackService.getAllFeedbacks());
 		}
@@ -68,7 +67,6 @@ public class FeedbackController {
 
 		// Xóa feedback
 		@DeleteMapping("/{id}")
-		@PreAuthorize("hasRole('ADMIN')")
 		public ResponseEntity<Void> deleteFeedback(@PathVariable Long id) {
 			feedbackService.deleteFeedback(id);
 			return ResponseEntity.noContent().build();

@@ -2,11 +2,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/user_model.dart';
-import 'package:frontend/services/api_service.dart';
 import 'package:frontend/services/auth_service.dart';
 import 'package:mocktail/mocktail.dart';
-
-class MockApiService extends Mock implements ApiService {}
 
 class MockDio extends Mock implements Dio {}
 
@@ -16,14 +13,11 @@ void main() {
   late AuthService authService;
   late MockDio mockDio;
   late MockFlutterSecureStorage mockStorage;
-  late MockApiService mockApiService;
 
   setUp(() {
     mockDio = MockDio();
     mockStorage = MockFlutterSecureStorage();
-    mockApiService = MockApiService();
-    when(() => mockApiService.dio).thenReturn(mockDio);
-    authService = AuthService(mockApiService, storage: mockStorage);
+    authService = AuthService(dio: mockDio, storage: mockStorage);
   });
 
   group('AuthService', () {

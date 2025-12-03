@@ -9,6 +9,4 @@ import com.example.qnuquiz.entity.Questions;
 public interface QuestionRepository extends JpaRepository<Questions, Long> {
 
     List<Questions> findByExamsId(Long id);
-
-    long countByType(String type);
 }

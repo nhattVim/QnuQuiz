@@ -21,7 +21,9 @@ import com.example.qnuquiz.dto.exam.ExamCategoryDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
-import com.example.qnuquiz.dto.questions.QuestionDTO;
+import com.example.qnuquiz.dto.exam.QuestionDTO;
+import com.example.qnuquiz.dto.feedback.CreateFeedbackRequest;
+import com.example.qnuquiz.dto.feedback.FeedbackDto;
 import com.example.qnuquiz.service.ExamService;
 import com.example.qnuquiz.service.FeedbackService;
 

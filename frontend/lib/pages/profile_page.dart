@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/models/class_model.dart';
-import 'package:frontend/models/department_model.dart';
 import 'package:frontend/models/student_model.dart';
 import 'package:frontend/models/teacher_model.dart';
 import 'package:frontend/models/user_model.dart';
 import 'package:frontend/providers/auth_provider.dart';
-import 'package:frontend/providers/service_providers.dart';
 import 'package:frontend/providers/user_provider.dart';
-import 'package:frontend/screens/home_screen.dart';
 import 'package:frontend/screens/login_screen.dart';
+import 'package:frontend/services/student_service.dart';
+import 'package:frontend/services/department_service.dart';
+import 'package:frontend/services/class_service.dart';
+import 'package:frontend/models/department_model.dart';
+import 'package:frontend/models/class_model.dart';
+import 'package:frontend/screens/home_screen.dart';
+import 'package:frontend/services/teacher_service.dart';
+import 'package:frontend/services/user_service.dart'; 
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -27,6 +31,12 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   final _titleController = TextEditingController();
   final _teacherCodeController = TextEditingController();
 
+  final _studentService = StudentService();
+  final _teacherService = TeacherService();
+  final _departmentService = DepartmentService();
+  final _classService = ClassService();
+  final _userService = UserService();
+
   bool _isLoading = false;
   dynamic _profileData;
 
@@ -36,374 +46,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   int? _selectedClassId;
 
   @override
-  Widget build(BuildContext context) {
-    final userAsync = ref.watch(userProvider);
-
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Cập nhật hồ sơ',
-          style: TextStyle(
-            color: Colors.black,
-            fontWeight: FontWeight.bold,
-            fontSize: 20,
-          ),
-        ),
-        centerTitle: true,
-      ),
-      body: userAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (err, stack) => Center(child: Text('Error: $err')),
-        data: (user) {
-          if (user == null) {
-            return const Center(child: Text("User not found"));
-          }
-          return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  // Avatar
-                  Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundColor: Colors.pink[300],
-                        child: const Icon(
-                          Icons.person,
-                          size: 70,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    user.fullName ?? user.username,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '@${user.username}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Common Fields
-                  _buildTextFormField(
-                    _fullNameController,
-                    'Họ và tên',
-                    Icons.person_outline,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextFormField(
-                    _usernameController,
-                    'Tên đăng nhập',
-                    Icons.account_circle_outlined,
-                    enabled: false,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextFormField(
-                    _phoneNumberController,
-                    'Số điện thoại',
-                    Icons.phone_outlined,
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextFormField(
-                    _emailController,
-                    'Email',
-                    Icons.email_outlined,
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Role-specific fields
-                  _buildRoleSpecificFields(user),
-
-                  const SizedBox(height: 16),
-                  // Save Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveProfile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                          : const Text(
-                              'Lưu hồ sơ',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // Logout Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        await ref.read(authProvider.notifier).logout();
-                        if (context.mounted) {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                            (route) => false,
-                          );
-                        }
-                      },
-                      icon: const Icon(Icons.logout),
-                      label: const Text('Đăng xuất'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _fullNameController.dispose();
-    _usernameController.dispose();
-    _phoneNumberController.dispose();
-    _emailController.dispose();
-    _titleController.dispose();
-    _teacherCodeController.dispose();
-    super.dispose();
-  }
-
-  @override
   void initState() {
     super.initState();
     _loadInitialData();
   }
 
-  Widget _buildClassDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: DropdownButtonFormField<int>(
-        initialValue: _selectedClassId,
-        decoration: const InputDecoration(
-          labelText: 'Lớp',
-          prefixIcon: Icon(Icons.class_outlined),
-          border: InputBorder.none,
-        ),
-        items: _classes.map((cls) {
-          return DropdownMenuItem<int>(value: cls.id, child: Text(cls.name));
-        }).toList(),
-        onChanged: _selectedDepartmentId == null
-            ? null
-            : (value) {
-                setState(() {
-                  _selectedClassId = value;
-                });
-              },
-        validator: (value) => value == null ? 'Vui lòng chọn lớp' : null,
-      ),
-    );
-  }
-
-  Widget _buildDepartmentDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: DropdownButtonFormField<int>(
-        initialValue: _selectedDepartmentId,
-        decoration: const InputDecoration(
-          labelText: 'Khoa',
-          prefixIcon: Icon(Icons.school_outlined),
-          border: InputBorder.none,
-        ),
-        items: _departments.map((dept) {
-          return DropdownMenuItem<int>(value: dept.id, child: Text(dept.name));
-        }).toList(),
-        onChanged: (value) {
-          setState(() {
-            _selectedDepartmentId = value;
-          });
-          final user = ref.read(userProvider).value;
-          if (value != null && user?.role == 'STUDENT') {
-            _loadClasses(value);
-          }
-        },
-        validator: (value) => value == null ? 'Vui lòng chọn khoa' : null,
-      ),
-    );
-  }
-
-  Widget _buildRoleSpecificFields(UserModel user) {
-    switch (user.role) {
-      case 'TEACHER':
-        return Column(
-          children: [
-            _buildTextFormField(
-              _teacherCodeController,
-              'Mã giảng viên',
-              Icons.qr_code_scanner_outlined,
-              enabled: false,
-            ),
-            const SizedBox(height: 16),
-            _buildTextFormField(
-              _titleController,
-              'Chức danh',
-              Icons.school_outlined,
-            ),
-            const SizedBox(height: 16),
-            _buildDepartmentDropdown(),
-          ],
-        );
-      case 'STUDENT':
-        return Column(
-          children: [
-            _buildDepartmentDropdown(),
-            const SizedBox(height: 16),
-            _buildClassDropdown(),
-          ],
-        );
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-
-  Widget _buildTextFormField(
-    TextEditingController controller,
-    String label,
-    IconData icon, {
-    bool enabled = true,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        filled: true,
-        fillColor: enabled ? Colors.white : Colors.grey[200],
-      ),
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'Vui lòng nhập $label';
-        }
-        if (label == 'Email' && !value.contains('@')) {
-          return 'Email không hợp lệ';
-        }
-        return null;
-      },
-    );
-  }
-
-  Future<void> _loadClasses(int departmentId) async {
-    setState(() {
-      _selectedClassId = null;
-    });
-    try {
-      final classes = await ref
-          .read(classServiceProvider)
-          .getClassesByDepartment(departmentId);
-      setState(() {
-        _classes = classes;
-      });
-    } catch (e) {
-      // Handle error
-    }
-  }
-
-  Future<void> _loadDepartments() async {
-    try {
-      final departments = await ref
-          .read(departmentServiceProvider)
-          .getAllDepartments();
-      setState(() {
-        _departments = departments;
-      });
-    } catch (e) {
-      // Handle error
-    }
-  }
-
   Future<void> _loadInitialData() async {
-    final user = ref.read(userProvider).value;
+    final user = ref.read(userProvider);
     if (user == null) return;
 
     await _loadDepartments();
 
     try {
-      final profile = await ref
-          .read(userServiceProvider)
-          .getCurrentUserProfile();
+      final profile = await _userService.getCurrentUserProfile();
       setState(() {
         _profileData = profile;
       });
@@ -439,6 +94,42 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     }
   }
 
+  Future<void> _loadDepartments() async {
+    try {
+      final departments = await _departmentService.getAllDepartments();
+      setState(() {
+        _departments = departments;
+      });
+    } catch (e) {
+      // Handle error
+    }
+  }
+
+  Future<void> _loadClasses(int departmentId) async {
+    setState(() {
+      _selectedClassId = null;
+    });
+    try {
+      final classes = await _classService.getClassesByDepartment(departmentId);
+      setState(() {
+        _classes = classes;
+      });
+    } catch (e) {
+      // Handle error
+    }
+  }
+
+  @override
+  void dispose() {
+    _fullNameController.dispose();
+    _usernameController.dispose();
+    _phoneNumberController.dispose();
+    _emailController.dispose();
+    _titleController.dispose();
+    _teacherCodeController.dispose();
+    super.dispose();
+  }
+
   Future<void> _saveProfile() async {
     if (!_formKey.currentState!.validate()) {
       return;
@@ -448,7 +139,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
       _isLoading = true;
     });
 
-    final user = ref.read(userProvider).value;
+    final user = ref.read(userProvider);
     if (user == null) return;
 
     try {
@@ -457,38 +148,32 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           if (_selectedDepartmentId == null || _selectedClassId == null) {
             throw Exception('Vui lòng chọn khoa và lớp');
           }
-          await ref
-              .read(studentServiceProvider)
-              .updateProfile(
-                fullName: _fullNameController.text.trim(),
-                email: _emailController.text.trim(),
-                phoneNumber: _phoneNumberController.text.trim(),
-                departmentId: _selectedDepartmentId,
-                classId: _selectedClassId,
-              );
+          await _studentService.updateProfile(
+            fullName: _fullNameController.text.trim(),
+            email: _emailController.text.trim(),
+            phoneNumber: _phoneNumberController.text.trim(),
+            departmentId: _selectedDepartmentId,
+            classId: _selectedClassId,
+          );
           break;
         case 'TEACHER':
           if (_selectedDepartmentId == null) {
             throw Exception('Vui lòng chọn khoa');
           }
-          await ref
-              .read(teacherServiceProvider)
-              .updateProfile(
-                fullName: _fullNameController.text.trim(),
-                email: _emailController.text.trim(),
-                phoneNumber: _phoneNumberController.text.trim(),
-                departmentId: _selectedDepartmentId,
-                title: _titleController.text.trim(),
-              );
+          await _teacherService.updateProfile(
+            fullName: _fullNameController.text.trim(),
+            email: _emailController.text.trim(),
+            phoneNumber: _phoneNumberController.text.trim(),
+            departmentId: _selectedDepartmentId,
+            title: _titleController.text.trim(),
+          );
           break;
         case 'ADMIN':
-          await ref
-              .read(userServiceProvider)
-              .updateProfile(
-                fullName: _fullNameController.text.trim(),
-                email: _emailController.text.trim(),
-                phoneNumber: _phoneNumberController.text.trim(),
-              );
+          await _userService.updateProfile(
+            fullName: _fullNameController.text.trim(),
+            email: _emailController.text.trim(),
+            phoneNumber: _phoneNumberController.text.trim(),
+          );
           break;
       }
 
@@ -533,5 +218,311 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
         });
       }
     }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final user = ref.watch(userProvider);
+
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Cập nhật hồ sơ',
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+          ),
+        ),
+        centerTitle: true,
+      ),
+      body: user == null
+          ? const Center(child: CircularProgressIndicator())
+          : SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    // Avatar
+                    Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 60,
+                          backgroundColor: Colors.pink[300],
+                          child: const Icon(
+                            Icons.person,
+                            size: 70,
+                            color: Colors.white,
+                          ),
+                        ),
+                        Positioned(
+                          bottom: 0,
+                          right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: const BoxDecoration(
+                              color: Colors.blue,
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.camera_alt,
+                              size: 20,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      user.fullName ?? user.username,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '@${user.username}',
+                      style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // Common Fields
+                    _buildTextFormField(
+                      _fullNameController,
+                      'Họ và tên',
+                      Icons.person_outline,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextFormField(
+                      _usernameController,
+                      'Tên đăng nhập',
+                      Icons.account_circle_outlined,
+                      enabled: false,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextFormField(
+                      _phoneNumberController,
+                      'Số điện thoại',
+                      Icons.phone_outlined,
+                      keyboardType: TextInputType.phone,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextFormField(
+                      _emailController,
+                      'Email',
+                      Icons.email_outlined,
+                      keyboardType: TextInputType.emailAddress,
+                    ),
+                    const SizedBox(height: 16),
+
+                    // Role-specific fields
+                    _buildRoleSpecificFields(user),
+
+                    const SizedBox(height: 16),
+                    // Save Button
+                    SizedBox(
+                      width: double.infinity,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: _isLoading ? null : _saveProfile,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 2,
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                    Colors.white,
+                                  ),
+                                ),
+                              )
+                            : const Text(
+                                'Lưu hồ sơ',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    // Logout Button
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () async {
+                          await ref.read(authProvider.notifier).logout();
+                          if (context.mounted) {
+                            Navigator.pushAndRemoveUntil(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const LoginScreen(),
+                              ),
+                              (route) => false,
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.logout),
+                        label: const Text('Đăng xuất'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.red,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+    );
+  }
+
+  Widget _buildTextFormField(
+    TextEditingController controller,
+    String label,
+    IconData icon, {
+    bool enabled = true,
+    TextInputType keyboardType = TextInputType.text,
+  }) {
+    return TextFormField(
+      controller: controller,
+      enabled: enabled,
+      keyboardType: keyboardType,
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        filled: true,
+        fillColor: enabled ? Colors.white : Colors.grey[200],
+      ),
+      validator: (value) {
+        if (value == null || value.trim().isEmpty) {
+          return 'Vui lòng nhập $label';
+        }
+        if (label == 'Email' && !value.contains('@')) {
+          return 'Email không hợp lệ';
+        }
+        return null;
+      },
+    );
+  }
+
+  Widget _buildDepartmentDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: DropdownButtonFormField<int>(
+        initialValue: _selectedDepartmentId,
+        decoration: const InputDecoration(
+          labelText: 'Khoa',
+          prefixIcon: Icon(Icons.school_outlined),
+          border: InputBorder.none,
+        ),
+        items: _departments.map((dept) {
+          return DropdownMenuItem<int>(value: dept.id, child: Text(dept.name));
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            _selectedDepartmentId = value;
+          });
+          final user = ref.read(userProvider);
+          if (value != null && user?.role == 'STUDENT') {
+            _loadClasses(value);
+          }
+        },
+        validator: (value) => value == null ? 'Vui lòng chọn khoa' : null,
+      ),
+    );
+  }
+
+  Widget _buildRoleSpecificFields(UserModel user) {
+    switch (user.role) {
+      case 'TEACHER':
+        return Column(
+          children: [
+            _buildTextFormField(
+              _teacherCodeController,
+              'Mã giảng viên',
+              Icons.qr_code_scanner_outlined,
+              enabled: false,
+            ),
+            const SizedBox(height: 16),
+            _buildTextFormField(
+              _titleController,
+              'Chức danh',
+              Icons.school_outlined,
+            ),
+            const SizedBox(height: 16),
+            _buildDepartmentDropdown(),
+          ],
+        );
+      case 'STUDENT':
+        return Column(
+          children: [
+            _buildDepartmentDropdown(),
+            const SizedBox(height: 16),
+            _buildClassDropdown(),
+          ],
+        );
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _buildClassDropdown() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: DropdownButtonFormField<int>(
+        initialValue: _selectedClassId,
+        decoration: const InputDecoration(
+          labelText: 'Lớp',
+          prefixIcon: Icon(Icons.class_outlined),
+          border: InputBorder.none,
+        ),
+        items: _classes.map((cls) {
+          return DropdownMenuItem<int>(value: cls.id, child: Text(cls.name));
+        }).toList(),
+        onChanged: _selectedDepartmentId == null
+            ? null
+            : (value) {
+                setState(() {
+                  _selectedClassId = value;
+                });
+              },
+        validator: (value) => value == null ? 'Vui lòng chọn lớp' : null,
+      ),
+    );
   }
 }

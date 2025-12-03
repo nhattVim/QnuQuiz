@@ -6,11 +6,7 @@ import 'package:logger/logger.dart';
 
 class ExamHistoryService {
   final _log = Logger();
-  final ApiService _apiService;
-
-  ExamHistoryService(this._apiService);
-
-  Dio get _dio => _apiService.dio;
+  final Dio _dio = ApiService().dio;
 
   Future<List<ExamHistoryModel>> getExamHistory() async {
     try {
@@ -21,7 +17,9 @@ class ExamHistoryService {
       final data = response.data;
 
       if (data is List) {
-        return data.map((e) => ExamHistoryModel.fromJson(e)).toList();
+        return data
+            .map((e) => ExamHistoryModel.fromJson(e))
+            .toList();
       } else {
         throw Exception("Dữ liệu trả về không hợp lệ");
       }

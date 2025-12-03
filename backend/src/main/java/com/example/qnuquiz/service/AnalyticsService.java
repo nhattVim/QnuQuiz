@@ -1,17 +1,15 @@
 package com.example.qnuquiz.service;
 
-import com.example.qnuquiz.dto.analytics.AdminExamAnalyticsDto;
-import com.example.qnuquiz.dto.analytics.AdminQuestionAnalyticsDto;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+
 import com.example.qnuquiz.dto.analytics.ClassPerformanceDto;
 import com.example.qnuquiz.dto.analytics.ExamAnalyticsDto;
 import com.example.qnuquiz.dto.analytics.QuestionAnalyticsDto;
 import com.example.qnuquiz.dto.analytics.RankingDto;
 import com.example.qnuquiz.dto.analytics.ScoreDistributionDto;
 import com.example.qnuquiz.dto.analytics.StudentAttemptDto;
-import com.example.qnuquiz.dto.analytics.UserAnalyticsDto;
-import org.springframework.stereotype.Service;
-
-import java.util.List;
 
 @Service
 public interface AnalyticsService {
@@ -31,10 +29,4 @@ public interface AnalyticsService {
     List<StudentAttemptDto> getStudentAttempts(Long examId);
 
     List<QuestionAnalyticsDto> getQuestionAnalytics(Long examId);
-
-    UserAnalyticsDto getUserAnalytics();
-
-    AdminExamAnalyticsDto getExamAnalyticsAdmin();
-
-    AdminQuestionAnalyticsDto getQuestionAnalyticsAdmin();
 }

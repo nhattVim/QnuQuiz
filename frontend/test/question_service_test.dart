@@ -4,11 +4,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/question_model.dart';
 import 'package:frontend/models/question_option_model.dart';
-import 'package:frontend/services/api_service.dart';
 import 'package:frontend/services/question_service.dart';
 import 'package:mocktail/mocktail.dart';
-
-class MockApiService extends Mock implements ApiService {}
 
 class MockDio extends Mock implements Dio {}
 
@@ -17,13 +14,10 @@ class MockFile extends Mock implements File {}
 void main() {
   late QuestionService questionService;
   late MockDio mockDio;
-  late MockApiService mockApiService;
 
   setUp(() {
     mockDio = MockDio();
-    mockApiService = MockApiService();
-    when(() => mockApiService.dio).thenReturn(mockDio);
-    questionService = QuestionService(mockApiService);
+    questionService = QuestionService(dio: mockDio);
   });
 
   group('QuestionService', () {

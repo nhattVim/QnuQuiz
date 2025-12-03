@@ -2,8 +2,6 @@ package com.example.qnuquiz.dto.exam;
 
 import java.util.List;
 
-import com.example.qnuquiz.dto.questions.QuestionOptionDto;
-
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,6 +12,7 @@ public class ExamAnswerReviewDTO {
     private String questionContent;
     private String type;
     private String studentAnswer; // text hoặc optionId
-    private List<QuestionOptionDto> options; // hiển thị cả đáp án
+    private List<QuestionOptionDTO> options; // hiển thị cả đáp án
     private boolean correct;
 }
+

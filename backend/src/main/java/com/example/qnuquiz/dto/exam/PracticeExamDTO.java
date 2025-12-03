@@ -2,8 +2,6 @@ package com.example.qnuquiz.dto.exam;
 
 import java.util.List;
 
-import com.example.qnuquiz.dto.questions.QuestionDTO;
-
 import lombok.Builder;
 import lombok.Data;
 

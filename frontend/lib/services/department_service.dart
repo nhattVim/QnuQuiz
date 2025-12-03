@@ -6,17 +6,13 @@ import 'package:logger/logger.dart';
 
 class DepartmentService {
   final _log = Logger();
-  final ApiService _apiService;
-
-  DepartmentService(this._apiService);
-
-  Dio get _dio => _apiService.dio;
+  final Dio _dio = ApiService().dio;
 
   Future<List<DepartmentModel>> getAllDepartments() async {
     try {
-      final response = await _dio.get(
-        '${ApiConstants.baseUrl}/api/departments',
-      );
+      // TODO: Replace with actual API endpoint when available
+      // For now, return empty list or mock data
+      final response = await _dio.get('${ApiConstants.baseUrl}/api/departments');
       final data = response.data;
 
       if (data is List) {
@@ -35,3 +31,4 @@ class DepartmentService {
     }
   }
 }
+

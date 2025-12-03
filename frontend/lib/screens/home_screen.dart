@@ -86,99 +86,91 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final userAsync = ref.watch(userProvider);
+    final user = ref.watch(userProvider);
     final theme = Theme.of(context);
 
-    return userAsync.when(
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
-      error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
-      data: (user) {
-        if (user == null) {
-          return const Scaffold(
-              body: Center(child: CircularProgressIndicator()));
-        }
+    if (user == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
 
-        final navItems = user.role == 'ADMIN'
-            ? adminNav
-            : (user.role == 'TEACHER' ? teacherNav : studentNav);
+    final navItems = user.role == 'ADMIN'
+        ? adminNav
+        : (user.role == 'TEACHER' ? teacherNav : studentNav);
 
-        if (_pages[_currentIndex] == null) {
-          _pages[_currentIndex] = navItems[_currentIndex].page;
-        }
+    if (_pages[_currentIndex] == null) {
+      _pages[_currentIndex] = navItems[_currentIndex].page;
+    }
 
-        return Scaffold(
-          body: Stack(
-            children: navItems.asMap().entries.map((entry) {
-              int index = entry.key;
-              return Offstage(
-                offstage: _currentIndex != index,
-                child: _pages[index] ?? const SizedBox(),
-              );
-            }).toList(),
-          ),
-          bottomNavigationBar: BottomAppBar(
-            elevation: 8,
-            shape: const CircularNotchedRectangle(),
-            notchMargin: 8.0,
-            color: theme.colorScheme.surface,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: navItems.asMap().entries.map((entry) {
-                int index = entry.key;
-                NavItem item = entry.value;
-                bool isSelected = _currentIndex == index;
+    return Scaffold(
+      body: Stack(
+        children: navItems.asMap().entries.map((entry) {
+          int index = entry.key;
+          return Offstage(
+            offstage: _currentIndex != index,
+            child: _pages[index] ?? const SizedBox(),
+          );
+        }).toList(),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        elevation: 8,
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8.0,
+        color: theme.colorScheme.surface,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: navItems.asMap().entries.map((entry) {
+            int index = entry.key;
+            NavItem item = entry.value;
+            bool isSelected = _currentIndex == index;
 
-                return Expanded(
-                  child: InkWell(
-                    onTap: () => setState(() => _currentIndex = index),
-                    borderRadius: BorderRadius.circular(12.r),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(vertical: 4.h),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            AnimatedContainer(
-                              duration: const Duration(milliseconds: 500),
-                              curve: Curves.easeInOut,
-                              padding: EdgeInsets.symmetric(
-                                horizontal: 12.w,
-                                vertical: 4.h,
-                              ),
-                              child: Icon(
-                                item.icon,
-                                color: isSelected
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.onSurfaceVariant,
-                                size: isSelected ? 26.sp : 20.sp,
-                              ),
-                            ),
-                            SizedBox(height: 4.h),
-                            Text(
-                              item.label,
-                              style: TextStyle(
-                                fontSize: 11.sp,
-                                color: isSelected
-                                    ? theme.colorScheme.primary
-                                    : theme.colorScheme.onSurfaceVariant,
-                                fontWeight: isSelected
-                                    ? FontWeight.bold
-                                    : FontWeight.normal,
-                              ),
-                            ),
-                          ],
+            return Expanded(
+              child: InkWell(
+                onTap: () => setState(() => _currentIndex = index),
+                borderRadius: BorderRadius.circular(12.r),
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 4.h),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 500),
+                          curve: Curves.easeInOut,
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 12.w,
+                            vertical: 4.h,
+                          ),
+                          child: Icon(
+                            item.icon,
+                            color: isSelected
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onSurfaceVariant,
+                            size: isSelected ? 26.sp : 20.sp,
+                          ),
                         ),
-                      ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          item.label,
+                          style: TextStyle(
+                            fontSize: 11.sp,
+                            color: isSelected
+                                ? theme.colorScheme.primary
+                                : theme.colorScheme.onSurfaceVariant,
+                            fontWeight: isSelected
+                                ? FontWeight.bold
+                                : FontWeight.normal,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                );
-              }).toList(),
-            ),
-          ),
-        );
-      },
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
     );
   }
 }
