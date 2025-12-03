@@ -36,7 +36,7 @@ class ExamHistoryModel {
       examDescription: json['examDescription'] as String?,
       score: json['score'] != null ? (json['score'] as num).toDouble() : null,
       completionDate: json['completionDate'] != null
-          ? DateTime.parse(json['completionDate'] as String)
+          ? DateTime.parse(json['completionDate'] as String).toLocal()
           : null,
       durationMinutes: json['durationMinutes'] != null
           ? json['durationMinutes'] as int
