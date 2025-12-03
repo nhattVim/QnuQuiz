@@ -10,6 +10,7 @@ import 'package:frontend/pages/profile_page.dart';
 import 'package:frontend/pages/ranking_page.dart';
 import '../providers/user_provider.dart';
 import 'package:frontend/pages/teacher_analytics_page.dart';
+import 'package:frontend/pages/notification_page.dart';
 
 /// =======================
 /// NAV ITEMS
@@ -57,6 +58,12 @@ const analyticsItem = NavItem(
   label: "Analytics",
 );
 
+const notificationItem = NavItem(
+  page: NotificationPage(),
+  icon: Icons.notifications,
+  label: "Thông báo",
+);
+
 const adminNav = [examItem, dashboardItem, profileItem];
 
 const studentNav = [
@@ -67,7 +74,7 @@ const studentNav = [
   profileItem,
 ];
 
-const teacherNav = [dashboardItem, examItem, analyticsItem, profileItem];
+const teacherNav = [dashboardItem, examItem, analyticsItem, notificationItem, profileItem];
 
 /// =======================
 /// HOME SCREEN
@@ -86,91 +93,99 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final user = ref.watch(userProvider);
+    final userAsync = ref.watch(userProvider);
     final theme = Theme.of(context);
 
-    if (user == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
+    return userAsync.when(
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (err, stack) => Scaffold(body: Center(child: Text('Error: $err'))),
+      data: (user) {
+        if (user == null) {
+          return const Scaffold(
+              body: Center(child: CircularProgressIndicator()));
+        }
 
-    final navItems = user.role == 'ADMIN'
-        ? adminNav
-        : (user.role == 'TEACHER' ? teacherNav : studentNav);
+        final navItems = user.role == 'ADMIN'
+            ? adminNav
+            : (user.role == 'TEACHER' ? teacherNav : studentNav);
 
-    if (_pages[_currentIndex] == null) {
-      _pages[_currentIndex] = navItems[_currentIndex].page;
-    }
+        if (_pages[_currentIndex] == null) {
+          _pages[_currentIndex] = navItems[_currentIndex].page;
+        }
 
-    return Scaffold(
-      body: Stack(
-        children: navItems.asMap().entries.map((entry) {
-          int index = entry.key;
-          return Offstage(
-            offstage: _currentIndex != index,
-            child: _pages[index] ?? const SizedBox(),
-          );
-        }).toList(),
-      ),
-      bottomNavigationBar: BottomAppBar(
-        elevation: 8,
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8.0,
-        color: theme.colorScheme.surface,
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: navItems.asMap().entries.map((entry) {
-            int index = entry.key;
-            NavItem item = entry.value;
-            bool isSelected = _currentIndex == index;
+        return Scaffold(
+          body: Stack(
+            children: navItems.asMap().entries.map((entry) {
+              int index = entry.key;
+              return Offstage(
+                offstage: _currentIndex != index,
+                child: _pages[index] ?? const SizedBox(),
+              );
+            }).toList(),
+          ),
+          bottomNavigationBar: BottomAppBar(
+            elevation: 8,
+            shape: const CircularNotchedRectangle(),
+            notchMargin: 8.0,
+            color: theme.colorScheme.surface,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: navItems.asMap().entries.map((entry) {
+                int index = entry.key;
+                NavItem item = entry.value;
+                bool isSelected = _currentIndex == index;
 
-            return Expanded(
-              child: InkWell(
-                onTap: () => setState(() => _currentIndex = index),
-                borderRadius: BorderRadius.circular(12.r),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 4.h),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 500),
-                          curve: Curves.easeInOut,
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 12.w,
-                            vertical: 4.h,
-                          ),
-                          child: Icon(
-                            item.icon,
-                            color: isSelected
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurfaceVariant,
-                            size: isSelected ? 26.sp : 20.sp,
-                          ),
+                return Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() => _currentIndex = index),
+                    borderRadius: BorderRadius.circular(12.r),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 4.h),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            AnimatedContainer(
+                              duration: const Duration(milliseconds: 500),
+                              curve: Curves.easeInOut,
+                              padding: EdgeInsets.symmetric(
+                                horizontal: 12.w,
+                                vertical: 4.h,
+                              ),
+                              child: Icon(
+                                item.icon,
+                                color: isSelected
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.onSurfaceVariant,
+                                size: isSelected ? 26.sp : 20.sp,
+                              ),
+                            ),
+                            SizedBox(height: 4.h),
+                            Text(
+                              item.label,
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                color: isSelected
+                                    ? theme.colorScheme.primary
+                                    : theme.colorScheme.onSurfaceVariant,
+                                fontWeight: isSelected
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ],
                         ),
-                        SizedBox(height: 4.h),
-                        Text(
-                          item.label,
-                          style: TextStyle(
-                            fontSize: 11.sp,
-                            color: isSelected
-                                ? theme.colorScheme.primary
-                                : theme.colorScheme.onSurfaceVariant,
-                            fontWeight: isSelected
-                                ? FontWeight.bold
-                                : FontWeight.normal,
-                          ),
-                        ),
-                      ],
+                      ),
                     ),
                   ),
-                ),
-              ),
-            );
-          }).toList(),
-        ),
-      ),
+                );
+              }).toList(),
+            ),
+          ),
+        );
+      },
     );
   }
 }

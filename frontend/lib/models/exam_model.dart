@@ -9,6 +9,8 @@ class ExamModel {
   final String status;
   final bool hasUnfinishedAttempt;
   final bool hasAttempt;
+  final int categoryId;
+  final int? maxQuestions;
 
   ExamModel({
     required this.id,
@@ -21,6 +23,8 @@ class ExamModel {
     required this.status,
     this.hasUnfinishedAttempt = false,
     this.hasAttempt = false,
+    required this.categoryId,
+    this.maxQuestions,
   });
 
   String get computedStatus {
@@ -61,6 +65,8 @@ class ExamModel {
       status: json['status'],
       hasUnfinishedAttempt: json['hasUnfinishedAttempt'] as bool? ?? false,
       hasAttempt: json['hasAttempt'] as bool? ?? false,
+      categoryId: json['categoryId'] as int,
+      maxQuestions: json['maxQuestions'] as int?,
     );
   }
 
@@ -76,6 +82,8 @@ class ExamModel {
       'status': status,
       'hasUnfinishedAttempt': hasUnfinishedAttempt,
       'hasAttempt': hasAttempt,
+      'categoryId': categoryId,
+      'maxQuestions': maxQuestions,
     };
   }
 }

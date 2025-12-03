@@ -23,4 +23,9 @@ public class FeedbackServiceImpl implements FeedbackService {
         return feedbacksMapper.toDtoList(feedbacksRepository.findAll());
     }
 
+    @Override
+    public void deleteFeedback(Long id) {
+        feedbacksRepository.deleteById(id);
+    }
+
 }

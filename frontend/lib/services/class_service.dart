@@ -6,7 +6,11 @@ import 'package:logger/logger.dart';
 
 class ClassService {
   final _log = Logger();
-  final Dio _dio = ApiService().dio;
+  final ApiService _apiService;
+
+  ClassService(this._apiService);
+
+  Dio get _dio => _apiService.dio;
 
   Future<List<ClassModel>> getClassesByDepartment(int departmentId) async {
     try {
@@ -53,4 +57,3 @@ class ClassService {
     }
   }
 }
-

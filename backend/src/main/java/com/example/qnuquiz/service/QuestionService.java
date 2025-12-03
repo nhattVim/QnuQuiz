@@ -1,20 +1,24 @@
 package com.example.qnuquiz.service;
 
-import org.springframework.web.multipart.MultipartFile;
-
-import com.example.qnuquiz.dto.questions.QuestionFullDto;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
+
+import org.springframework.web.multipart.MultipartFile;
+
+import com.example.qnuquiz.dto.questions.QuestionDTO;
 
 public interface QuestionService {
 
     void importQuestionsFromExcel(MultipartFile file, UUID userId, Long examId) throws IOException;
 
-    List<QuestionFullDto> getAllQuestionsInExam(Long examId);
+    List<QuestionDTO> getAllQuestionsInExam(Long examId);
 
-    QuestionFullDto updateQuestion(QuestionFullDto dto);
+    QuestionDTO createQuestion(QuestionDTO dto, Long examId);
+
+    QuestionDTO updateQuestion(QuestionDTO dto);
 
     void deleteQuestion(List<Long> ids);
+
+    List<QuestionDTO> getAllQuestions();
 }

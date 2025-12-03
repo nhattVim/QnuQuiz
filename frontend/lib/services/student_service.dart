@@ -7,7 +7,11 @@ import 'package:logger/logger.dart';
 
 class StudentService {
   final _log = Logger();
-  final Dio _dio = ApiService().dio;
+  final ApiService _apiService;
+
+  StudentService(this._apiService);
+
+  Dio get _dio => _apiService.dio;
 
   Future<StudentModel> updateProfile({
     required String fullName,
@@ -55,7 +59,9 @@ class StudentService {
       }
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);
-      throw Exception(e.response?.data?['message'] ?? 'Lỗi tải lịch sử làm bài');
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi tải lịch sử làm bài',
+      );
     }
   }
 }

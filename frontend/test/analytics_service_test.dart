@@ -2,17 +2,23 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/ranking_model.dart';
 import 'package:frontend/services/analytics_service.dart';
+import 'package:frontend/services/api_service.dart';
 import 'package:mocktail/mocktail.dart';
+
+class MockApiService extends Mock implements ApiService {}
 
 class MockDio extends Mock implements Dio {}
 
 void main() {
   late AnalyticsService analyticsService;
   late MockDio mockDio;
+  late MockApiService mockApiService;
 
   setUp(() {
     mockDio = MockDio();
-    analyticsService = AnalyticsService(dio: mockDio);
+    mockApiService = MockApiService();
+    when(() => mockApiService.dio).thenReturn(mockDio);
+    analyticsService = AnalyticsService(mockApiService);
   });
 
   group('AnalyticsService', () {
@@ -91,4 +97,3 @@ void main() {
     });
   });
 }
-

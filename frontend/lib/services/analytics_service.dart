@@ -1,19 +1,24 @@
 import 'package:dio/dio.dart';
 import 'package:frontend/constants/api_constants.dart';
+import 'package:frontend/models/analytics/admin_exam_analytics_model.dart';
+import 'package:frontend/models/analytics/admin_question_analytics_model.dart';
 import 'package:frontend/models/analytics/class_performance_model.dart';
 import 'package:frontend/models/analytics/exam_analytics_model.dart';
 import 'package:frontend/models/analytics/question_analytics_model.dart';
 import 'package:frontend/models/analytics/score_distribution_model.dart';
 import 'package:frontend/models/analytics/student_attempt_model.dart';
+import 'package:frontend/models/analytics/user_analytics_model.dart';
 import 'package:frontend/models/ranking_model.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:logger/logger.dart';
 
 class AnalyticsService {
   final _log = Logger();
-  final Dio _dio;
+  final ApiService _apiService;
 
-  AnalyticsService({Dio? dio}) : _dio = dio ?? ApiService().dio;
+  AnalyticsService(this._apiService);
+
+  Dio get _dio => _apiService.dio;
 
   Future<List<ExamAnalytics>> getExamAnalytics(String teacherId) async {
     try {
@@ -174,6 +179,44 @@ class AnalyticsService {
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);
       throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
+
+  Future<UserAnalyticsModel> getUserAnalytics() async {
+    try {
+      final response = await _dio.get('${ApiConstants.analytics}/admin/users');
+      return UserAnalyticsModel.fromJson(response.data);
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi lấy thống kê người dùng',
+      );
+    }
+  }
+
+  Future<AdminExamAnalyticsModel> getAdminExamAnalytics() async {
+    try {
+      final response = await _dio.get('${ApiConstants.analytics}/admin/exams');
+      return AdminExamAnalyticsModel.fromJson(response.data);
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi lấy thống kê bài thi',
+      );
+    }
+  }
+
+  Future<AdminQuestionAnalyticsModel> getAdminQuestionAnalytics() async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/admin/questions',
+      );
+      return AdminQuestionAnalyticsModel.fromJson(response.data);
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi lấy thống kê câu hỏi',
+      );
     }
   }
 }
