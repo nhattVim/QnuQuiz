@@ -9,6 +9,8 @@ import 'package:frontend/models/question_model.dart';
 import 'package:frontend/providers/service_providers.dart';
 import 'package:frontend/screens/question_create_screen.dart';
 import 'package:frontend/screens/question_edit_screen.dart';
+import 'package:frontend/services/exam_service.dart';
+import 'package:frontend/services/question_service.dart';
 import 'package:intl/intl.dart';
 
 class ExamDetailScreen extends ConsumerStatefulWidget {
@@ -21,8 +23,8 @@ class ExamDetailScreen extends ConsumerStatefulWidget {
 
 class _ExamDetailScreenState extends ConsumerState<ExamDetailScreen> {
   // Services
-  late final _examService;
-  late final _questionService;
+  late final ExamService _examService;
+  late final QuestionService _questionService;
 
   // Model
   ExamModel? _updatedExam;
