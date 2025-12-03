@@ -6,8 +6,6 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/exam_model.dart';
 import 'package:frontend/models/question_model.dart';
 import 'package:frontend/screens/question_edit_screen.dart';
-import 'package:frontend/services/exam_service.dart';
-import 'package:frontend/services/question_service.dart';
 import 'package:intl/intl.dart';
 
 class ExamDetailScreen extends StatefulWidget {
@@ -20,8 +18,8 @@ class ExamDetailScreen extends StatefulWidget {
 
 class _ExamDetailScreenState extends State<ExamDetailScreen> {
   // Services
-  late final ExamService _examService;
-  late final QuestionService _questionService;
+  late final _examService;
+  late final _questionService;
 
   // Model
   ExamModel? _updatedExam;
