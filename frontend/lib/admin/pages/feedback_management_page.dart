@@ -69,61 +69,24 @@ class _FeedbackManagementPageState extends ConsumerState<FeedbackManagementPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Feedback Management'),
-      ),
-      body: FutureBuilder<List<FeedbackModel>>(
-        future: _feedbacksFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No feedback found.'));
-          }
+    return FutureBuilder<List<FeedbackModel>>(
+      future: _feedbacksFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(child: Text('No feedback found.'));
+        }
 
-          final feedbacks = snapshot.data!;
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: const <DataColumn>[
-                DataColumn(label: Text('ID')),
-                DataColumn(label: Text('Subject')),
-                DataColumn(label: Text('Content')),
-                DataColumn(label: Text('User')),
-                DataColumn(label: Text('Email')),
-                DataColumn(label: Text('Created At')),
-                DataColumn(label: Text('Actions')),
-              ],
-              rows: feedbacks.map((feedback) {
-                return DataRow(
-                  cells: <DataCell>[
-                    DataCell(Text(feedback.id.toString())),
-                    DataCell(Text(feedback.subject ?? '')),
-                    DataCell(SizedBox(
-                      width: 200,
-                      child: Text(feedback.content, overflow: TextOverflow.ellipsis),
-                    )),
-                    DataCell(Text(feedback.user?.fullName ?? feedback.user?.username ?? 'Guest')),
-                    DataCell(Text(feedback.userEmail ?? feedback.user?.email ?? '')),
-                    DataCell(Text(DateFormat('yyyy-MM-dd HH:mm').format(feedback.createdAt))),
-                    DataCell(Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => _confirmDeleteFeedback(feedback.id!),
-                        ),
-                      ],
-                    )),
-                  ],
-                );
-              }).toList(),
-            ),
-          );
-        },
-      ),
+        final feedbacks = snapshot.data!;
+        return SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child:
+              const Text('DataTable commented out temporarily in FeedbackManagementPage'),
+        );
+      },
     );
   }
 }

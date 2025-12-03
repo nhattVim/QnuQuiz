@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/admin/widgets/exam_form_dialog.dart';
 import 'package:frontend/models/exam_model.dart';
-import 'package:frontend/providers/service_providers.dart'; // Import service providers
+import 'package:frontend/providers/service_providers.dart';
 
-class ExamManagementPage extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget
+class ExamManagementPage extends ConsumerStatefulWidget {
   const ExamManagementPage({super.key});
 
   @override
@@ -12,8 +12,6 @@ class ExamManagementPage extends ConsumerStatefulWidget { // Changed to Consumer
 }
 
 class _ExamManagementPageState extends ConsumerState<ExamManagementPage> {
-  // Removed direct instantiation:
-  // final ExamService _examService = ExamService();
   late Future<List<ExamModel>> _examsFuture;
 
   @override
@@ -23,7 +21,7 @@ class _ExamManagementPageState extends ConsumerState<ExamManagementPage> {
   }
 
   void _fetchExams() {
-    final examService = ref.read(examServiceProvider); // Get service from provider
+    final examService = ref.read(examServiceProvider);
     setState(() {
       _examsFuture = examService.getAllExams();
     });
@@ -36,7 +34,7 @@ class _ExamManagementPageState extends ConsumerState<ExamManagementPage> {
         exam: exam,
         onSave: (newExam) async {
           final scaffoldMessenger = ScaffoldMessenger.of(context);
-          final examService = ref.read(examServiceProvider); // Get service from provider
+          final examService = ref.read(examServiceProvider);
           try {
             if (exam == null) {
               await examService.createExam(newExam);
@@ -74,7 +72,7 @@ class _ExamManagementPageState extends ConsumerState<ExamManagementPage> {
             onPressed: () async {
               final navigator = Navigator.of(context);
               final scaffoldMessenger = ScaffoldMessenger.of(context);
-              final examService = ref.read(examServiceProvider); // Get service from provider
+              final examService = ref.read(examServiceProvider);
               try {
                 await examService.deleteExam(examId);
                 if (!mounted) return;
@@ -122,7 +120,6 @@ class _ExamManagementPageState extends ConsumerState<ExamManagementPage> {
                 DataColumn(label: Text('Description')),
                 DataColumn(label: Text('Max Questions')),
                 DataColumn(label: Text('Duration (min)')),
-                DataColumn(label: Text('Pass Score')),
                 DataColumn(label: Text('Category')),
                 DataColumn(label: Text('Actions')),
               ],

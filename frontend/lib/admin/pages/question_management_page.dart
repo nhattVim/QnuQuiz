@@ -109,65 +109,68 @@ class _QuestionManagementPageState extends ConsumerState<QuestionManagementPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Question Management'),
-      ),
-      body: FutureBuilder<List<QuestionModel>>(
-        future: _questionsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No questions found.'));
-          }
+    return Stack(
+      children: [
+        FutureBuilder<List<QuestionModel>>(
+          future: _questionsFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return const Center(child: Text('No questions found.'));
+            }
 
-          final questions = snapshot.data!;
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: const <DataColumn>[
-                DataColumn(label: Text('ID')),
-                DataColumn(label: Text('Content')),
-                DataColumn(label: Text('Type')),
-                DataColumn(label: Text('Exam ID')),
-                DataColumn(label: Text('Actions')),
-              ],
-              rows: questions.map((question) {
-                return DataRow(
-                  cells: <DataCell>[
-                    DataCell(Text(question.id.toString())),
-                    DataCell(SizedBox(
-                      width: 200,
-                      child: Text(question.content ?? '', overflow: TextOverflow.ellipsis),
-                    )),
-                    DataCell(Text(question.type ?? '')),
-                    DataCell(Text(question.examId?.toString() ?? '')),
-                    DataCell(Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () => _showQuestionFormDialog(question: question),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => _confirmDeleteQuestion(question.id!),
-                        ),
-                      ],
-                    )),
-                  ],
-                );
-              }).toList(),
-            ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showQuestionFormDialog(),
-        child: const Icon(Icons.add),
-      ),
+            final questions = snapshot.data!;
+            return SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: DataTable(
+                columns: const <DataColumn>[
+                  DataColumn(label: Text('ID')),
+                  DataColumn(label: Text('Content')),
+                  DataColumn(label: Text('Type')),
+                  DataColumn(label: Text('Exam ID')),
+                  DataColumn(label: Text('Actions')),
+                ],
+                rows: questions.map((question) {
+                  return DataRow(
+                    cells: <DataCell>[
+                      DataCell(Text(question.id.toString())),
+                      DataCell(SizedBox(
+                        width: 200,
+                        child: Text(question.content ?? '', overflow: TextOverflow.ellipsis),
+                      )),
+                      DataCell(Text(question.type ?? '')),
+                      DataCell(Text(question.examId?.toString() ?? '')),
+                      DataCell(Row(
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () => _showQuestionFormDialog(question: question),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () => _confirmDeleteQuestion(question.id!),
+                          ),
+                        ],
+                      )),
+                    ],
+                  );
+                }).toList(),
+              ),
+            );
+          },
+        ),
+        Positioned(
+          bottom: 16.0,
+          right: 16.0,
+          child: FloatingActionButton(
+            onPressed: () => _showQuestionFormDialog(),
+            child: const Icon(Icons.add),
+          ),
+        ),
+      ],
     );
   }
 }

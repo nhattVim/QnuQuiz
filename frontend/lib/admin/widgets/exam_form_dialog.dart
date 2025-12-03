@@ -20,7 +20,6 @@ class _ExamFormDialogState extends ConsumerState<ExamFormDialog> {
   late TextEditingController _descriptionController;
   late TextEditingController _maxQuestionsController;
   late TextEditingController _durationMinutesController;
-  late TextEditingController _passScoreController;
   ExamCategoryModel? _selectedCategory;
   late Future<List<ExamCategoryModel>> _categoriesFuture;
 
@@ -57,7 +56,6 @@ class _ExamFormDialogState extends ConsumerState<ExamFormDialog> {
     _descriptionController.dispose();
     _maxQuestionsController.dispose();
     _durationMinutesController.dispose();
-    _passScoreController.dispose();
     super.dispose();
   }
 
@@ -120,22 +118,6 @@ class _ExamFormDialogState extends ConsumerState<ExamFormDialog> {
                   }
                   if (int.tryParse(value) == null || int.parse(value) <= 0) {
                     return 'Please enter a valid number of minutes';
-                  }
-                  return null;
-                },
-              ),
-              TextFormField(
-                controller: _passScoreController,
-                decoration: const InputDecoration(labelText: 'Pass Score'),
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Please enter pass score';
-                  }
-                  if (int.tryParse(value) == null ||
-                      int.parse(value) < 0 ||
-                      int.parse(value) > 100) {
-                    return 'Please enter a valid score (0-100)';
                   }
                   return null;
                 },

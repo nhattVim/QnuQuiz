@@ -75,54 +75,52 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Analytics')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Admin Overview',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            _buildUserAnalyticsCard(),
-            const SizedBox(height: 16),
-            _buildExamAnalyticsCard(),
-            const SizedBox(height: 16),
-            _buildQuestionAnalyticsCard(),
-            const SizedBox(height: 32),
-            const Text(
-              'Teacher-Specific Analytics',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            FutureBuilder<List<TeacherModel>>(
-              future: _teachersFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No teachers found.'));
-                }
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Removed the redundant AppBar and page title is now handled by AdminScaffold
+          const Text(
+            'Admin Overview', // This can be removed or made a subheading
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          _buildUserAnalyticsCard(),
+          const SizedBox(height: 16),
+          _buildExamAnalyticsCard(),
+          const SizedBox(height: 16),
+          _buildQuestionAnalyticsCard(),
+          const SizedBox(height: 32),
+          const Text(
+            'Teacher-Specific Analytics',
+            style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          FutureBuilder<List<TeacherModel>>(
+            future: _teachersFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No teachers found.'));
+              }
 
-                final teachers = snapshot.data!;
-                return Column(
-                  children: [
-                    _buildExamsPerTeacherChart(teachers),
-                    const SizedBox(height: 32),
-                    ...teachers.map(
-                      (teacher) => _buildScoreDistributionChart(teacher),
-                    ),
-                  ],
-                );
-              },
-            ),
-          ],
-        ),
+              final teachers = snapshot.data!;
+              return Column(
+                children: [
+                  _buildExamsPerTeacherChart(teachers),
+                  const SizedBox(height: 32),
+                  ...teachers.map(
+                    (teacher) => _buildScoreDistributionChart(teacher),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
       ),
     );
   }
