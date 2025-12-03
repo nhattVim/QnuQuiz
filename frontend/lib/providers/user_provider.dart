@@ -1,31 +1,28 @@
-import 'package:flutter_riverpod/legacy.dart';
-
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/providers/service_providers.dart';
 import '../models/user_model.dart';
 import '../services/user_service.dart';
 
-final userProvider = StateNotifierProvider<UserNotifier, UserModel?>(
-  (ref) => UserNotifier(),
+final userProvider = AsyncNotifierProvider<UserNotifier, UserModel?>(
+  UserNotifier.new,
 );
 
-class UserNotifier extends StateNotifier<UserModel?> {
-  final _userService = UserService();
+class UserNotifier extends AsyncNotifier<UserModel?> {
+  late final UserService _userService;
 
-  UserNotifier() : super(null) {
-    _loadFromStorage();
+  @override
+  Future<UserModel?> build() async {
+    _userService = ref.read(userServiceProvider);
+    return _userService.getUser();
   }
 
-  Future<void> _loadFromStorage() async {
-    final user = await _userService.getUser();
-    state = user;
-  }
-
-  void setUser(UserModel user) async {
+  Future<void> setUser(UserModel user) async {
     await _userService.saveUser(user);
-    state = user;
+    state = AsyncData(user);
   }
 
   Future<void> clearUser() async {
     await _userService.clearUser();
-    state = null;
+    state = const AsyncData(null);
   }
 }

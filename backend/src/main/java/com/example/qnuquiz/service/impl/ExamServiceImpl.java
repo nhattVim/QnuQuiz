@@ -17,7 +17,7 @@ import com.example.qnuquiz.dto.exam.ExamCategoryDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
-import com.example.qnuquiz.dto.exam.QuestionDTO;
+import com.example.qnuquiz.dto.questions.QuestionDTO;
 import com.example.qnuquiz.entity.ExamAnswers;
 import com.example.qnuquiz.entity.ExamAttempts;
 import com.example.qnuquiz.entity.ExamCategories;
@@ -28,6 +28,7 @@ import com.example.qnuquiz.entity.Students;
 import com.example.qnuquiz.entity.Users;
 import com.example.qnuquiz.mapper.ExamCategoryMapper;
 import com.example.qnuquiz.mapper.ExamMapper;
+import com.example.qnuquiz.mapper.QuestionMapper;
 import com.example.qnuquiz.repository.ExamAnswerRepository;
 import com.example.qnuquiz.repository.ExamAttemptRepository;
 import com.example.qnuquiz.repository.ExamCategoryRepository;
@@ -58,6 +59,7 @@ public class ExamServiceImpl implements ExamService {
     private final QuestionRepository questionRepository;
     private final ExamAttemptRepository examAttemptRepository;
     private final ExamAnswerRepository examAnswerRepository;
+    private final QuestionMapper questionMapper;
 
     @Override
     public void submitAnswer(Long attemptId, Long questionId, Long optionId) {
@@ -70,7 +72,8 @@ public class ExamServiceImpl implements ExamService {
                 .orElseThrow(() -> new RuntimeException("Option not found: " + optionId));
 
         // 4. Kiểm tra xem đã có câu trả lời cho attempt + question chưa
-        Optional<ExamAnswers> existingOpt = examAnswerRepository.findByExamAttemptsIdAndQuestionsId(attemptId, questionId);
+        Optional<ExamAnswers> existingOpt = examAnswerRepository.findByExamAttemptsIdAndQuestionsId(attemptId,
+                questionId);
 
         ExamAnswers answer;
         if (existingOpt.isPresent()) {
@@ -198,6 +201,11 @@ public class ExamServiceImpl implements ExamService {
         Users user = getCurrentAuthenticatedUser();
         Exams exam = examMapper.toEntity(dto);
 
+        ExamCategories category = examCategoryRepository
+                .findById(dto.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+        exam.setExamCategories(category);
         exam.setUsers(user);
         exam.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         exam.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
@@ -290,7 +298,7 @@ public class ExamServiceImpl implements ExamService {
 
         if (!exam.isRandom()) {
             return questions.stream()
-                    .map(examMapper::toQuestionDTO)
+                    .map(questionMapper::toQuestionDTO)
                     .toList();
         }
 
@@ -304,7 +312,7 @@ public class ExamServiceImpl implements ExamService {
                 .limit(30)
                 .collect(Collectors.toList());
         return selected.stream()
-                .map(examMapper::toQuestionDTO)
+                .map(questionMapper::toQuestionDTO)
                 .toList();
     }
 

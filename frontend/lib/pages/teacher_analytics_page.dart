@@ -1,24 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/models/analytics/exam_analytics_model.dart';
-import 'package:frontend/services/analytics_service.dart';
-import 'package:frontend/services/user_service.dart';
+import 'package:frontend/providers/service_providers.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/widgets/analytics/class_performance_tab.dart';
 import 'package:frontend/widgets/analytics/overview_tab.dart';
 import 'package:frontend/widgets/analytics/question_analysis_tab.dart';
 import 'package:frontend/widgets/analytics/score_distribution_tab.dart';
 import 'package:frontend/widgets/analytics/student_attempts_tab.dart';
 
-class TeacherAnalyticsPage extends StatefulWidget {
+class TeacherAnalyticsPage extends ConsumerStatefulWidget {
   const TeacherAnalyticsPage({super.key});
 
   @override
-  State<TeacherAnalyticsPage> createState() => _TeacherAnalyticsPageState();
+  ConsumerState<TeacherAnalyticsPage> createState() =>
+      _TeacherAnalyticsPageState();
 }
 
-class _TeacherAnalyticsPageState extends State<TeacherAnalyticsPage>
+class _TeacherAnalyticsPageState extends ConsumerState<TeacherAnalyticsPage>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final AnalyticsService _analyticsService = AnalyticsService();
 
   Future<List<ExamAnalytics>>? _examAnalyticsFuture;
   String? _teacherId;
@@ -30,14 +31,18 @@ class _TeacherAnalyticsPageState extends State<TeacherAnalyticsPage>
     }
 
     final colorScheme = Theme.of(context).colorScheme;
+    final analyticsService = ref.read(analyticsServiceProvider);
 
     return Scaffold(
       appBar: AppBar(
+        centerTitle: true,
         title: const Text(
           'Thống kê & Báo cáo',
           style: TextStyle(fontWeight: FontWeight.bold),
         ),
         bottom: TabBar(
+          padding: EdgeInsets.zero,
+          tabAlignment: TabAlignment.start,
           controller: _tabController,
           isScrollable: true,
           labelColor: colorScheme.primary,
@@ -59,18 +64,18 @@ class _TeacherAnalyticsPageState extends State<TeacherAnalyticsPage>
           OverviewTab(future: _examAnalyticsFuture!),
           ClassPerformanceTab(
             examFuture: _examAnalyticsFuture!,
-            service: _analyticsService,
+            service: analyticsService,
           ),
           ScoreDistributionTab(
-            future: _analyticsService.getScoreDistribution(_teacherId!),
+            future: analyticsService.getScoreDistribution(_teacherId!),
           ),
           StudentAttemptsTab(
             examFuture: _examAnalyticsFuture!,
-            service: _analyticsService,
+            service: analyticsService,
           ),
           QuestionAnalysisTab(
             examFuture: _examAnalyticsFuture!,
-            service: _analyticsService,
+            service: analyticsService,
           ),
         ],
       ),
@@ -91,14 +96,16 @@ class _TeacherAnalyticsPageState extends State<TeacherAnalyticsPage>
   }
 
   Future<void> _loadUserAndData() async {
-    final user = await UserService().getUser();
+    final user = await ref.read(userProvider.notifier).build();
     if (user == null) return;
 
     if (!mounted) return;
 
     setState(() {
       _teacherId = user.id;
-      _examAnalyticsFuture = _analyticsService.getExamAnalytics(_teacherId!);
+      _examAnalyticsFuture = ref
+          .read(analyticsServiceProvider)
+          .getExamAnalytics(_teacherId!);
     });
   }
 }

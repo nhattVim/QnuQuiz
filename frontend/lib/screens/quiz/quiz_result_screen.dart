@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 import 'package:frontend/models/exam_result_model.dart';
 import 'package:frontend/screens/quiz/quiz_review_screen.dart';
-import 'package:frontend/services/exam_service.dart';
+import 'package:frontend/providers/service_providers.dart'; // Import service providers
 
-class QuizResultScreen extends StatelessWidget {
+class QuizResultScreen extends ConsumerWidget {
   final int totalQuestions;
   final ExamResultModel result;
   final int attemptId;
@@ -19,7 +20,11 @@ class QuizResultScreen extends StatelessWidget {
     required this.examTitle,
   });
 
-  Future<void> handleReviewExam(BuildContext context, int attemptId) async {
+  Future<void> handleReviewExam(
+    BuildContext context,
+    WidgetRef ref,
+    int attemptId,
+  ) async {
     try {
       // Hiển thị loading dialog
       showDialog(
@@ -43,7 +48,9 @@ class QuizResultScreen extends StatelessWidget {
       );
 
       // Gọi API để lấy dữ liệu review
-      final examReview = await ExamService().reviewExamAttempt(attemptId);
+      final examReview = await ref
+          .read(examServiceProvider)
+          .reviewExamAttempt(attemptId); // Use provider
 
       // Đóng loading dialog
       if (context.mounted) {
@@ -80,7 +87,7 @@ class QuizResultScreen extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final score = result.score;
     final correctCount = result.correctCount;
 
@@ -241,7 +248,8 @@ class QuizResultScreen extends StatelessWidget {
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: () => handleReviewExam(context, attemptId),
+                      onPressed: () =>
+                          handleReviewExam(context, ref, attemptId),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,

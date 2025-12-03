@@ -1,18 +1,19 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:logger/web.dart';
-
-import '../constants/api_constants.dart';
-import '../models/user_model.dart';
+import 'package:frontend/constants/api_constants.dart';
+import 'package:frontend/models/user_model.dart';
+import 'package:frontend/services/api_service.dart';
+import 'package:logger/logger.dart';
 
 class AuthService {
-  final Dio _dio;
+  final ApiService _apiService;
   final FlutterSecureStorage _storage;
   final _log = Logger();
 
-  AuthService({Dio? dio, FlutterSecureStorage? storage})
-    : _dio = dio ?? Dio(BaseOptions(baseUrl: ApiConstants.baseUrl)),
-      _storage = storage ?? const FlutterSecureStorage();
+  AuthService(this._apiService, {FlutterSecureStorage? storage})
+    : _storage = storage ?? const FlutterSecureStorage();
+
+  Dio get _dio => _apiService.dio;
 
   Future<String?> getToken() async => await _storage.read(key: 'auth_token');
 

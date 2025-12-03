@@ -32,4 +32,7 @@ public interface UserMapper {
     @Mapping(target = "classeses", ignore = true)
     @Mapping(target = "feedbacksesForReviewedBy", ignore = true)
     Users toEntity(UserRegisterDto dto);
+
+    @Mapping(target = "passwordHash", ignore = true)
+    Users toEntity(UserDto dto);
 }

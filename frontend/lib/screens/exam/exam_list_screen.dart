@@ -1,25 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_boxicons/flutter_boxicons.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 import 'package:frontend/models/exam_model.dart';
 import 'package:frontend/screens/exam/widgets/exam_card.dart';
 import 'package:frontend/screens/quiz/quiz_screen.dart';
 import 'package:frontend/screens/quiz/quiz_review_screen.dart';
 import 'package:frontend/screens/student_exam_history_screen.dart';
-import 'package:frontend/services/exam_service.dart';
+import 'package:frontend/providers/service_providers.dart'; // Import service providers
 
-class ExamListScreen extends StatefulWidget {
+class ExamListScreen extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget
   final int categoryId;
 
   const ExamListScreen({super.key, required this.categoryId});
 
   @override
-  State<ExamListScreen> createState() => _ExamListScreenState();
+  ConsumerState<ExamListScreen> createState() => _ExamListScreenState();
 }
 
-class _ExamListScreenState extends State<ExamListScreen> {
+class _ExamListScreenState extends ConsumerState<ExamListScreen> {
   late Future<List<ExamModel>> futureExams;
   late Key _futureBuilderKey;
-  final ExamService _examService = ExamService();
+  // Removed direct instantiation:
+  // final ExamService _examService = ExamService();
 
   @override
   void initState() {
@@ -28,15 +30,17 @@ class _ExamListScreenState extends State<ExamListScreen> {
   }
 
   void _loadExams() {
+    final examService = ref.read(examServiceProvider); // Get service from provider
     setState(() {
-      futureExams = _examService.getExamsByCategory(widget.categoryId);
+      futureExams = examService.getExamsByCategory(widget.categoryId);
       _futureBuilderKey = UniqueKey();
     });
   }
 
   Future<void> _handleExamPressed(ExamModel exam) async {
+    final examService = ref.read(examServiceProvider); // Get service from provider
     try {
-      final attempt = await _examService.startExam(exam.id);
+      final attempt = await examService.startExam(exam.id);
 
       if (!mounted) return;
 
@@ -64,13 +68,14 @@ class _ExamListScreenState extends State<ExamListScreen> {
   }
 
   Future<void> _handleReviewPressed(ExamModel exam) async {
+    final examService = ref.read(examServiceProvider); // Get service from provider
     try {
       // 1. Lấy lượt thi mới nhất
-      final attempt = await _examService.getLatestAttempt(exam.id);
+      final attempt = await examService.getLatestAttempt(exam.id);
       if (!mounted) return;
 
       // 2. Lấy dữ liệu xem lại
-      final reviewData = await _examService.reviewExamAttempt(attempt.id);
+      final reviewData = await examService.reviewExamAttempt(attempt.id);
       if (!mounted) return;
 
       // 3. Chuyển màn hình Review

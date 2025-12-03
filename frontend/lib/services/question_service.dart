@@ -8,9 +8,11 @@ import 'package:logger/logger.dart';
 
 class QuestionService {
   final _log = Logger();
-  final Dio _dio;
+  final ApiService _apiService;
 
-  QuestionService({Dio? dio}) : _dio = dio ?? ApiService().dio;
+  QuestionService(this._apiService);
+
+  Dio get _dio => _apiService.dio;
 
   Future<List<QuestionModel>> getQuestions(int examId) async {
     try {
@@ -63,6 +65,28 @@ class QuestionService {
     }
   }
 
+  Future<List<QuestionModel>> getAllQuestions() async {
+    try {
+      final response = await _dio.get(ApiConstants.questions);
+      final data = response.data;
+
+      if (data is List) {
+        return data
+            .map((e) => QuestionModel.fromJson(e as Map<String, dynamic>))
+            .toList();
+      } else if (data is Map && data.containsKey('message')) {
+        throw Exception(data['message']);
+      } else {
+        throw Exception('Unexpected data format: $data');
+      }
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi lấy danh sách câu hỏi',
+      );
+    }
+  }
+
   Future<void> deleteQuestions(List<int> questionIds) async {
     if (questionIds.isEmpty) return;
 
@@ -93,6 +117,23 @@ class QuestionService {
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);
       throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+    }
+  }
+
+  Future<QuestionModel> createQuestion(
+    Map<String, dynamic> questionData,
+    int examId,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.questions}/create',
+        data: questionData,
+        queryParameters: {'examId': examId},
+      );
+      return QuestionModel.fromJson(response.data);
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(e.response?.data?['message'] ?? 'Lỗi khi tạo câu hỏi');
     }
   }
 }

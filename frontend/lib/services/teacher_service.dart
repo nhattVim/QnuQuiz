@@ -6,7 +6,24 @@ import 'package:logger/logger.dart';
 
 class TeacherService {
   final _log = Logger();
-  final Dio _dio = ApiService().dio;
+  final ApiService _apiService;
+
+  TeacherService(this._apiService);
+
+  Dio get _dio => _apiService.dio;
+  
+  Future<List<TeacherModel>> getAllTeachers() async {
+    try {
+      final response = await _dio.get(ApiConstants.teachers);
+      final List<dynamic> data = response.data;
+      return data.map((teacher) => TeacherModel.fromJson(teacher)).toList();
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi lấy danh sách giảng viên',
+      );
+    }
+  }
 
   Future<TeacherModel> getCurrentTeacher() async {
     try {

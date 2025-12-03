@@ -69,4 +69,10 @@ public interface ExamAttemptRepository extends JpaRepository<ExamAttempts, Long>
 			    ORDER BY SUM(ea.score) DESC
 			""")
 	List<RankingDto> rankingByExamId(Long examId);
+
+	@Query("SELECT AVG(ea.score) FROM ExamAttempts ea WHERE ea.submitted = true")
+	Double findAverageScoreOverall();
+
+	@Query("SELECT COUNT(DISTINCT ea.exams.id) FROM ExamAttempts ea JOIN ea.exams e JOIN Questions q ON q.exams = e")
+	Long countDistinctExamsWithQuestions();
 }
