@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/class_model.dart';
+import 'package:frontend/models/department_model.dart';
 import 'package:frontend/providers/service_providers.dart';
-import 'package:frontend/services/class_service.dart';
 
 class CreateNotificationScreen extends ConsumerStatefulWidget {
   const CreateNotificationScreen({super.key});
@@ -16,26 +16,31 @@ class _CreateNotificationScreenState extends ConsumerState<CreateNotificationScr
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _contentController = TextEditingController();
+  String? _selectedTarget; // ALL, DEPARTMENT, CLASS
   int? _selectedClassId;
+  int? _selectedDepartmentId;
   List<ClassModel> _classes = [];
+  List<DepartmentModel> _departments = [];
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
-    _loadClasses();
+    _loadData();
   }
 
-  Future<void> _loadClasses() async {
+  Future<void> _loadData() async {
     try {
       final classes = await ref.read(classServiceProvider).getAllClasses();
+      final departments = await ref.read(departmentServiceProvider).getAllDepartments();
       setState(() {
         _classes = classes;
+        _departments = departments;
       });
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Lỗi tải danh sách lớp: ${e.toString()}')),
+          SnackBar(content: Text('Lỗi tải dữ liệu: ${e.toString()}')),
         );
       }
     }
@@ -46,9 +51,24 @@ class _CreateNotificationScreenState extends ConsumerState<CreateNotificationScr
       return;
     }
 
-    if (_selectedClassId == null) {
+    if (_selectedTarget == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn loại thông báo')),
+      );
+      return;
+    }
+
+    // Validate theo loại thông báo
+    if (_selectedTarget == 'CLASS' && _selectedClassId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Vui lòng chọn lớp')),
+      );
+      return;
+    }
+
+    if (_selectedTarget == 'DEPARTMENT' && _selectedDepartmentId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Vui lòng chọn khoa')),
       );
       return;
     }
@@ -58,10 +78,12 @@ class _CreateNotificationScreenState extends ConsumerState<CreateNotificationScr
     });
 
     try {
-      await ref.read(announcementServiceProvider).createAnnouncementForClass(
+      await ref.read(announcementServiceProvider).createAnnouncement(
             title: _titleController.text.trim(),
             content: _contentController.text.trim(),
-            classId: _selectedClassId!,
+            target: _selectedTarget!,
+            classId: _selectedTarget == 'CLASS' ? _selectedClassId : null,
+            departmentId: _selectedTarget == 'DEPARTMENT' ? _selectedDepartmentId : null,
           );
 
       if (mounted) {
@@ -103,35 +125,107 @@ class _CreateNotificationScreenState extends ConsumerState<CreateNotificationScr
         child: ListView(
           padding: EdgeInsets.all(16.w),
           children: [
-            // Class selection
-            DropdownButtonFormField<int>(
-              value: _selectedClassId,
+            // Target type selection
+            DropdownButtonFormField<String>(
+              value: _selectedTarget,
               decoration: InputDecoration(
-                labelText: 'Chọn lớp',
+                labelText: 'Loại thông báo',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12.r),
                 ),
               ),
-              items: _classes.map((classItem) {
-                return DropdownMenuItem<int>(
-                  value: classItem.id,
-                  child: Text(classItem.name),
-                );
-              }).toList(),
+              items: const [
+                DropdownMenuItem<String>(
+                  value: 'ALL',
+                  child: Text('Toàn trường'),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'DEPARTMENT',
+                  child: Text('Khoa'),
+                ),
+                DropdownMenuItem<String>(
+                  value: 'CLASS',
+                  child: Text('Lớp'),
+                ),
+              ],
               onChanged: (value) {
                 setState(() {
-                  _selectedClassId = value;
+                  _selectedTarget = value;
+                  _selectedClassId = null;
+                  _selectedDepartmentId = null;
                 });
               },
               validator: (value) {
                 if (value == null) {
-                  return 'Vui lòng chọn lớp';
+                  return 'Vui lòng chọn loại thông báo';
                 }
                 return null;
               },
             ),
 
             SizedBox(height: 16.h),
+
+            // Department selection (only for DEPARTMENT target)
+            if (_selectedTarget == 'DEPARTMENT')
+              DropdownButtonFormField<int>(
+                value: _selectedDepartmentId,
+                decoration: InputDecoration(
+                  labelText: 'Chọn khoa',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                ),
+                items: _departments.map((dept) {
+                  return DropdownMenuItem<int>(
+                    value: dept.id,
+                    child: Text(dept.name),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedDepartmentId = value;
+                  });
+                },
+                validator: (value) {
+                  if (_selectedTarget == 'DEPARTMENT' && value == null) {
+                    return 'Vui lòng chọn khoa';
+                  }
+                  return null;
+                },
+              ),
+
+            if (_selectedTarget == 'DEPARTMENT') SizedBox(height: 16.h),
+
+            // Class selection (only for CLASS target)
+            if (_selectedTarget == 'CLASS')
+              DropdownButtonFormField<int>(
+                value: _selectedClassId,
+                decoration: InputDecoration(
+                  labelText: 'Chọn lớp',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12.r),
+                  ),
+                ),
+                items: _classes.map((classItem) {
+                  return DropdownMenuItem<int>(
+                    value: classItem.id,
+                    child: Text(classItem.name),
+                  );
+                }).toList(),
+                onChanged: (value) {
+                  setState(() {
+                    _selectedClassId = value;
+                  });
+                },
+                validator: (value) {
+                  if (_selectedTarget == 'CLASS' && value == null) {
+                    return 'Vui lòng chọn lớp';
+                  }
+                  return null;
+                },
+              ),
+
+            if (_selectedTarget == 'CLASS') SizedBox(height: 16.h),
 
             // Title
             TextFormField(

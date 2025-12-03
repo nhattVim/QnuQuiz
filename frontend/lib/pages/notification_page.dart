@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/announcement_model.dart';
 import 'package:frontend/providers/service_providers.dart';
 import 'package:frontend/screens/notification/create_notification_screen.dart';
+import 'package:frontend/screens/notification/notification_detail_screen.dart';
 import 'package:intl/intl.dart';
 
 class NotificationPage extends ConsumerStatefulWidget {
@@ -261,49 +262,63 @@ class _NotificationPageState extends ConsumerState<NotificationPage> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12.r),
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.grey[100],
-          borderRadius: BorderRadius.circular(12.r),
-        ),
-        padding: EdgeInsets.all(16.w),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Header with date and delete button
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  dateFormat.format(announcement.publishedAt),
-                  style: TextStyle(
-                    fontSize: 14.sp,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => _handleDelete(announcement.id),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.red,
-                    padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
-                    minimumSize: Size.zero,
-                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-                  child: const Text('Xoá'),
-                ),
-              ],
-            ),
-            SizedBox(height: 8.h),
-            // Content
-            Text(
-              announcement.content,
-              style: TextStyle(
-                fontSize: 16.sp,
-                color: Colors.grey[900],
+      child: InkWell(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => NotificationDetailScreen(
+                announcement: announcement,
               ),
             ),
-          ],
+          );
+        },
+        borderRadius: BorderRadius.circular(12.r),
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(12.r),
+          ),
+          padding: EdgeInsets.all(16.w),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Header with date and delete button
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    dateFormat.format(announcement.publishedAt),
+                    style: TextStyle(
+                      fontSize: 14.sp,
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => _handleDelete(announcement.id),
+                    icon: const Icon(Icons.delete_outline, color: Colors.red),
+                    iconSize: 20.sp,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: 'Xóa',
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+              // Title
+              Text(
+                announcement.title,
+                style: TextStyle(
+                  fontSize: 16.sp,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[900],
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+          ),
         ),
       ),
     );

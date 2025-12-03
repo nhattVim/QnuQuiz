@@ -12,6 +12,8 @@ import lombok.NoArgsConstructor;
 public class CreateAnnouncementDto {
     private String title;
     private String content;
-    private Long classId; // ID của lớp cần đăng thông báo
+    private String target; // ALL, DEPARTMENT, CLASS
+    private Long classId; // ID của lớp (chỉ cần khi target = CLASS)
+    private Long departmentId; // ID của khoa (chỉ cần khi target = DEPARTMENT)
 }
 

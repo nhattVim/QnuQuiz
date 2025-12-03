@@ -1,6 +1,5 @@
 package com.example.qnuquiz.service.impl;
 
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -123,9 +122,15 @@ public class TeacherServiceImpl implements TeacherService {
                     .collect(Collectors.toList()));
         }
 
-        // Loại bỏ trùng lặp và sắp xếp theo thời gian
+        // Loại bỏ trùng lặp (theo ID) và sắp xếp theo thời gian
         examAnnouncements = examAnnouncements.stream()
-                .distinct()
+                .collect(Collectors.toMap(
+                    TeacherNotificationDto.ExamAnnouncementDto::getId,
+                    dto -> dto,
+                    (existing, replacement) -> existing
+                ))
+                .values()
+                .stream()
                 .sorted((a, b) -> b.getPublishedAt().compareTo(a.getPublishedAt()))
                 .collect(Collectors.toList());
 

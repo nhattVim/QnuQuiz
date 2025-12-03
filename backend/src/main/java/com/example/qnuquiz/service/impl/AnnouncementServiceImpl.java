@@ -11,9 +11,11 @@ import com.example.qnuquiz.dto.announcement.AnnouncementDto;
 import com.example.qnuquiz.dto.announcement.CreateAnnouncementDto;
 import com.example.qnuquiz.entity.Announcements;
 import com.example.qnuquiz.entity.Classes;
+import com.example.qnuquiz.entity.Departments;
 import com.example.qnuquiz.entity.Users;
 import com.example.qnuquiz.repository.AnnouncementRepository;
 import com.example.qnuquiz.repository.ClassesRepository;
+import com.example.qnuquiz.repository.DepartmentRepository;
 import com.example.qnuquiz.repository.UserRepository;
 import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.AnnouncementService;
@@ -26,11 +28,12 @@ public class AnnouncementServiceImpl implements AnnouncementService {
 
     private final AnnouncementRepository announcementRepository;
     private final ClassesRepository classesRepository;
+    private final DepartmentRepository departmentRepository;
     private final UserRepository userRepository;
 
     @Override
     @Transactional
-    public AnnouncementDto createAnnouncementForClass(CreateAnnouncementDto dto) {
+    public AnnouncementDto createAnnouncement(CreateAnnouncementDto dto) {
         // Validate input
         if (dto == null) {
             throw new RuntimeException("Dữ liệu không hợp lệ");
@@ -44,8 +47,13 @@ public class AnnouncementServiceImpl implements AnnouncementService {
             throw new RuntimeException("Nội dung không được để trống");
         }
 
-        if (dto.getClassId() == null) {
-            throw new RuntimeException("Vui lòng chọn lớp");
+        if (!StringUtils.hasText(dto.getTarget())) {
+            throw new RuntimeException("Vui lòng chọn loại thông báo");
+        }
+
+        String target = dto.getTarget().toUpperCase();
+        if (!"ALL".equals(target) && !"DEPARTMENT".equals(target) && !"CLASS".equals(target)) {
+            throw new RuntimeException("Loại thông báo không hợp lệ. Chỉ chấp nhận: ALL, DEPARTMENT, CLASS");
         }
 
         // Lấy user hiện tại
@@ -62,19 +70,35 @@ public class AnnouncementServiceImpl implements AnnouncementService {
             throw new RuntimeException("Chỉ giáo viên hoặc quản trị viên mới có thể đăng thông báo");
         }
 
-        // Kiểm tra lớp có tồn tại không
-        Classes targetClass = classesRepository.findById(dto.getClassId())
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp với ID: " + dto.getClassId()));
+        // Validate theo loại thông báo
+        Classes targetClass = null;
+        Departments targetDepartment = null;
+
+        if ("CLASS".equals(target)) {
+            if (dto.getClassId() == null) {
+                throw new RuntimeException("Vui lòng chọn lớp");
+            }
+            targetClass = classesRepository.findById(dto.getClassId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy lớp với ID: " + dto.getClassId()));
+            targetDepartment = targetClass.getDepartments();
+        } else if ("DEPARTMENT".equals(target)) {
+            if (dto.getDepartmentId() == null) {
+                throw new RuntimeException("Vui lòng chọn khoa");
+            }
+            targetDepartment = departmentRepository.findById(dto.getDepartmentId())
+                    .orElseThrow(() -> new RuntimeException("Không tìm thấy khoa với ID: " + dto.getDepartmentId()));
+        }
+        // ALL không cần classId hoặc departmentId
 
         // Tạo announcement
         Timestamp now = new Timestamp(System.currentTimeMillis());
         Announcements announcement = new Announcements();
         announcement.setTitle(dto.getTitle());
         announcement.setContent(dto.getContent());
-        announcement.setTarget("CLASS");
+        announcement.setTarget(target);
         announcement.setClasses(targetClass);
+        announcement.setDepartments(targetDepartment);
         announcement.setUsers(user);
-        announcement.setDepartments(targetClass.getDepartments());
         announcement.setPublishedAt(now);
         announcement.setCreatedAt(now);
 
@@ -117,12 +141,8 @@ public class AnnouncementServiceImpl implements AnnouncementService {
         Announcements announcement = announcementRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Không tìm thấy thông báo với ID: " + id));
 
-        // Kiểm tra quyền: chỉ người tạo hoặc ADMIN mới có thể xóa
-        if (!"ADMIN".equalsIgnoreCase(user.getRole()) 
-                && (announcement.getUsers() == null || !announcement.getUsers().getId().equals(currentUserId))) {
-            throw new RuntimeException("Bạn không có quyền xóa thông báo này");
-        }
-
+        // TEACHER và ADMIN đều có thể xóa bất kỳ thông báo nào (ALL, DEPARTMENT, CLASS)
+        // Không cần kiểm tra theo ID lớp/khoa vì thông báo ALL không có ID lớp/khoa
         announcementRepository.delete(announcement);
     }
 
@@ -143,15 +163,9 @@ public class AnnouncementServiceImpl implements AnnouncementService {
             throw new RuntimeException("Chỉ giáo viên hoặc quản trị viên mới có thể xóa thông báo");
         }
 
-        // Lấy tất cả thông báo của người dùng hiện tại (hoặc tất cả nếu là ADMIN)
-        if ("ADMIN".equalsIgnoreCase(user.getRole())) {
-            announcementRepository.deleteAll();
-        } else {
-            // Xóa tất cả thông báo do giáo viên này tạo
-            announcementRepository.findAll().stream()
-                    .filter(a -> a.getUsers() != null && a.getUsers().getId().equals(currentUserId))
-                    .forEach(announcementRepository::delete);
-        }
+        // TEACHER và ADMIN đều có thể xóa tất cả thông báo
+        // Không cần kiểm tra theo ID lớp/khoa vì thông báo ALL không có ID lớp/khoa
+        announcementRepository.deleteAll();
     }
 }
 

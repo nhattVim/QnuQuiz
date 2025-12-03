@@ -33,19 +33,29 @@ class AnnouncementService {
     }
   }
 
-  Future<AnnouncementModel> createAnnouncementForClass({
+  Future<AnnouncementModel> createAnnouncement({
     required String title,
     required String content,
-    required int classId,
+    required String target, // ALL, DEPARTMENT, CLASS
+    int? classId,
+    int? departmentId,
   }) async {
     try {
+      final data = <String, dynamic>{
+        'title': title,
+        'content': content,
+        'target': target,
+      };
+      
+      if (target == 'CLASS' && classId != null) {
+        data['classId'] = classId;
+      } else if (target == 'DEPARTMENT' && departmentId != null) {
+        data['departmentId'] = departmentId;
+      }
+      
       final response = await _dio.post(
-        '${ApiConstants.announcements}/class',
-        data: {
-          'title': title,
-          'content': content,
-          'classId': classId,
-        },
+        ApiConstants.announcements,
+        data: data,
       );
       return AnnouncementModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {

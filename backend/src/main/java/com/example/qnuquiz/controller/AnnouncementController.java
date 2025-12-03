@@ -24,11 +24,11 @@ public class AnnouncementController {
 
     private final AnnouncementService announcementService;
 
-    @PostMapping("/class")
+    @PostMapping
     @PreAuthorize("hasAnyRole('TEACHER', 'ADMIN')")
-    public ResponseEntity<AnnouncementDto> createAnnouncementForClass(
+    public ResponseEntity<AnnouncementDto> createAnnouncement(
             @RequestBody CreateAnnouncementDto dto) {
-        return ResponseEntity.ok(announcementService.createAnnouncementForClass(dto));
+        return ResponseEntity.ok(announcementService.createAnnouncement(dto));
     }
 
     @DeleteMapping("/{id}")
