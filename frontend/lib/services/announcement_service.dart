@@ -86,7 +86,7 @@ class AnnouncementService {
 
   Future<void> deleteAllAnnouncements() async {
     try {
-      final response = await _dio.delete('${ApiConstants.announcements}');
+      final response = await _dio.delete(ApiConstants.announcements);
       if (response.statusCode == 204 || response.statusCode == 200) {
         _log.i('Đã xóa tất cả thông báo');
       }

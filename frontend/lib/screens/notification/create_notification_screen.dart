@@ -127,7 +127,7 @@ class _CreateNotificationScreenState extends ConsumerState<CreateNotificationScr
           children: [
             // Target type selection
             DropdownButtonFormField<String>(
-              value: _selectedTarget,
+              initialValue: _selectedTarget,
               decoration: InputDecoration(
                 labelText: 'Loại thông báo',
                 border: OutlineInputBorder(
@@ -168,7 +168,7 @@ class _CreateNotificationScreenState extends ConsumerState<CreateNotificationScr
             // Department selection (only for DEPARTMENT target)
             if (_selectedTarget == 'DEPARTMENT')
               DropdownButtonFormField<int>(
-                value: _selectedDepartmentId,
+                initialValue: _selectedDepartmentId,
                 decoration: InputDecoration(
                   labelText: 'Chọn khoa',
                   border: OutlineInputBorder(
@@ -199,7 +199,7 @@ class _CreateNotificationScreenState extends ConsumerState<CreateNotificationScr
             // Class selection (only for CLASS target)
             if (_selectedTarget == 'CLASS')
               DropdownButtonFormField<int>(
-                value: _selectedClassId,
+                initialValue: _selectedClassId,
                 decoration: InputDecoration(
                   labelText: 'Chọn lớp',
                   border: OutlineInputBorder(
