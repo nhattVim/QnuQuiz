@@ -23,11 +23,13 @@ class _QuestionFormDialogState extends ConsumerState<QuestionFormDialog> {
   ExamModel? _selectedExam;
   late Future<List<ExamModel>> _examsFuture;
 
+  bool get _isEditing => widget.question != null;
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       title: Text(
-        widget.question == null ? 'Create New Question' : 'Edit Question',
+        _isEditing ? 'Edit Question' : 'Create New Question',
       ),
       content: SingleChildScrollView(
         child: Form(
@@ -48,8 +50,7 @@ class _QuestionFormDialogState extends ConsumerState<QuestionFormDialog> {
                   return null;
                 },
               ),
-              if (widget.question ==
-                  null) // Only show exam selection for new questions
+              if (!_isEditing)
                 FutureBuilder<List<ExamModel>>(
                   future: _examsFuture,
                   builder: (context, snapshot) {
@@ -60,8 +61,7 @@ class _QuestionFormDialogState extends ConsumerState<QuestionFormDialog> {
                     } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
                       return const Text('No exams available');
                     }
-                    _selectedExam ??=
-                        snapshot.data!.first; // Default to first exam
+                    _selectedExam ??= snapshot.data!.first;
                     return DropdownButtonFormField<ExamModel>(
                       decoration: const InputDecoration(
                         labelText: 'Select Exam',
@@ -75,11 +75,9 @@ class _QuestionFormDialogState extends ConsumerState<QuestionFormDialog> {
                             ),
                           )
                           .toList(),
-                      onChanged: (value) {
-                        setState(() {
-                          _selectedExam = value;
-                        });
-                      },
+                      onChanged: (value) => setState(() {
+                        _selectedExam = value;
+                      }),
                     );
                   },
                 ),
@@ -119,6 +117,7 @@ class _QuestionFormDialogState extends ConsumerState<QuestionFormDialog> {
                       IconButton(
                         icon: const Icon(Icons.remove_circle),
                         onPressed: () => _removeOption(index),
+                        tooltip: 'Remove option',
                       ),
                     ],
                   );
@@ -187,6 +186,12 @@ class _QuestionFormDialogState extends ConsumerState<QuestionFormDialog> {
   }
 
   void _removeOption(int index) {
+    if (_optionControllers.length <= 2) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('A question must have at least 2 options.')),
+      );
+      return;
+    }
     setState(() {
       _optionControllers[index].dispose();
       _optionControllers.removeAt(index);
@@ -196,12 +201,18 @@ class _QuestionFormDialogState extends ConsumerState<QuestionFormDialog> {
 
   void _saveForm() {
     if (_formKey.currentState!.validate()) {
-      if (_selectedExam == null && widget.question == null) {
-        // Show error if exam not selected for new question
+      if (!_isEditing && _selectedExam == null) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Please select an exam for the question.'),
           ),
+        );
+        return;
+      }
+
+      if (!_isCorrectList.contains(true)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Please mark at least one correct option.')),
         );
         return;
       }
@@ -213,11 +224,10 @@ class _QuestionFormDialogState extends ConsumerState<QuestionFormDialog> {
             final index = entry.key;
             final controller = entry.value;
             return QuestionOptionModel(
-              id:
-                  widget.question?.options != null &&
+              id: widget.question?.options != null &&
                       index < widget.question!.options!.length
                   ? widget.question!.options![index].id
-                  : 1,
+                  : null,
               content: controller.text,
               correct: _isCorrectList[index],
               position: index + 1,
@@ -226,12 +236,12 @@ class _QuestionFormDialogState extends ConsumerState<QuestionFormDialog> {
           .toList();
 
       final newQuestion = QuestionModel(
-        id: widget.question?.id, // Null for new, existing for update
+        id: widget.question?.id,
         content: _contentController.text,
-        type: 'MULTIPLE_CHOICE', // Assuming multiple choice for now
+        type: widget.question?.type ?? 'MULTIPLE_CHOICE',
         options: options,
       );
-      widget.onSave(newQuestion, _selectedExam?.id);
+      widget.onSave(newQuestion, _selectedExam?.id ?? widget.question?.examId);
       Navigator.of(context).pop();
     }
   }

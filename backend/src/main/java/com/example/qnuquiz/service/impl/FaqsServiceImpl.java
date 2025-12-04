@@ -1,6 +1,5 @@
 package com.example.qnuquiz.service.impl;
 
-import java.sql.Timestamp;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
@@ -46,7 +45,6 @@ public class FaqsServiceImpl implements FaqsService {
 				.orElseThrow(() -> new RuntimeException("FAQ not found"));
         faqs.setAnswer(dto.getAnswer());
         faqs.setQuestion(dto.getQuestion());
-        faqs.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         
         Faqs saved = faqsRepository.save(faqs);
         FaqDto faqDto = faqsMapper.toDto(saved);

@@ -123,11 +123,13 @@ public class QuestionServiceImpl implements QuestionService {
                 .map(q -> QuestionDTO.builder()
                         .id(q.getId())
                         .content(q.getContent())
+                        .type(q.getType())
                         .options(questionOptionsRepository.findByQuestions_Id(q.getId()).stream()
                                 .map(o -> QuestionOptionDto.builder()
                                         .id(o.getId())
                                         .content(o.getContent())
                                         .correct(o.isIsCorrect())
+                                        .position(o.getPosition())
                                         .build())
                                 .toList())
                         .build())
@@ -157,11 +159,13 @@ public class QuestionServiceImpl implements QuestionService {
                             .orElseThrow(() -> new RuntimeException("Option not found with id: " + optionDto.getId()));
                     option.setContent(optionDto.getContent());
                     option.setIsCorrect(optionDto.isCorrect());
+                    option.setPosition(optionDto.getPosition());
                     questionOptionsRepository.save(option);
                     return QuestionOptionDto.builder()
                             .id(option.getId())
                             .content(option.getContent())
                             .correct(option.isIsCorrect())
+                            .position(option.getPosition())
                             .build();
                 })
                 .collect(Collectors.toList());
@@ -171,6 +175,7 @@ public class QuestionServiceImpl implements QuestionService {
         return QuestionDTO.builder()
                 .id(question.getId())
                 .content(question.getContent())
+                .type(question.getType())
                 .options(updatedOptions)
                 .build();
     }
@@ -188,11 +193,13 @@ public class QuestionServiceImpl implements QuestionService {
                 .map(q -> QuestionDTO.builder()
                         .id(q.getId())
                         .content(q.getContent())
+                        .type(q.getType())
                         .options(questionOptionsRepository.findByQuestions_Id(q.getId()).stream()
                                 .map(o -> QuestionOptionDto.builder()
                                         .id(o.getId())
                                         .content(o.getContent())
                                         .correct(o.isIsCorrect())
+                                        .position(o.getPosition())
                                         .build())
                                 .toList())
                         .build())
@@ -241,6 +248,7 @@ public class QuestionServiceImpl implements QuestionService {
         return QuestionDTO.builder()
                 .id(savedQuestion.getId())
                 .content(savedQuestion.getContent())
+                .type(savedQuestion.getType())
                 .options(createdOptions)
                 .build();
     }
