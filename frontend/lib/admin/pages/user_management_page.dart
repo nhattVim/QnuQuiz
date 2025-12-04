@@ -1,3 +1,4 @@
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
 import 'package:frontend/admin/widgets/user_form_dialog.dart';
@@ -96,8 +97,39 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage> {
       ),
     );
   }
+  
+  Future<void> _handleImportStudents() async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['xlsx'],
+      );
+      if (result == null || result.files.single.path == null) {
+        return;
+      }
 
+      final path = result.files.single.path!;
+      final userService = ref.read(userServiceProvider);
 
+      await userService.importStudents(path);
+      if (!mounted) return;
+
+      _fetchUsers();
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('Import danh sách sinh viên thành công'),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text('Lỗi khi import danh sách sinh viên: $e'),
+        ),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +149,11 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage> {
               onPressed: _fetchUsers,
               icon: const Icon(Icons.refresh),
               label: const Text('Reload'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _handleImportStudents,
+              icon: const Icon(Icons.file_upload),
+              label: const Text('Import students (.xlsx)'),
             ),
           ],
         ),

@@ -219,4 +219,52 @@ class AnalyticsService {
       );
     }
   }
+
+  /// Download CSV for user analytics (admin only).
+  Future<Response<dynamic>> downloadUserAnalyticsCsv() async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/admin/users/export',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return response;
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi export thống kê người dùng',
+      );
+    }
+  }
+
+  /// Download CSV for exam analytics (admin only).
+  Future<Response<dynamic>> downloadExamAnalyticsCsv() async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/admin/exams/export',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return response;
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi export thống kê bài thi',
+      );
+    }
+  }
+
+  /// Download CSV for question analytics (admin only).
+  Future<Response<dynamic>> downloadQuestionAnalyticsCsv() async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/admin/questions/export',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      return response;
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi export thống kê câu hỏi',
+      );
+    }
+  }
 }

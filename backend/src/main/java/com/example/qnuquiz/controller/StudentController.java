@@ -6,10 +6,13 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.qnuquiz.dto.student.ExamHistoryDto;
 import com.example.qnuquiz.dto.student.StudentDto;
@@ -41,5 +44,17 @@ public class StudentController {
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<List<ExamHistoryDto>> getExamHistory() {
         return ResponseEntity.ok(studentService.getExamHistory());
+    }
+
+    @PostMapping("/import")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<String> importStudents(@RequestParam("file") MultipartFile file) {
+        try {
+            studentService.importStudentsFromExcel(file);
+            return ResponseEntity.ok("Import danh sách sinh viên thành công");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError()
+                    .body("Lỗi khi import danh sách sinh viên: " + e.getMessage());
+        }
     }
 }
