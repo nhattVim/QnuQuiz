@@ -272,7 +272,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                                     ),
                                     borderRadius: BorderRadius.circular(20),
                                     color: isSelected
-                                        ? Colors.blue.withOpacity(0.2)
+                                        ? Colors.blue.withValues(alpha: 0.2)
                                         : Colors.transparent,
                                   ),
                                   child: Text(
