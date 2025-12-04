@@ -97,66 +97,96 @@ class _ExamManagementPageState extends ConsumerState<ExamManagementPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Exam Management')),
-      body: FutureBuilder<List<ExamModel>>(
-        future: _examsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No exams found.'));
-          }
-
-          final exams = snapshot.data!;
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: const <DataColumn>[
-                DataColumn(label: Text('ID')),
-                DataColumn(label: Text('Title')),
-                DataColumn(label: Text('Description')),
-                DataColumn(label: Text('Max Questions')),
-                DataColumn(label: Text('Duration (min)')),
-                DataColumn(label: Text('Category')),
-                DataColumn(label: Text('Actions')),
-              ],
-              rows: exams.map((exam) {
-                return DataRow(
-                  cells: <DataCell>[
-                    DataCell(Text(exam.id.toString())),
-                    DataCell(Text(exam.title)),
-                    DataCell(Text(exam.description)),
-                    DataCell(Text(exam.maxQuestions?.toString() ?? '')),
-                    DataCell(Text(exam.durationMinutes?.toString() ?? '')),
-                    DataCell(Text(exam.categoryId.toString())),
-                    DataCell(
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _showExamFormDialog(exam: exam),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _confirmDeleteExam(exam.id),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            FilledButton.icon(
+              onPressed: () => _showExamFormDialog(),
+              icon: const Icon(Icons.add),
+              label: const Text('New exam'),
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showExamFormDialog(),
-        child: const Icon(Icons.add),
-      ),
+            OutlinedButton.icon(
+              onPressed: _fetchExams,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reload'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: FutureBuilder<List<ExamModel>>(
+            future: _examsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No exams found.'));
+              }
+
+              final exams = snapshot.data!;
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: const <DataColumn>[
+                    DataColumn(label: Text('ID')),
+                    DataColumn(label: Text('Title')),
+                    DataColumn(label: Text('Description')),
+                    DataColumn(label: Text('Max Questions')),
+                    DataColumn(label: Text('Duration (min)')),
+                    DataColumn(label: Text('Category')),
+                    DataColumn(label: Text('Status')),
+                    DataColumn(label: Text('Actions')),
+                  ],
+                  rows: exams.map((exam) {
+                    return DataRow(
+                      cells: <DataCell>[
+                        DataCell(Text(exam.id.toString())),
+                        DataCell(Text(exam.title)),
+                        DataCell(
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 220),
+                            child: Text(
+                              exam.description,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                          ),
+                        ),
+                        DataCell(Text(exam.maxQuestions?.toString() ?? '-')),
+                        DataCell(Text(exam.durationMinutes?.toString() ?? '-')),
+                        DataCell(Text(exam.categoryId.toString())),
+                        DataCell(Text(exam.status)),
+                        DataCell(
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                tooltip: 'Edit exam',
+                                onPressed: () => _showExamFormDialog(exam: exam),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: 'Delete exam',
+                                onPressed: () => _confirmDeleteExam(exam.id),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

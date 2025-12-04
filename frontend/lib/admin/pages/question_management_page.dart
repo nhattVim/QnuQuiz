@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/admin/widgets/question_form_dialog.dart';
 import 'package:frontend/models/question_model.dart';
-import 'package:frontend/providers/service_providers.dart'; // Import service providers
+import 'package:frontend/providers/service_providers.dart';
 
-class QuestionManagementPage extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget
+class QuestionManagementPage extends ConsumerStatefulWidget {
   const QuestionManagementPage({super.key});
 
   @override
@@ -109,65 +109,87 @@ class _QuestionManagementPageState extends ConsumerState<QuestionManagementPage>
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FutureBuilder<List<QuestionModel>>(
-          future: _questionsFuture,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return const Center(child: Text('No questions found.'));
-            }
-
-            final questions = snapshot.data!;
-            return SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: DataTable(
-                columns: const <DataColumn>[
-                  DataColumn(label: Text('ID')),
-                  DataColumn(label: Text('Content')),
-                  DataColumn(label: Text('Type')),
-                  DataColumn(label: Text('Exam ID')),
-                  DataColumn(label: Text('Actions')),
-                ],
-                rows: questions.map((question) {
-                  return DataRow(
-                    cells: <DataCell>[
-                      DataCell(Text(question.id.toString())),
-                      DataCell(SizedBox(
-                        width: 200,
-                        child: Text(question.content ?? '', overflow: TextOverflow.ellipsis),
-                      )),
-                      DataCell(Text(question.type ?? '')),
-                      DataCell(Text(question.examId?.toString() ?? '')),
-                      DataCell(Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _showQuestionFormDialog(question: question),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _confirmDeleteQuestion(question.id!),
-                          ),
-                        ],
-                      )),
-                    ],
-                  );
-                }).toList(),
-              ),
-            );
-          },
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            FilledButton.icon(
+              onPressed: () => _showQuestionFormDialog(),
+              icon: const Icon(Icons.add),
+              label: const Text('New question'),
+            ),
+            OutlinedButton.icon(
+              onPressed: _fetchQuestions,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reload'),
+            ),
+          ],
         ),
-        Positioned(
-          bottom: 16.0,
-          right: 16.0,
-          child: FloatingActionButton(
-            onPressed: () => _showQuestionFormDialog(),
-            child: const Icon(Icons.add),
+        const SizedBox(height: 16),
+        Expanded(
+          child: FutureBuilder<List<QuestionModel>>(
+            future: _questionsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No questions found.'));
+              }
+
+              final questions = snapshot.data!;
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: const <DataColumn>[
+                    DataColumn(label: Text('ID')),
+                    DataColumn(label: Text('Content')),
+                    DataColumn(label: Text('Type')),
+                    DataColumn(label: Text('Exam ID')),
+                    DataColumn(label: Text('Actions')),
+                  ],
+                  rows: questions.map((question) {
+                    return DataRow(
+                      cells: <DataCell>[
+                        DataCell(Text(question.id?.toString() ?? '-')),
+                        DataCell(
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 220),
+                            child: Text(
+                              question.content ?? '',
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                          ),
+                        ),
+                        DataCell(Text(question.type ?? '')),
+                        DataCell(Text(question.examId?.toString() ?? '-')),
+                        DataCell(Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              tooltip: 'Edit question',
+                              onPressed: () => _showQuestionFormDialog(question: question),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              tooltip: 'Delete question',
+                              onPressed: question.id == null
+                                  ? null
+                                  : () => _confirmDeleteQuestion(question.id!),
+                            ),
+                          ],
+                        )),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              );
+            },
           ),
         ),
       ],

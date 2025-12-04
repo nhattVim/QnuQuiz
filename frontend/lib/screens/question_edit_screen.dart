@@ -250,7 +250,8 @@ class _QuestionEditScreenState extends ConsumerState<QuestionEditScreen> {
     }
   }
 
-  void _selectCorrectOption(int optionId) {
+  void _selectCorrectOption(int? optionId) {
+    if (optionId == null) return;
     setState(() {
       _correctOptionId = optionId;
     });

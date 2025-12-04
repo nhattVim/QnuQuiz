@@ -71,11 +71,6 @@ class _AdminScaffoldState extends State<AdminScaffold> {
                 selectedIcon: Icon(Icons.feedback),
                 label: Text('Feedback'),
               ),
-              NavigationRailDestination(
-                icon: Icon(Icons.notifications_outlined),
-                selectedIcon: Icon(Icons.notifications),
-                label: Text('Notifications'),
-              ),
             ],
           ),
           const VerticalDivider(thickness: 1, width: 1),

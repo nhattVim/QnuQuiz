@@ -17,14 +17,12 @@ class AdminDashboardPage extends ConsumerStatefulWidget {
 }
 
 class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
-  // Use a list of maps or custom objects to hold both the page widget and its title
-  static const List<Map<String, dynamic>> _adminPages = <Map<String, dynamic>>[
-    {'title': 'Analytics', 'page': AnalyticsPage()},
-    {'title': 'User Management', 'page': UserManagementPage()},
-    {'title': 'Exam Management', 'page': ExamManagementPage()},
-    {'title': 'Question Management', 'page': QuestionManagementPage()},
-    {'title': 'Feedback Management', 'page': FeedbackManagementPage()},
-    // {'title': 'Notification Management', 'page': NotificationManagementPage()},
+  static const List<_AdminPageConfig> _adminPages = <_AdminPageConfig>[
+    _AdminPageConfig(title: 'Analytics', page: AnalyticsPage()),
+    _AdminPageConfig(title: 'User Management', page: UserManagementPage()),
+    _AdminPageConfig(title: 'Exam Management', page: ExamManagementPage()),
+    _AdminPageConfig(title: 'Question Management', page: QuestionManagementPage()),
+    _AdminPageConfig(title: 'Feedback Management', page: FeedbackManagementPage()),
   ];
 
   int _selectedIndex = 0;
@@ -35,9 +33,8 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
       selectedIndex: _selectedIndex,
       onDestinationSelected: _onDestinationSelected,
       onLogout: _handleLogout,
-      pageTitle:
-          _adminPages[_selectedIndex]['title'], // Pass the current page title
-      body: _adminPages[_selectedIndex]['page'],
+      pageTitle: _adminPages[_selectedIndex].title,
+      body: _adminPages[_selectedIndex].page,
     );
   }
 
@@ -56,4 +53,11 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
       _selectedIndex = index;
     });
   }
+}
+
+class _AdminPageConfig {
+  const _AdminPageConfig({required this.title, required this.page});
+
+  final String title;
+  final Widget page;
 }
