@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/models/exam_result_model.dart';
+import 'package:frontend/screens/feedback_screen.dart';
 import 'package:frontend/screens/quiz/quiz_review_screen.dart';
-import 'package:frontend/providers/service_providers.dart'; // Import service providers
+import 'package:frontend/providers/service_providers.dart';
 
 class QuizResultScreen extends ConsumerWidget {
   final int totalQuestions;
@@ -10,6 +11,7 @@ class QuizResultScreen extends ConsumerWidget {
   final int attemptId;
   final VoidCallback onBackHome;
   final String examTitle;
+  final int examId;
 
   const QuizResultScreen({
     super.key,
@@ -18,6 +20,7 @@ class QuizResultScreen extends ConsumerWidget {
     required this.attemptId,
     required this.onBackHome,
     required this.examTitle,
+    required this.examId
   });
 
   Future<void> handleReviewExam(
@@ -26,7 +29,6 @@ class QuizResultScreen extends ConsumerWidget {
     int attemptId,
   ) async {
     try {
-      // Hiển thị loading dialog
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -47,17 +49,14 @@ class QuizResultScreen extends ConsumerWidget {
         },
       );
 
-      // Gọi API để lấy dữ liệu review
       final examReview = await ref
           .read(examServiceProvider)
-          .reviewExamAttempt(attemptId); // Use provider
+          .reviewExamAttempt(attemptId);
 
-      // Đóng loading dialog
       if (context.mounted) {
         Navigator.of(context).pop();
       }
 
-      // Chuyển sang QuizReviewScreen với dữ liệu từ API
       if (context.mounted) {
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -69,12 +68,10 @@ class QuizResultScreen extends ConsumerWidget {
         );
       }
     } catch (e) {
-      // Đóng loading dialog nếu có lỗi
       if (context.mounted) {
         Navigator.of(context).pop();
       }
 
-      // Hiển thị error message
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -84,6 +81,15 @@ class QuizResultScreen extends ConsumerWidget {
         );
       }
     }
+  }
+
+  void handleFeedback(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) =>
+            FeedbackScreen(examId: examId, examTitle: examTitle),
+      ),
+    );
   }
 
   @override
@@ -96,6 +102,17 @@ class QuizResultScreen extends ConsumerWidget {
       body: SafeArea(
         child: Column(
           children: [
+            // Back button at top left
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: GestureDetector(
+                  onTap: onBackHome,
+                  child: const Icon(Icons.close, color: Colors.black, size: 32),
+                ),
+              ),
+            ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
@@ -239,11 +256,12 @@ class QuizResultScreen extends ConsumerWidget {
               ),
             ),
 
-            // Buttons
+            // Buttons at bottom
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  // Review button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
@@ -267,23 +285,24 @@ class QuizResultScreen extends ConsumerWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  // Feedback button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
-                    child: ElevatedButton(
-                      onPressed: onBackHome,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade300,
-                        foregroundColor: Colors.black,
+                    child: OutlinedButton(
+                      onPressed: () => handleFeedback(context),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.blue, width: 2),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: const Text(
-                        'Thoát',
+                        'Gửi đánh giá và phản hồi',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: Colors.blue,
                         ),
                       ),
                     ),

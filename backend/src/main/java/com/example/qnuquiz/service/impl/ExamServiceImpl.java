@@ -18,6 +18,7 @@ import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
 import com.example.qnuquiz.dto.questions.QuestionDTO;
+import com.example.qnuquiz.dto.questions.QuestionOptionDto;
 import com.example.qnuquiz.entity.ExamAnswers;
 import com.example.qnuquiz.entity.ExamAttempts;
 import com.example.qnuquiz.entity.ExamCategories;
@@ -289,31 +290,36 @@ public class ExamServiceImpl implements ExamService {
     public List<QuestionDTO> getQuestionsForExam(Long examId) {
         Exams exam = examRepository.findById(examId)
                 .orElseThrow(() -> new RuntimeException("Exam not found"));
-        ;
 
         List<Questions> questions = questionRepository.findByExamsId(examId);
         if (questions.isEmpty()) {
             throw new RuntimeException("No questions found for this exam");
         }
-
+        List<Questions> selectedQuestions;
         if (!exam.isRandom()) {
-            return questions.stream()
-                    .map(questionMapper::toQuestionDTO)
-                    .toList();
+            selectedQuestions = questions;
+        } else {
+            List<Questions> questionsRandom = new ArrayList<>(questions);
+            Collections.shuffle(questionsRandom);
+            selectedQuestions = questionsRandom.stream().limit(30).toList();
         }
 
-        List<Questions> questionsRandom = new ArrayList<>(questions);
-
-        // Shuffle danh sách
-        Collections.shuffle(questionsRandom);
-
-        // Giới hạn số lượng
-        List<Questions> selected = questionsRandom.stream()
-                .limit(30)
-                .collect(Collectors.toList());
-        return selected.stream()
-                .map(questionMapper::toQuestionDTO)
+        // Populate options
+        return selectedQuestions.stream().map(q -> {
+            QuestionDTO dto = questionMapper.toQuestionDTO(q);
+            // Lấy tất cả options của câu hỏi này
+            List<QuestionOptionDto> optionDtos = optionRepo.findByQuestions_Id(q.getId())
+                .stream()
+                .map(option -> QuestionOptionDto.builder()
+                    .id(option.getId())
+                    .content(option.getContent())
+                    .position(option.getPosition())
+                    .correct(option.isIsCorrect())
+                    .build())
                 .toList();
+            dto.setOptions(optionDtos);
+            return dto;
+        }).toList();
     }
 
     @Override

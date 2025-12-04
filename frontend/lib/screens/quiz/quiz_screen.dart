@@ -240,8 +240,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   void initState() {
     super.initState();
     _quizDataFuture = ref
-        .read(questionServiceProvider)
-        .getQuestions(widget.examId);
+        .read(examServiceProvider)
+        .getQuestionByExam(widget.examId);
 
     _loadQuizData().then((_) {
       if (quizData.isNotEmpty) {
@@ -498,6 +498,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           result: examResult,
           attemptId: widget.attemptId,
           examTitle: widget.examTitle,
+          examId: widget.examId,
           onBackHome: () {
             // Pop về ExamListScreen để trigger refresh
             Navigator.pop(context);

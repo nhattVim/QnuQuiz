@@ -14,6 +14,7 @@ public class FeedbackDto {
     private String userName;
     private String reviewedBy;
     private String content;
+    private Integer rating;
     private String status;
     private Timestamp createdAt;
     private Timestamp reviewedAt;
