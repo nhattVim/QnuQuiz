@@ -112,6 +112,7 @@ public class ExamController {
 	}
 
 	@GetMapping("/categories/{categoryId}")
+	@PreAuthorize("hasRole('STUDENT')")
 	public ResponseEntity<List<ExamDto>> getExamsByCategory(@PathVariable Long categoryId) {
 		return ResponseEntity.ok(examService.getExamsByCategory(categoryId));
 	}
