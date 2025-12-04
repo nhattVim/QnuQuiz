@@ -240,8 +240,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   void initState() {
     super.initState();
     _quizDataFuture = ref
-        .read(questionServiceProvider)
-        .getQuestions(widget.examId);
+        .read(examServiceProvider)
+        .getQuestionByExam(widget.examId);
 
     _loadQuizData().then((_) {
       if (quizData.isNotEmpty) {
