@@ -498,6 +498,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           result: examResult,
           attemptId: widget.attemptId,
           examTitle: widget.examTitle,
+          examId: widget.examId,
           onBackHome: () {
             // Pop về ExamListScreen để trigger refresh
             Navigator.pop(context);
