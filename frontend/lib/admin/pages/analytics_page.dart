@@ -37,6 +37,63 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
         _fetchTeacherAnalytics(teacherService, analyticsService);
   }
 
+  Future<void> _onExportUsersCsv() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final analyticsService = ref.read(analyticsServiceProvider);
+      await analyticsService.downloadUserAnalyticsCsv();
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Đã xuất file CSV thống kê người dùng (xử lý lưu file trên client).',
+          ),
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Lỗi export thống kê người dùng: $e')),
+      );
+    }
+  }
+
+  Future<void> _onExportExamsCsv() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final analyticsService = ref.read(analyticsServiceProvider);
+      await analyticsService.downloadExamAnalyticsCsv();
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Đã xuất file CSV thống kê bài thi (xử lý lưu file trên client).',
+          ),
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Lỗi export thống kê bài thi: $e')),
+      );
+    }
+  }
+
+  Future<void> _onExportQuestionsCsv() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final analyticsService = ref.read(analyticsServiceProvider);
+      await analyticsService.downloadQuestionAnalyticsCsv();
+      messenger.showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Đã xuất file CSV thống kê câu hỏi (xử lý lưu file trên client).',
+          ),
+        ),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Lỗi export thống kê câu hỏi: $e')),
+      );
+    }
+  }
+
   void _fetchAdminAnalytics(AnalyticsService analyticsService) {
     _userAnalyticsFuture = analyticsService.getUserAnalytics();
     _adminExamAnalyticsFuture = analyticsService.getAdminExamAnalytics();
@@ -122,27 +179,30 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
         final double activePercent =
             user.totalUsers == 0 ? 0 : user.activeUsers / user.totalUsers;
 
+        final theme = Theme.of(context);
+        final scheme = theme.colorScheme;
+
         final metrics = [
           _MetricData(
             label: 'Total Users',
             value: user.totalUsers.toString(),
             trend: '+${user.newUsersThisMonth} new this month',
             icon: Icons.people_alt_outlined,
-            color: Colors.indigo,
+            color: scheme.primary,
           ),
           _MetricData(
             label: 'Active Users',
             value: user.activeUsers.toString(),
             trend: '${(activePercent * 100).toStringAsFixed(1)}% active',
             icon: Icons.speed,
-            color: Colors.teal,
+            color: scheme.secondary,
           ),
           _MetricData(
             label: 'Total Exams',
             value: exam.totalExams.toString(),
             trend: '${exam.activeExams} active right now',
             icon: Icons.assignment,
-            color: Colors.deepPurple,
+            color: scheme.tertiary,
           ),
           _MetricData(
             label: 'Question Bank',
@@ -150,7 +210,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
             trend:
                 '${question.averageOptionsPerQuestion.toStringAsFixed(1)} options / question',
             icon: Icons.quiz_outlined,
-            color: Colors.orange,
+            color: scheme.secondaryContainer,
           ),
         ];
 
@@ -218,9 +278,11 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'User role distribution',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
@@ -284,6 +346,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
         }
 
         final analytics = snapshot.data!;
+        final scheme = Theme.of(context).colorScheme;
         final inactive = (analytics.totalExams - analytics.activeExams).clamp(
           0,
           analytics.totalExams,
@@ -292,12 +355,12 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
           _ChartSlice(
             label: 'Active',
             value: analytics.activeExams.toDouble(),
-            color: Colors.green,
+            color: scheme.secondary,
           ),
           _ChartSlice(
             label: 'Inactive',
             value: inactive.toDouble(),
-            color: Colors.grey.shade400,
+            color: scheme.outlineVariant,
           ),
         ];
 
@@ -307,9 +370,11 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Exam status',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
@@ -399,6 +464,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
         }
 
         final analytics = snapshot.data!;
+        final scheme = Theme.of(context).colorScheme;
         final double maxValue = math.max(
           analytics.multipleChoiceQuestions.toDouble(),
           analytics.trueFalseQuestions.toDouble(),
@@ -411,9 +477,11 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Question types',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
@@ -471,8 +539,8 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                               borderRadius: BorderRadius.circular(6),
                               gradient: LinearGradient(
                                 colors: [
-                                  Colors.deepPurple.shade200,
-                                  Colors.deepPurple,
+                                  scheme.primaryContainer,
+                                  scheme.primary,
                                 ],
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
@@ -489,8 +557,8 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                               borderRadius: BorderRadius.circular(6),
                               gradient: LinearGradient(
                                 colors: [
-                                  Colors.orange.shade200,
-                                  Colors.orange,
+                                  scheme.tertiaryContainer,
+                                  scheme.tertiary,
                                 ],
                                 begin: Alignment.bottomCenter,
                                 end: Alignment.topCenter,
@@ -575,9 +643,34 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Admin Overview',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Admin Overview',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: _onExportUsersCsv,
+                        icon: const Icon(Icons.download),
+                        label: const Text('Export users CSV'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _onExportExamsCsv,
+                        icon: const Icon(Icons.download),
+                        label: const Text('Export exams CSV'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _onExportQuestionsCsv,
+                        icon: const Icon(Icons.download),
+                        label: const Text('Export questions CSV'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               _buildSummaryGrid(),
