@@ -4,6 +4,7 @@ class FeedbackDto {
   final String? userName;
   final String? reviewedBy;
   final String content;
+  final int? rating;
   final String status;
   final DateTime createdAt;
   final DateTime? reviewedAt;
@@ -14,6 +15,7 @@ class FeedbackDto {
     this.userName,
     this.reviewedBy,
     required this.content,
+    this.rating,
     required this.status,
     required this.createdAt,
     this.reviewedAt,
@@ -26,6 +28,7 @@ class FeedbackDto {
       userName: json['userName'],
       reviewedBy: json['reviewedBy'],
       content: json['content'],
+      rating: json['rating'],
       status: json['status'] ?? 'PENDING',
       createdAt: DateTime.parse(json['createdAt']),
       reviewedAt: json['reviewedAt'] != null
@@ -40,6 +43,7 @@ class FeedbackDto {
     'userName': userName,
     'reviewedBy': reviewedBy,
     'content': content,
+    'rating': rating,
     'status': status,
     'createdAt': createdAt.toIso8601String(),
     'reviewedAt': reviewedAt?.toIso8601String(),
