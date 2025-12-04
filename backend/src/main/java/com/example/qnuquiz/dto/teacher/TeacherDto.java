@@ -8,6 +8,7 @@ import lombok.Data;
 public class TeacherDto {
 
     private long id;
+    private String userId;
     private String username;
     private String fullName;
     private String email;

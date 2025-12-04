@@ -6,6 +6,7 @@ class AdminScaffold extends StatefulWidget {
     required this.selectedIndex,
     required this.onDestinationSelected,
     this.onLogout,
+    this.pageTitle = 'Admin Dashboard', // Add a pageTitle parameter
     super.key,
   });
 
@@ -13,6 +14,7 @@ class AdminScaffold extends StatefulWidget {
   final int selectedIndex;
   final ValueChanged<int> onDestinationSelected;
   final VoidCallback? onLogout;
+  final String pageTitle; // New parameter for page title
 
   @override
   State<AdminScaffold> createState() => _AdminScaffoldState();
@@ -69,15 +71,26 @@ class _AdminScaffoldState extends State<AdminScaffold> {
                 selectedIcon: Icon(Icons.feedback),
                 label: Text('Feedback'),
               ),
-              NavigationRailDestination(
-                icon: Icon(Icons.notifications_outlined),
-                selectedIcon: Icon(Icons.notifications),
-                label: Text('Notifications'),
-              ),
             ],
           ),
           const VerticalDivider(thickness: 1, width: 1),
-          Expanded(child: widget.body),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(
+                    widget.pageTitle,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                  ),
+                ),
+                Expanded(child: widget.body),
+              ],
+            ),
+          ),
         ],
       ),
     );

@@ -42,9 +42,11 @@ import com.example.qnuquiz.security.SecurityUtils;
 import com.example.qnuquiz.service.ExamService;
 
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class ExamServiceImpl implements ExamService {
 
     private final ExamRepository examRepository;
@@ -143,13 +145,13 @@ public class ExamServiceImpl implements ExamService {
         Students student = studentRepository.findByUsers(user)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        System.out.println("==> startExam called for exam: " + examId + ", student: " + student.getId());
+        log.debug("startExam called for exam {}, student {}", examId, student.getId());
 
         // Tìm attempt gần nhất (bất kể submitted hay chưa)
         var allAttempts = examAttemptRepository
                 .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(examId, student.getId());
 
-        System.out.println("==> Found " + allAttempts.size() + " total attempts");
+        log.debug("Found {} total attempts for exam {}", allAttempts.size(), examId);
 
         // Kiểm tra attempt gần nhất
         if (!allAttempts.isEmpty()) {
@@ -157,8 +159,8 @@ public class ExamServiceImpl implements ExamService {
 
             // Nếu attempt gần nhất CHƯA submit (submitted = false) → return để continue
             if (!latestAttempt.isSubmitted()) {
-                System.out.println("==> Returning existing unfinished attempt ID: " + latestAttempt.getId() +
-                        ", submitted: " + latestAttempt.isSubmitted());
+                log.debug("Returning existing unfinished attempt {}, submitted={}", latestAttempt.getId(),
+                        latestAttempt.isSubmitted());
                 return ExamAttemptDto.builder()
                         .id(latestAttempt.getId())
                         .examId(latestAttempt.getExams().getId())
@@ -167,12 +169,11 @@ public class ExamServiceImpl implements ExamService {
                         .build();
             }
             // Nếu attempt gần nhất ĐÃ submit (submitted = true) → tạo attempt mới
-            System.out.println(
-                    "==> Latest attempt ID: " + latestAttempt.getId() + " is already submitted. Creating NEW attempt");
+            log.debug("Latest attempt {} already submitted. Creating new attempt.", latestAttempt.getId());
         }
 
         // Tạo attempt mới
-        System.out.println("==> Creating NEW attempt for exam: " + examId);
+        log.debug("Creating new attempt for exam {}", examId);
         ExamAttempts attempt = new ExamAttempts();
 
         // Lấy exam
@@ -186,7 +187,7 @@ public class ExamServiceImpl implements ExamService {
         attempt.setCreatedAt(new Timestamp(System.currentTimeMillis()));
 
         ExamAttempts saved = examAttemptRepository.save(attempt);
-        System.out.println("==> NEW attempt created with ID: " + saved.getId());
+        log.debug("New attempt created with id {}", saved.getId());
 
         return ExamAttemptDto.builder()
                 .id(saved.getId())

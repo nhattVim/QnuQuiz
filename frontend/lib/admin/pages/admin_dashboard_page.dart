@@ -17,13 +17,12 @@ class AdminDashboardPage extends ConsumerStatefulWidget {
 }
 
 class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
-  static const List<Widget> _pages = <Widget>[
-    AnalyticsPage(),
-    UserManagementPage(),
-    ExamManagementPage(),
-    QuestionManagementPage(),
-    FeedbackManagementPage(),
-    // NotificationManagementPage(),
+  static const List<_AdminPageConfig> _adminPages = <_AdminPageConfig>[
+    _AdminPageConfig(title: 'Analytics', page: AnalyticsPage()),
+    _AdminPageConfig(title: 'User Management', page: UserManagementPage()),
+    _AdminPageConfig(title: 'Exam Management', page: ExamManagementPage()),
+    _AdminPageConfig(title: 'Question Management', page: QuestionManagementPage()),
+    _AdminPageConfig(title: 'Feedback Management', page: FeedbackManagementPage()),
   ];
 
   int _selectedIndex = 0;
@@ -34,7 +33,8 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
       selectedIndex: _selectedIndex,
       onDestinationSelected: _onDestinationSelected,
       onLogout: _handleLogout,
-      body: _pages[_selectedIndex],
+      pageTitle: _adminPages[_selectedIndex].title,
+      body: _adminPages[_selectedIndex].page,
     );
   }
 
@@ -53,4 +53,11 @@ class _AdminDashboardPageState extends ConsumerState<AdminDashboardPage> {
       _selectedIndex = index;
     });
   }
+}
+
+class _AdminPageConfig {
+  const _AdminPageConfig({required this.title, required this.page});
+
+  final String title;
+  final Widget page;
 }

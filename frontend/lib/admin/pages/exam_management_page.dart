@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart'; // Import Riverpod
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/admin/widgets/exam_form_dialog.dart';
 import 'package:frontend/models/exam_model.dart';
-import 'package:frontend/providers/service_providers.dart'; // Import service providers
+import 'package:frontend/providers/service_providers.dart';
 
-class ExamManagementPage extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget
+class ExamManagementPage extends ConsumerStatefulWidget {
   const ExamManagementPage({super.key});
 
   @override
@@ -12,8 +12,6 @@ class ExamManagementPage extends ConsumerStatefulWidget { // Changed to Consumer
 }
 
 class _ExamManagementPageState extends ConsumerState<ExamManagementPage> {
-  // Removed direct instantiation:
-  // final ExamService _examService = ExamService();
   late Future<List<ExamModel>> _examsFuture;
 
   @override
@@ -23,7 +21,7 @@ class _ExamManagementPageState extends ConsumerState<ExamManagementPage> {
   }
 
   void _fetchExams() {
-    final examService = ref.read(examServiceProvider); // Get service from provider
+    final examService = ref.read(examServiceProvider);
     setState(() {
       _examsFuture = examService.getAllExams();
     });
@@ -36,7 +34,7 @@ class _ExamManagementPageState extends ConsumerState<ExamManagementPage> {
         exam: exam,
         onSave: (newExam) async {
           final scaffoldMessenger = ScaffoldMessenger.of(context);
-          final examService = ref.read(examServiceProvider); // Get service from provider
+          final examService = ref.read(examServiceProvider);
           try {
             if (exam == null) {
               await examService.createExam(newExam);
@@ -74,7 +72,7 @@ class _ExamManagementPageState extends ConsumerState<ExamManagementPage> {
             onPressed: () async {
               final navigator = Navigator.of(context);
               final scaffoldMessenger = ScaffoldMessenger.of(context);
-              final examService = ref.read(examServiceProvider); // Get service from provider
+              final examService = ref.read(examServiceProvider);
               try {
                 await examService.deleteExam(examId);
                 if (!mounted) return;
@@ -99,67 +97,96 @@ class _ExamManagementPageState extends ConsumerState<ExamManagementPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Exam Management')),
-      body: FutureBuilder<List<ExamModel>>(
-        future: _examsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No exams found.'));
-          }
-
-          final exams = snapshot.data!;
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: const <DataColumn>[
-                DataColumn(label: Text('ID')),
-                DataColumn(label: Text('Title')),
-                DataColumn(label: Text('Description')),
-                DataColumn(label: Text('Max Questions')),
-                DataColumn(label: Text('Duration (min)')),
-                DataColumn(label: Text('Pass Score')),
-                DataColumn(label: Text('Category')),
-                DataColumn(label: Text('Actions')),
-              ],
-              rows: exams.map((exam) {
-                return DataRow(
-                  cells: <DataCell>[
-                    DataCell(Text(exam.id.toString())),
-                    DataCell(Text(exam.title)),
-                    DataCell(Text(exam.description)),
-                    DataCell(Text(exam.maxQuestions?.toString() ?? '')),
-                    DataCell(Text(exam.durationMinutes?.toString() ?? '')),
-                    DataCell(Text(exam.categoryId.toString())),
-                    DataCell(
-                      Row(
-                        children: [
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _showExamFormDialog(exam: exam),
-                          ),
-                          IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: () => _confirmDeleteExam(exam.id),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            FilledButton.icon(
+              onPressed: () => _showExamFormDialog(),
+              icon: const Icon(Icons.add),
+              label: const Text('New exam'),
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showExamFormDialog(),
-        child: const Icon(Icons.add),
-      ),
+            OutlinedButton.icon(
+              onPressed: _fetchExams,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reload'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: FutureBuilder<List<ExamModel>>(
+            future: _examsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No exams found.'));
+              }
+
+              final exams = snapshot.data!;
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: const <DataColumn>[
+                    DataColumn(label: Text('ID')),
+                    DataColumn(label: Text('Title')),
+                    DataColumn(label: Text('Description')),
+                    DataColumn(label: Text('Max Questions')),
+                    DataColumn(label: Text('Duration (min)')),
+                    DataColumn(label: Text('Category')),
+                    DataColumn(label: Text('Status')),
+                    DataColumn(label: Text('Actions')),
+                  ],
+                  rows: exams.map((exam) {
+                    return DataRow(
+                      cells: <DataCell>[
+                        DataCell(Text(exam.id.toString())),
+                        DataCell(Text(exam.title)),
+                        DataCell(
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 220),
+                            child: Text(
+                              exam.description,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 2,
+                            ),
+                          ),
+                        ),
+                        DataCell(Text(exam.maxQuestions?.toString() ?? '-')),
+                        DataCell(Text(exam.durationMinutes?.toString() ?? '-')),
+                        DataCell(Text(exam.categoryId.toString())),
+                        DataCell(Text(exam.status)),
+                        DataCell(
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.edit),
+                                tooltip: 'Edit exam',
+                                onPressed: () => _showExamFormDialog(exam: exam),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.delete_outline),
+                                tooltip: 'Delete exam',
+                                onPressed: () => _confirmDeleteExam(exam.id),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

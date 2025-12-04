@@ -587,11 +587,13 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
       if (selectedIndex == null) continue;
 
       final selectedOption = question.options![selectedIndex];
+      final optionId = selectedOption.id;
+      if (optionId == null) continue;
 
       await examService.submitAnswer(
         attemptId: widget.attemptId,
         questionId: question.id!,
-        optionId: selectedOption.id,
+        optionId: optionId,
       );
     }
   }

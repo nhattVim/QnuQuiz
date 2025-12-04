@@ -1,5 +1,6 @@
 class TeacherModel {
   final int id;
+  final String? userId;
   final String? username;
   final String? fullName;
   final String? email;
@@ -10,6 +11,7 @@ class TeacherModel {
 
   TeacherModel({
     required this.id,
+    this.userId,
     this.username,
     this.fullName,
     this.email,
@@ -22,6 +24,7 @@ class TeacherModel {
   factory TeacherModel.fromJson(Map<String, dynamic> json) {
     return TeacherModel(
       id: json['id'] ?? 0,
+      userId: json['userId'] as String?,
       username: json['username'],
       fullName: json['fullName'],
       email: json['email'],
@@ -34,6 +37,7 @@ class TeacherModel {
 
   Map<String, dynamic> toJson() => {
     'id': id,
+    'userId': userId,
     'username': username,
     'fullName': fullName,
     'email': email,

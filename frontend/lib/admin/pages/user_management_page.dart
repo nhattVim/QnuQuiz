@@ -101,66 +101,85 @@ class _UserManagementPageState extends ConsumerState<UserManagementPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('User Management'),
-      ),
-      body: FutureBuilder<List<UserModel>>(
-        future: _usersFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No users found.'));
-          }
-
-          final users = snapshot.data!;
-          return SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              columns: const <DataColumn>[
-                DataColumn(label: Text('ID')),
-                DataColumn(label: Text('Username')),
-                DataColumn(label: Text('Email')),
-                DataColumn(label: Text('Role')),
-                DataColumn(label: Text('Full Name')),
-                DataColumn(label: Text('Phone Number')),
-                DataColumn(label: Text('Actions')),
-              ],
-              rows: users.map((user) {
-                return DataRow(
-                  cells: <DataCell>[
-                    DataCell(Text(user.id ?? '')),
-                    DataCell(Text(user.username)),
-                    DataCell(Text(user.email)),
-                    DataCell(Text(user.role)),
-                    DataCell(Text(user.fullName ?? '')),
-                    DataCell(Text(user.phoneNumber ?? '')),
-                    DataCell(Row(
-                      children: [
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () => _showUserFormDialog(user: user),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          onPressed: () => _confirmDeleteUser(user.id ?? ''),
-                        ),
-                      ],
-                    )),
-                  ],
-                );
-              }).toList(),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            FilledButton.icon(
+              onPressed: () => _showUserFormDialog(),
+              icon: const Icon(Icons.add),
+              label: const Text('New user'),
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showUserFormDialog(),
-        child: const Icon(Icons.add),
-      ),
+            OutlinedButton.icon(
+              onPressed: _fetchUsers,
+              icon: const Icon(Icons.refresh),
+              label: const Text('Reload'),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Expanded(
+          child: FutureBuilder<List<UserModel>>(
+            future: _usersFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return const Center(child: Text('No users found.'));
+              }
+
+              final users = snapshot.data!;
+              return SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: const <DataColumn>[
+                    DataColumn(label: Text('ID')),
+                    DataColumn(label: Text('Username')),
+                    DataColumn(label: Text('Email')),
+                    DataColumn(label: Text('Role')),
+                    DataColumn(label: Text('Full Name')),
+                    DataColumn(label: Text('Phone Number')),
+                    DataColumn(label: Text('Actions')),
+                  ],
+                  rows: users.map((user) {
+                    return DataRow(
+                      cells: <DataCell>[
+                        DataCell(Text(user.id ?? '')),
+                        DataCell(Text(user.username)),
+                        DataCell(Text(user.email)),
+                        DataCell(Text(user.role)),
+                        DataCell(Text(user.fullName ?? '')),
+                        DataCell(Text(user.phoneNumber ?? '')),
+                        DataCell(Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              tooltip: 'Edit user',
+                              onPressed: () => _showUserFormDialog(user: user),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.delete_outline),
+                              tooltip: 'Delete user',
+                              onPressed: user.id == null
+                                  ? null
+                                  : () => _confirmDeleteUser(user.id!),
+                            ),
+                          ],
+                        )),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }

@@ -11,6 +11,7 @@ import com.example.qnuquiz.entity.Teachers;
 @Mapper(componentModel = "spring")
 public interface TeacherMapper {
 
+    @Mapping(source = "users.id", target = "userId")
     @Mapping(source = "users.username", target = "username")
     @Mapping(source = "users.fullName", target = "fullName")
     @Mapping(source = "users.email", target = "email")
