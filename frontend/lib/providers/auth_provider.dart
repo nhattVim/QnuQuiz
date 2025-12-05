@@ -16,7 +16,7 @@ class AuthNotifier extends Notifier<AuthState> {
     return AuthState.initial;
   }
 
-  Future<void> login(String username, String password) async {
+  Future<bool> login(String username, String password) async {
     state = AuthState.loading;
 
     final result = await _authService.login(
@@ -29,8 +29,10 @@ class AuthNotifier extends Notifier<AuthState> {
       final user = result['user'];
       ref.read(userProvider.notifier).setUser(user);
       state = AuthState.authenticated;
+      return true;
     } else {
       state = AuthState.error;
+      return false;
     }
   }
 

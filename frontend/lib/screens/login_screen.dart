@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/providers/user_provider.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/link_text.dart';
@@ -21,6 +22,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _studentIdFocus = FocusNode();
   final _passwordFocus = FocusNode();
   bool _rememberMe = false;
+  bool _isLoadingCredentials = true;
+
+  static const String _keyRememberUsername = 'remember_username';
+  static const String _keyRememberPassword = 'remember_password';
+  static const String _keyRememberMe = 'remember_me';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
 
   @override
   void dispose() {
@@ -31,18 +43,79 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _loadSavedCredentials() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final rememberMe = prefs.getBool(_keyRememberMe) ?? false;
+      
+      if (rememberMe) {
+        final savedUsername = prefs.getString(_keyRememberUsername);
+        final savedPassword = prefs.getString(_keyRememberPassword);
+        
+        if (savedUsername != null && savedPassword != null) {
+          setState(() {
+            _rememberMe = true;
+            _studentIdController.text = savedUsername;
+            _passwordController.text = savedPassword;
+            _isLoadingCredentials = false;
+          });
+          return;
+        }
+      }
+      
+      setState(() {
+        _isLoadingCredentials = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingCredentials = false;
+      });
+    }
+  }
+
+  Future<void> _saveCredentials() async {
+    if (_rememberMe) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyRememberMe, true);
+      await prefs.setString(_keyRememberUsername, _studentIdController.text.trim());
+      await prefs.setString(_keyRememberPassword, _passwordController.text);
+    } else {
+      await _clearSavedCredentials();
+    }
+  }
+
+  Future<void> _clearSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyRememberMe);
+    await prefs.remove(_keyRememberUsername);
+    await prefs.remove(_keyRememberPassword);
+  }
+
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    await ref
+    final result = await ref
         .read(authProvider.notifier)
         .login(_studentIdController.text.trim(), _passwordController.text);
+    
+    // Nếu đăng nhập thành công, lưu thông tin nếu đã check "Nhớ mật khẩu"
+    if (result) {
+      await _saveCredentials();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     final userAsyncValue = ref.watch(userProvider);
+    
+    // Show loading indicator while loading saved credentials
+    if (_isLoadingCredentials) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
 
     // Auto redirect after login
     if (authState == AuthState.authenticated) {
@@ -200,24 +273,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                   ),
                 ),
-                SizedBox(height: 24.h),
-
-                // Register
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Chưa có tài khoản? ',
-                      style: TextStyle(fontSize: 14.sp, color: Colors.grey),
-                    ),
-                    LinkText(
-                      text: 'Đăng ký',
-                      onPressed: () {
-                        // TODO: Navigate
-                      },
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
@@ -227,8 +282,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildRememberMe() {
+    final theme = Theme.of(context);
     return InkWell(
-      onTap: () => setState(() => _rememberMe = !_rememberMe),
+      onTap: () async {
+        setState(() => _rememberMe = !_rememberMe);
+        // Nếu uncheck, xóa thông tin đã lưu
+        if (!_rememberMe) {
+          await _clearSavedCredentials();
+        }
+      },
       borderRadius: BorderRadius.circular(4.r),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -238,15 +300,27 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             height: 24.h,
             child: Checkbox(
               value: _rememberMe,
-              onChanged: (v) => setState(() => _rememberMe = v ?? false),
+              onChanged: (v) async {
+                setState(() => _rememberMe = v ?? false);
+                // Nếu uncheck, xóa thông tin đã lưu
+                if (!_rememberMe) {
+                  await _clearSavedCredentials();
+                }
+              },
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4.r),
               ),
-              activeColor: Colors.blue,
+              activeColor: theme.colorScheme.primary,
             ),
           ),
           SizedBox(width: 8.w),
-          Text('Nhớ mật khẩu', style: TextStyle(fontSize: 14.sp)),
+          Text(
+            'Nhớ mật khẩu',
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
         ],
       ),
     );
