@@ -153,7 +153,10 @@ public class QuestionServiceImpl implements QuestionService {
 
         question.setContent(dto.getContent());
 
-        List<QuestionOptionDto> updatedOptions = dto.getOptions().stream()
+        List<QuestionOptionDto> updatedOptions;
+        if (dto.getOptions() != null && !dto.getOptions().isEmpty()) {
+            // Update options if provided
+            updatedOptions = dto.getOptions().stream()
                 .map(optionDto -> {
                     QuestionOptions option = questionOptionsRepository.findById(optionDto.getId())
                             .orElseThrow(() -> new RuntimeException("Option not found with id: " + optionDto.getId()));
@@ -169,6 +172,18 @@ public class QuestionServiceImpl implements QuestionService {
                             .build();
                 })
                 .collect(Collectors.toList());
+        } else {
+            // If options is null or empty, fetch existing options from database
+            updatedOptions = questionOptionsRepository.findByQuestions_Id(question.getId())
+                    .stream()
+                    .map(opt -> QuestionOptionDto.builder()
+                            .id(opt.getId())
+                            .content(opt.getContent())
+                            .correct(opt.isIsCorrect())
+                            .position(opt.getPosition())
+                            .build())
+                    .collect(Collectors.toList());
+        }
 
         questionsRepository.save(question);
 
@@ -232,8 +247,17 @@ public class QuestionServiceImpl implements QuestionService {
 
         Questions savedQuestion = questionsRepository.save(question);
 
+        // Validate and create options based on question type
+        if (dto.getOptions() != null && !dto.getOptions().isEmpty()) {
+            // MULTIPLE_CHOICE questions require options
+            if ("MULTIPLE_CHOICE".equalsIgnoreCase(dto.getType()) || "TRUE_FALSE".equalsIgnoreCase(dto.getType())) {
         dto.getOptions().forEach(optionDto -> createOption(savedQuestion, optionDto.getContent(), optionDto.isCorrect(),
                 optionDto.getPosition()));
+            }
+        } else if ("MULTIPLE_CHOICE".equalsIgnoreCase(dto.getType()) || "TRUE_FALSE".equalsIgnoreCase(dto.getType())) {
+            // MULTIPLE_CHOICE and TRUE_FALSE questions must have options
+            throw new RuntimeException("Options are required for MULTIPLE_CHOICE and TRUE_FALSE question types");
+        }
 
         List<QuestionOptionDto> createdOptions = questionOptionsRepository.findByQuestions_Id(savedQuestion.getId())
                 .stream()

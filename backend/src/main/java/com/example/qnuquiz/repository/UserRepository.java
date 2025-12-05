@@ -13,6 +13,8 @@ public interface UserRepository extends JpaRepository<Users, UUID> {
 
     Optional<Users> findByUsername(String username);
 
+    Optional<Users> findByEmail(String email);
+
     Optional<Users> findById(UUID id);
 
     long countByCreatedAtAfter(Timestamp timestamp);

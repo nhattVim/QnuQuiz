@@ -4,9 +4,11 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:frontend/providers/user_provider.dart';
+import 'package:frontend/models/user_model.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/link_text.dart';
 import 'home_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -23,6 +25,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passwordFocus = FocusNode();
   bool _rememberMe = false;
   bool _isLoadingCredentials = true;
+  bool _hasNavigated = false;
 
   static const String _keyRememberUsername = 'remember_username';
   static const String _keyRememberPassword = 'remember_password';
@@ -104,26 +107,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     }
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
-    final userAsyncValue = ref.watch(userProvider);
+  void _checkAndNavigate() {
+    if (!mounted || _hasNavigated) return;
     
-    // Show loading indicator while loading saved credentials
-    if (_isLoadingCredentials) {
-      return Scaffold(
-        backgroundColor: Theme.of(context).colorScheme.surface,
-        body: const Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    // Auto redirect after login
+    final authState = ref.read(authProvider);
+    final userAsyncValue = ref.read(userProvider);
+    
     if (authState == AuthState.authenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
           userAsyncValue.when(
             data: (user) {
-              if (user != null) {
+          if (user != null && !_hasNavigated) {
+            _hasNavigated = true;
                 if (user.role == 'ADMIN') {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
@@ -134,6 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                   );
                   ref.read(authProvider.notifier).logout();
+              _hasNavigated = false;
                 } else {
                   Navigator.pushReplacement(
                     context,
@@ -142,8 +137,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 }
               }
             },
-            loading: () {},
+        loading: () {
+          // Wait for user data to load
+        },
             error: (err, stack) {
+          if (mounted && !_hasNavigated) {
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text(
@@ -153,10 +151,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
               );
               ref.read(authProvider.notifier).logout();
+            _hasNavigated = false;
+          }
             },
           );
-        }
-      });
+    } else if (authState != AuthState.authenticated) {
+      _hasNavigated = false;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    
+    // Listen to auth state changes
+    ref.listen<AuthState>(authProvider, (previous, next) {
+      if (next == AuthState.authenticated) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndNavigate());
+      } else {
+        _hasNavigated = false;
+      }
+    });
+    
+    // Listen to user provider changes
+    ref.listen<AsyncValue<UserModel?>>(userProvider, (previous, next) {
+      final currentAuthState = ref.read(authProvider);
+      if (currentAuthState == AuthState.authenticated) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndNavigate());
+      }
+    });
+    
+    // Show loading indicator while loading saved credentials
+    if (_isLoadingCredentials) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        body: const Center(child: CircularProgressIndicator()),
+      );
     }
 
     final theme = Theme.of(context);
@@ -234,7 +264,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     LinkText(
                       text: 'Quên mật khẩu?',
                       onPressed: () {
-                        // TODO: Navigate
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ForgotPasswordScreen(),
+                          ),
+                        );
                       },
                     ),
                   ],

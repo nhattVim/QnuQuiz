@@ -112,8 +112,9 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     }
 
     final currentQuestion = quizData[currentQuestionIndex];
-    final correctOptionIndex = currentQuestion.options != null && currentQuestion.options!.isNotEmpty
-        ? currentQuestion.options!.indexWhere(
+    final options = currentQuestion.options;
+    final correctOptionIndex = options != null && options.isNotEmpty
+        ? options.indexWhere(
             (option) => option.correct,
           )
         : -1;
@@ -169,10 +170,10 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
               // Answer Options
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: currentQuestion.options != null && currentQuestion.options!.isNotEmpty
+                child: options != null && options.isNotEmpty
                     ? QuizAnswerOptions(
-                        answers: currentQuestion.options!
-                            .map((o) => o.content ?? '')
+                        answers: options
+                            .map((o) => o.content)
                             .toList(),
                         selectedAnswerIndex: selectedAnswerIndex,
                         correctAnswerIndex: correctOptionIndex,

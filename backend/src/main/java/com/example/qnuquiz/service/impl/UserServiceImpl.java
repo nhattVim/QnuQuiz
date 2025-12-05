@@ -138,4 +138,15 @@ public class UserServiceImpl implements UserService {
             return userMapper.toDto(user);
         }
     }
+
+    @Override
+    @CacheEvict(value = "allUsers", allEntries = true)
+    public void updatePasswordByEmail(String email, String newPassword) {
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+        
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        userRepository.save(user);
+    }
 }

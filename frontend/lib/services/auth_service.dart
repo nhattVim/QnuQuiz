@@ -51,4 +51,74 @@ class AuthService {
   Future<void> saveToken(String token) async {
     await _storage.write(key: 'auth_token', value: token);
   }
+
+  Future<Map<String, dynamic>> forgotPassword(String email) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.auth}/forgot-password',
+        data: {'email': email},
+      );
+
+      return {
+        'success': true,
+        'message': response.data['message'] ?? 'Mã xác thực đã được gửi',
+      };
+    } on DioException catch (e) {
+      _log.e(e.response?.data);
+      final message = e.response?.data['message'] ?? 
+                     e.response?.data['error'] ?? 
+                     'Email chưa được đăng ký trong hệ thống';
+      return {'success': false, 'message': message};
+    }
+  }
+
+  Future<Map<String, dynamic>> verifyResetCode(String email, String code) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.auth}/verify-reset-code',
+        data: {'email': email, 'code': code},
+      );
+
+      return {
+        'success': true,
+        'message': response.data['message'] ?? 'Mã xác thực hợp lệ',
+      };
+    } on DioException catch (e) {
+      _log.e(e.response?.data);
+      final message = e.response?.data['message'] ?? 
+                     e.response?.data['error'] ?? 
+                     'Mã xác thực không đúng hoặc đã hết hạn';
+      return {'success': false, 'message': message};
+    }
+  }
+
+  Future<Map<String, dynamic>> resetPassword(
+    String email,
+    String code,
+    String newPassword,
+    String confirmPassword,
+  ) async {
+    try {
+      final response = await _dio.post(
+        '${ApiConstants.auth}/reset-password',
+        data: {
+          'email': email,
+          'code': code,
+          'newPassword': newPassword,
+          'confirmPassword': confirmPassword,
+        },
+      );
+
+      return {
+        'success': true,
+        'message': response.data['message'] ?? 'Đặt lại mật khẩu thành công',
+      };
+    } on DioException catch (e) {
+      _log.e(e.response?.data);
+      final message = e.response?.data['message'] ?? 
+                     e.response?.data['error'] ?? 
+                     'Có lỗi xảy ra khi đặt lại mật khẩu';
+      return {'success': false, 'message': message};
+    }
+  }
 }
