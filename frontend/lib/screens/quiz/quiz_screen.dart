@@ -112,9 +112,11 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     }
 
     final currentQuestion = quizData[currentQuestionIndex];
-    final correctOptionIndex = currentQuestion.options!.indexWhere(
-      (option) => option.correct,
-    );
+    final correctOptionIndex = currentQuestion.options != null && currentQuestion.options!.isNotEmpty
+        ? currentQuestion.options!.indexWhere(
+            (option) => option.correct,
+          )
+        : -1;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -167,15 +169,19 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
               // Answer Options
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: QuizAnswerOptions(
-                  answers: currentQuestion.options!
-                      .map((o) => o.content)
-                      .toList(),
-                  selectedAnswerIndex: selectedAnswerIndex,
-                  correctAnswerIndex: correctOptionIndex,
-                  answered: false,
-                  onSelectAnswer: _selectAnswer,
-                ),
+                child: currentQuestion.options != null && currentQuestion.options!.isNotEmpty
+                    ? QuizAnswerOptions(
+                        answers: currentQuestion.options!
+                            .map((o) => o.content ?? '')
+                            .toList(),
+                        selectedAnswerIndex: selectedAnswerIndex,
+                        correctAnswerIndex: correctOptionIndex,
+                        answered: false,
+                        onSelectAnswer: _selectAnswer,
+                      )
+                    : const Center(
+                        child: Text('Không có đáp án cho câu hỏi này'),
+                      ),
               ),
 
               const SizedBox(height: 16),
@@ -586,9 +592,19 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
       if (selectedIndex == null) continue;
 
+      if (question.options == null || question.options!.isEmpty) {
+        continue;
+      }
+
+      if (selectedIndex < 0 || selectedIndex >= question.options!.length) {
+        continue;
+      }
+
       final selectedOption = question.options![selectedIndex];
       final optionId = selectedOption.id;
       if (optionId == null) continue;
+
+      if (question.id == null) continue;
 
       await examService.submitAnswer(
         attemptId: widget.attemptId,

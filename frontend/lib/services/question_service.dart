@@ -17,7 +17,7 @@ class QuestionService {
   Future<List<QuestionModel>> getQuestions(int examId) async {
     try {
       final response = await _dio.get(
-        ApiConstants.questions,
+        '${ApiConstants.questions}/exam/$examId',
         queryParameters: {'examId': examId},
       );
 

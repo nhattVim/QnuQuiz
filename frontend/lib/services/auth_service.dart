@@ -45,6 +45,7 @@ class AuthService {
 
   Future<void> logout() async {
     await _storage.delete(key: 'auth_token');
+    await _storage.delete(key: 'user');
   }
 
   Future<void> saveToken(String token) async {
