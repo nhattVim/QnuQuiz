@@ -24,7 +24,8 @@ void main() {
     DevicePreview(
       enabled:
           !kReleaseMode &&
-          (Platform.isWindows ||
+          (kIsWeb ||
+              Platform.isWindows ||
               Platform.isLinux ||
               Platform.isMacOS),
       builder: (constext) => const ProviderScope(child: MyApp()),
