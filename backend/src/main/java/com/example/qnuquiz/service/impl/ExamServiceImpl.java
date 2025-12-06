@@ -64,6 +64,7 @@ public class ExamServiceImpl implements ExamService {
     private final ExamAttemptRepository examAttemptRepository;
     private final ExamAnswerRepository examAnswerRepository;
     private final QuestionMapper questionMapper;
+    private final com.example.qnuquiz.service.MediaFileService mediaFileService;
 
     @Override
     public void submitAnswer(Long attemptId, Long questionId, Long optionId) {
@@ -81,12 +82,10 @@ public class ExamServiceImpl implements ExamService {
 
         ExamAnswers answer;
         if (existingOpt.isPresent()) {
-            // Nếu đã có thì cập nhật
             answer = existingOpt.get();
             answer.setQuestionOptions(option);
             answer.setIsCorrect(option.isIsCorrect());
         } else {
-            // Nếu chưa có thì tạo mới
             answer = new ExamAnswers();
             answer.setExamAttempts(attempt);
             answer.setQuestions(option.getQuestions());
@@ -95,7 +94,6 @@ public class ExamServiceImpl implements ExamService {
             answer.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         }
 
-        // 5. Lưu
         examAnswerRepository.save(answer);
     }
 
@@ -144,23 +142,19 @@ public class ExamServiceImpl implements ExamService {
     public ExamAttemptDto startExam(Long examId) {
         Users user = getCurrentAuthenticatedUser();
 
-        // Tìm student tương ứng với user
         Students student = studentRepository.findByUsers(user)
                 .orElseThrow(() -> new EntityNotFoundException("Student not found for user: " + user.getId()));
 
         log.debug("startExam called for exam {}, student {}", examId, student.getId());
 
-        // Tìm attempt gần nhất (bất kể submitted hay chưa)
         var allAttempts = examAttemptRepository
                 .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(examId, student.getId());
 
         log.debug("Found {} total attempts for exam {}", allAttempts.size(), examId);
 
-        // Kiểm tra attempt gần nhất
         if (!allAttempts.isEmpty()) {
             ExamAttempts latestAttempt = allAttempts.get(0);
 
-            // Nếu attempt gần nhất CHƯA submit (submitted = false) → return để continue
             if (!latestAttempt.isSubmitted()) {
                 log.debug("Returning existing unfinished attempt {}, submitted={}", latestAttempt.getId(),
                         latestAttempt.isSubmitted());
@@ -171,19 +165,15 @@ public class ExamServiceImpl implements ExamService {
                         .submit(latestAttempt.isSubmitted())
                         .build();
             }
-            // Nếu attempt gần nhất ĐÃ submit (submitted = true) → tạo attempt mới
             log.debug("Latest attempt {} already submitted. Creating new attempt.", latestAttempt.getId());
         }
 
-        // Tạo attempt mới
         log.debug("Creating new attempt for exam {}", examId);
         ExamAttempts attempt = new ExamAttempts();
 
-        // Lấy exam
         attempt.setExams(examRepository.findById(examId)
                 .orElseThrow(() -> new EntityNotFoundException("Exam not found: " + examId)));
 
-        // Gán student vào attempt
         attempt.setStudents(student);
         attempt.setStartTime(new Timestamp(System.currentTimeMillis()));
         attempt.setSubmitted(false);
@@ -307,7 +297,7 @@ public class ExamServiceImpl implements ExamService {
             selectedQuestions = questionsRandom.stream().limit(30).toList();
         }
 
-        // Populate options
+        // Populate options and media files
         return selectedQuestions.stream().map(q -> {
             QuestionDTO dto = questionMapper.toQuestionDTO(q);
             // Lấy tất cả options của câu hỏi này
@@ -321,6 +311,15 @@ public class ExamServiceImpl implements ExamService {
                     .build())
                 .toList();
             dto.setOptions(optionDtos);
+            
+            List<com.example.qnuquiz.dto.media.MediaFileDto> mediaFiles = 
+                mediaFileService.getMediaFilesByQuestionId(q.getId());
+            dto.setMediaFiles(mediaFiles);
+            
+            if (!mediaFiles.isEmpty()) {
+                dto.setMediaUrl(mediaFiles.get(0).getFileUrl());
+            }
+            
             return dto;
         }).toList();
     }
@@ -332,9 +331,8 @@ public class ExamServiceImpl implements ExamService {
 
         List<ExamAnswers> answers = examAnswerRepository.findByExamAttempts_Id(attemptId);
 
-        // Map từng ExamAnswers -> ExamAnswerReviewDTO
         List<ExamAnswerReviewDTO> answerDTOs = answers.stream()
-                .map(examMapper::toExamAnswerReviewDTO) // dùng mapper để convert
+                .map(examMapper::toExamAnswerReviewDTO)
                 .toList();
 
         return ExamReviewDTO.builder()
@@ -406,16 +404,13 @@ public class ExamServiceImpl implements ExamService {
                     String computedStatus = getComputedStatus(exam);
                     dto.setStatus(computedStatus);
 
-                    // Tìm tất cả attempts của student cho exam này
                     var allAttempts = examAttemptRepository
                             .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(exam.getId(), student.getId());
 
-                    // Set hasAttempt = true nếu có attempt (bất kể submitted hay không)
                     dto.setHasAttempt(!allAttempts.isEmpty());
 
                     if (!allAttempts.isEmpty()) {
                         ExamAttempts latestAttempt = allAttempts.get(0);
-                        // Set hasUnfinishedAttempt=true chỉ khi attempt gần nhất chưa submit
                         dto.setHasUnfinishedAttempt(!latestAttempt.isSubmitted());
                     } else {
                         dto.setHasUnfinishedAttempt(false);

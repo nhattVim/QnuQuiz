@@ -38,8 +38,15 @@ class AuthService {
       return {'success': true, 'token': response.data['token'], 'user': user};
     } on DioException catch (e) {
       _log.e(e.response?.data);
+      final statusCode = e.response?.statusCode;
+      final error = e.response?.data['error'];
       final message = e.response?.data['message'] ?? 'Lỗi kết nối';
-      return {'success': false, 'message': message};
+      return {
+        'success': false,
+        'message': message,
+        'statusCode': statusCode,
+        'error': error,
+      };
     }
   }
 

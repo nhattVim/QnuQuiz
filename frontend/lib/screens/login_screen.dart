@@ -101,9 +101,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         .read(authProvider.notifier)
         .login(_studentIdController.text.trim(), _passwordController.text);
     
-    // Nếu đăng nhập thành công, lưu thông tin nếu đã check "Nhớ mật khẩu"
     if (result) {
       await _saveCredentials();
+    } else {
+      final errorMessage = ref.read(authProvider.notifier).errorMessage;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage ?? 'Sai tên đăng nhập hoặc mật khẩu'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
     }
   }
 
@@ -137,9 +147,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 }
               }
             },
-        loading: () {
-          // Wait for user data to load
-        },
+        loading: () {},
             error: (err, stack) {
           if (mounted && !_hasNavigated) {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -164,7 +172,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
     
-    // Listen to auth state changes
     ref.listen<AuthState>(authProvider, (previous, next) {
       if (next == AuthState.authenticated) {
         WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndNavigate());
@@ -173,7 +180,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
     
-    // Listen to user provider changes
     ref.listen<AsyncValue<UserModel?>>(userProvider, (previous, next) {
       final currentAuthState = ref.read(authProvider);
       if (currentAuthState == AuthState.authenticated) {
@@ -181,7 +187,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
     
-    // Show loading indicator while loading saved credentials
     if (_isLoadingCredentials) {
       return Scaffold(
         backgroundColor: Theme.of(context).colorScheme.surface,
@@ -201,7 +206,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Logo
                 Center(
                   child: SvgPicture.asset(
                     'assets/images/login.svg',
@@ -210,7 +214,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 SizedBox(height: 40.h),
 
-                // Title
                 Text(
                   'Đăng nhập',
                   style: TextStyle(
@@ -221,7 +224,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 SizedBox(height: 16.h),
 
-                // Student ID
                 TextFormField(
                   controller: _studentIdController,
                   focusNode: _studentIdFocus,
@@ -238,7 +240,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 SizedBox(height: 20.h),
 
-                // Password
                 TextFormField(
                   controller: _passwordController,
                   focusNode: _passwordFocus,
@@ -256,7 +257,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 SizedBox(height: 16.h),
 
-                // Remember Me + Forgot Password
                 Row(
                   children: [
                     _buildRememberMe(),
@@ -276,7 +276,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 SizedBox(height: 16.h),
 
-                // Login Button
                 SizedBox(
                   width: double.infinity,
                   height: 56.h,
@@ -321,7 +320,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     return InkWell(
       onTap: () async {
         setState(() => _rememberMe = !_rememberMe);
-        // Nếu uncheck, xóa thông tin đã lưu
         if (!_rememberMe) {
           await _clearSavedCredentials();
         }
@@ -337,7 +335,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
               value: _rememberMe,
               onChanged: (v) async {
                 setState(() => _rememberMe = v ?? false);
-                // Nếu uncheck, xóa thông tin đã lưu
                 if (!_rememberMe) {
                   await _clearSavedCredentials();
                 }

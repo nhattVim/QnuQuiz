@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/constants/appwrite_constants.dart';
 import 'package:frontend/services/analytics_service.dart';
 import 'package:frontend/services/announcement_service.dart';
 import 'package:frontend/services/api_service.dart';
+import 'package:frontend/services/appwrite_service.dart';
 import 'package:frontend/services/auth_service.dart';
 import 'package:frontend/services/class_service.dart';
 import 'package:frontend/services/department_service.dart';
@@ -9,12 +11,28 @@ import 'package:frontend/services/exam_history_service.dart';
 import 'package:frontend/services/exam_service.dart';
 import 'package:frontend/services/feedback_service.dart';
 import 'package:frontend/services/health_service.dart';
+import 'package:frontend/services/media_file_service.dart';
 import 'package:frontend/services/question_service.dart';
 import 'package:frontend/services/student_service.dart';
 import 'package:frontend/services/teacher_service.dart';
 import 'package:frontend/services/user_service.dart';
 
 final apiServiceProvider = Provider<ApiService>((ref) => ApiService());
+
+final appwriteServiceProvider = Provider<AppwriteService>((ref) {
+  return AppwriteService(
+    endpoint: AppwriteConstants.endpoint,
+    projectId: AppwriteConstants.projectId,
+    bucketId: AppwriteConstants.bucketId,
+  );
+});
+
+final mediaFileServiceProvider = Provider<MediaFileService>((ref) {
+  return MediaFileService(
+    ref.watch(apiServiceProvider),
+    ref.watch(appwriteServiceProvider),
+  );
+});
 
 final analyticsServiceProvider = Provider<AnalyticsService>((ref) {
   return AnalyticsService(ref.watch(apiServiceProvider));

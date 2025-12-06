@@ -51,15 +51,15 @@ public class EmailServiceImpl implements EmailService {
         try {
             String subject = "Mã xác thực đặt lại mật khẩu - QnuQuiz";
             String emailBody = String.format(
-                "Xin chào,\n\n" +
-                "Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản QnuQuiz của mình.\n\n" +
-                "Mã xác thực của bạn là: \n\n" +
-                "🔐 %s\n\n" +
-                "Mã này có hiệu lực trong 10 phút.\n\n" +
-                "Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.\n\n" +
-                "Trân trọng,\n" +
-                "QnuQuiz Team",
-                code
+            "Xin chào,\n\n" +
+            "Bạn đã yêu cầu đặt lại mật khẩu cho tài khoản QnuQuiz của mình.\n\n" +
+            "Mã xác thực của bạn là: \n\n" +
+            "🔐 %s\n\n" +
+            "Mã này có hiệu lực trong 10 phút.\n\n" +
+            "Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.\n\n" +
+            "Trân trọng,\n" +
+            "QnuQuiz Team",
+            code
             );
 
             // Prepare sender

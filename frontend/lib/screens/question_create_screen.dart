@@ -1,6 +1,10 @@
+import 'dart:io';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frontend/constants/appwrite_constants.dart';
 import 'package:frontend/providers/service_providers.dart';
 
 class QuestionCreateScreen extends ConsumerStatefulWidget {
@@ -20,6 +24,8 @@ class _QuestionCreateScreenState extends ConsumerState<QuestionCreateScreen> {
   // State
   int _correctOptionIndex = -1;
   bool _isSaving = false;
+  final List<PlatformFile> _selectedFiles = [];
+  bool _isPickingFile = false;
 
   @override
   Widget build(BuildContext context) {
@@ -76,6 +82,87 @@ class _QuestionCreateScreenState extends ConsumerState<QuestionCreateScreen> {
                 ),
               ),
             ),
+            SizedBox(height: 16.h),
+            // Media files section
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Media files',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: _isSaving || _isPickingFile ? null : _pickMediaFile,
+                  icon: _isPickingFile
+                      ? SizedBox(
+                          width: 16.sp,
+                          height: 16.sp,
+                          child: const CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Icon(Icons.add, size: 16.sp),
+                  label: const Text('Thêm media'),
+                  style: OutlinedButton.styleFrom(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.r),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            SizedBox(height: 8.h),
+            // Show selected files
+            if (_selectedFiles.isEmpty)
+              Container(
+                padding: EdgeInsets.all(16.w),
+                decoration: BoxDecoration(
+                  border: Border.all(color: Colors.grey.shade300),
+                  borderRadius: BorderRadius.circular(8.r),
+                ),
+                child: Center(
+                  child: Text(
+                    'Chưa có media files. Nhấn "Thêm media" để thêm file.',
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey.shade600,
+                    ),
+                  ),
+                ),
+              )
+            else
+              ..._selectedFiles.asMap().entries.map((entry) {
+                final index = entry.key;
+                final file = entry.value;
+                return Card(
+                  margin: EdgeInsets.only(bottom: 8.h),
+                  child: ListTile(
+                    leading: Icon(
+                      _getFileIcon(file.name),
+                      color: theme.colorScheme.primary,
+                    ),
+                    title: Text(
+                      file.name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      _formatFileSize(file.size),
+                      style: theme.textTheme.bodySmall,
+                    ),
+                    trailing: IconButton(
+                      icon: Icon(
+                        Icons.delete_outline,
+                        color: theme.colorScheme.error,
+                      ),
+                      onPressed: _isSaving
+                          ? null
+                          : () => _removeSelectedFile(index),
+                      tooltip: 'Xóa file',
+                    ),
+                  ),
+                );
+              }),
+
             SizedBox(height: 24.h),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -264,9 +351,17 @@ class _QuestionCreateScreenState extends ConsumerState<QuestionCreateScreen> {
         'options': options,
       };
 
-      await ref
+      // Step 1: Create question
+      final createdQuestion = await ref
           .read(questionServiceProvider)
           .createQuestion(newQuestionData, widget.examId);
+
+      if (!mounted) return;
+
+      // Step 2: Upload media files if any
+      if (_selectedFiles.isNotEmpty && createdQuestion.id != null) {
+        await _uploadSelectedFiles(createdQuestion.id!);
+      }
 
       if (!mounted) return;
 
@@ -287,6 +382,91 @@ class _QuestionCreateScreenState extends ConsumerState<QuestionCreateScreen> {
     }
   }
 
+  Future<void> _pickMediaFile() async {
+    setState(() => _isPickingFile = true);
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['jpg', 'jpeg', 'png', 'gif', 'webp', 'mp4', 'webm', 'mp3', 'wav'],
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        final file = result.files.single;
+        
+        // Validate file size
+        if (file.size > AppwriteConstants.maxVideoSize) {
+          const maxSizeMB = AppwriteConstants.maxVideoSize ~/ (1024 * 1024);
+          _showError('File quá lớn. Tối đa $maxSizeMB MB');
+          return;
+        }
+
+        setState(() {
+          _selectedFiles.add(file);
+        });
+      }
+    } catch (e) {
+      if (!mounted) return;
+      _showError('Lỗi khi chọn file: $e');
+    } finally {
+      if (mounted) {
+        setState(() => _isPickingFile = false);
+      }
+    }
+  }
+
+  void _removeSelectedFile(int index) {
+    setState(() {
+      _selectedFiles.removeAt(index);
+    });
+  }
+
+  Future<void> _uploadSelectedFiles(int questionId) async {
+    final mediaFileService = ref.read(mediaFileServiceProvider);
+    
+    for (final platformFile in _selectedFiles) {
+      try {
+        if (platformFile.path == null) {
+          continue;
+        }
+        final file = File(platformFile.path!);
+        await mediaFileService.uploadAndSaveMediaFile(
+          file: file,
+          questionId: questionId,
+          description: 'Media file for question',
+        );
+      } catch (e) {
+        // Log error but continue with other files
+        debugPrint('Error uploading file ${platformFile.name}: $e');
+      }
+    }
+  }
+
+  IconData _getFileIcon(String fileName) {
+    final extension = fileName.split('.').last.toLowerCase();
+    switch (extension) {
+      case 'jpg':
+      case 'jpeg':
+      case 'png':
+      case 'gif':
+      case 'webp':
+        return Icons.image;
+      case 'mp4':
+      case 'webm':
+        return Icons.video_library;
+      case 'mp3':
+      case 'wav':
+        return Icons.audiotrack;
+      default:
+        return Icons.insert_drive_file;
+    }
+  }
+
+  String _formatFileSize(int bytes) {
+    if (bytes < 1024) return '$bytes B';
+    if (bytes < 1024 * 1024) return '${(bytes / 1024).toStringAsFixed(1)} KB';
+    return '${(bytes / (1024 * 1024)).toStringAsFixed(1)} MB';
+  }
+
   void _selectCorrectOption(int index) {
     setState(() {
       _correctOptionIndex = index;
@@ -301,4 +481,5 @@ class _QuestionCreateScreenState extends ConsumerState<QuestionCreateScreen> {
       ),
     );
   }
+
 }

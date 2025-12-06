@@ -108,7 +108,6 @@ public class FeedbackServiceImpl implements FeedbackService {
 
     @Override
     public List<FeedbackTemplateDto> getTemplates() {
-        // Các template/tag mẫu cho màn hình đánh giá
         return List.of(
                 new FeedbackTemplateDto("GOOD_KNOWLEDGE", "Kiến thức hay",
                         "Câu hỏi rất hay, kiến thức bổ ích!"),

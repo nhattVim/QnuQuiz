@@ -130,9 +130,8 @@ public class StudentServiceImpl implements StudentService {
         }
 
         Students student = studentRepository.findByUsers(user)
-                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin sinh viên"));
+                .orElseThrow(() -> new RuntimeException("Student not found"));
 
-        // Lấy tất cả các bài thi đã nộp của sinh viên
         List<ExamAttempts> attempts = examAttemptRepository
                 .findByStudents_IdOrderByEndTimeDesc(student.getId())
                 .stream()
@@ -148,7 +147,6 @@ public class StudentServiceImpl implements StudentService {
                     .score(attempt.getScore() != null ? attempt.getScore() : 0)
                     .completionDate(attempt.getEndTime());
 
-            // Tính tổng thời gian làm bài (phút)
             if (attempt.getStartTime() != null && attempt.getEndTime() != null) {
                 long durationMillis = attempt.getEndTime().getTime() - attempt.getStartTime().getTime();
                 long durationMinutes = durationMillis / (1000 * 60);
@@ -157,7 +155,6 @@ public class StudentServiceImpl implements StudentService {
                 builder.durationMinutes(0L);
             }
 
-            // Lấy danh sách đáp án
             List<ExamAnswers> examAnswers = examAnswerRepository.findByExamAttempts_Id(attempt.getId());
             List<ExamAnswerHistoryDto> answerDtos = examAnswers.stream().map(answer -> {
                 ExamAnswerHistoryDto.ExamAnswerHistoryDtoBuilder answerBuilder = ExamAnswerHistoryDto.builder()
@@ -166,7 +163,6 @@ public class StudentServiceImpl implements StudentService {
                         .isCorrect(answer.getIsCorrect())
                         .answerText(answer.getAnswerText());
 
-                // Nếu có selected option, lấy thông tin option
                 if (answer.getQuestionOptions() != null) {
                     answerBuilder.selectedOptionId(answer.getQuestionOptions().getId())
                             .selectedOptionContent(answer.getQuestionOptions().getContent());

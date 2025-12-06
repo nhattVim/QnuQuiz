@@ -109,14 +109,24 @@ class QuestionService {
 
   Future<QuestionModel> updateQuestion(QuestionModel question) async {
     try {
+      // Use toJsonForUpdate() to exclude mediaFiles
+      // Media files are managed separately via MediaFileService
+      // Backend endpoint is PUT /api/questions/{id} (not /update/{id})
       final response = await _dio.put(
-        '${ApiConstants.questions}/update/${(question.id)}',
-        data: question.toJson(),
+        '${ApiConstants.questions}/${question.id}',
+        data: question.toJsonForUpdate(),
       );
       return QuestionModel.fromJson(response.data);
     } on DioException catch (e) {
-      _log.e(e.response?.data ?? e.message);
-      throw Exception(e.response?.data?['message'] ?? 'Lỗi kết nối');
+      _log.e('Error updating question: ${e.response?.data ?? e.message}');
+      // Provide more detailed error message
+      final errorMessage = e.response?.data?['message'] ?? 
+          e.response?.data?['error'] ?? 
+          'Lỗi kết nối';
+      throw Exception(errorMessage);
+    } catch (e) {
+      _log.e('Unexpected error updating question: $e');
+      rethrow;
     }
   }
 
