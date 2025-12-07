@@ -327,8 +327,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                           sectionsSpace: 4,
                           centerSpaceRadius: 70,
                           sections: slices.map((slice) {
-                            final percent =
-                                ((slice.value / total) * 100).toStringAsFixed(0);
                             return PieChartSectionData(
                               color: slice.color,
                               value: slice.value,
@@ -711,8 +709,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                           sectionsSpace: 4,
                           centerSpaceRadius: 70,
                           sections: slices.map((slice) {
-                            final percent =
-                                ((slice.value / total) * 100).toStringAsFixed(0);
                             return PieChartSectionData(
                               color: slice.color,
                               value: slice.value,
