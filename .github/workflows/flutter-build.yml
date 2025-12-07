@@ -14,13 +14,12 @@ defaults:
 
 jobs:
     # ============================================================
-    # BUILD ANDROID + IOS (main.dart)
+    # BUILD ANDROID
     # ============================================================
-    build-mobile:
-        runs-on: macos-latest
+    build-android:
+        runs-on: ubuntu-latest
         steps:
-            - name: Checkout repository
-              uses: actions/checkout@v6.0.0
+            - uses: actions/checkout@v6
 
             - name: Setup Flutter
               uses: subosito/flutter-action@v2
@@ -30,31 +29,50 @@ jobs:
             - name: Install dependencies
               run: flutter pub get
 
-            - name: Clean Build
-              run: flutter clean
-
-            - name: Build Android debug APK (main.dart)
+            - name: Build Android APK
               run: flutter build apk --debug -t lib/main.dart
 
-            - name: Build iOS debug app (simulator)
-              run: flutter build ios --debug --no-codesign -t lib/main.dart
+            - name: Move APK to root
+              run: mv build/app/outputs/flutter-apk/app-debug.apk QnuQuiz.apk
 
-            - name: Zip iOS app
-              run: |
-                  APP_PATH=$(find build/ios -name "Runner.app" -type d | head -n 1)
-                  zip -r Runner.app.zip "$APP_PATH"
-                  mv Runner.app.zip "$GITHUB_WORKSPACE/frontend/ios-simulator-build.zip"
-
-            - name: Upload artifacts
+            - name: Upload Android Artifact
               uses: actions/upload-artifact@v4
               with:
-                  name: mobile-build
-                  path: |
-                      frontend/build/app/outputs/flutter-apk/app-debug.apk
-                      frontend/ios-simulator-build.zip
+                  name: android-build
+                  path: frontend/QnuQuiz.apk
 
     # ============================================================
-    # BUILD WINDOWS (main_admin.dart)
+    # BUILD IOS
+    # ============================================================
+    build-ios:
+        runs-on: macos-latest
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                  flutter-version: "3.35.7"
+
+            - name: Install dependencies
+              run: flutter pub get
+
+            - name: Build iOS (Simulator)
+              run: flutter build ios --debug --no-codesign -t lib/main.dart
+
+            - name: Zip iOS App
+              run: |
+                  APP_PATH=$(find build/ios -name "Runner.app" -type d | head -n 1)
+                  zip -r QnuQuiz.zip "$APP_PATH"
+
+            - name: Upload iOS Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ios-build
+                  path: frontend/QnuQuiz.zip
+
+    # ============================================================
+    # BUILD WINDOWS
     # ============================================================
     build-windows:
         runs-on: windows-latest
@@ -72,7 +90,7 @@ jobs:
             - name: Install dependencies
               run: flutter pub get
 
-            - name: Build Windows (main_admin.dart)
+            - name: Build Windows
               run: flutter build windows -t lib/main_admin.dart
 
             - name: Create Inno Setup Script
@@ -84,7 +102,7 @@ jobs:
                   AppVersion=${{ github.ref_name }}
                   DefaultDirName={autopf}\QnuQuizApp
                   DefaultGroupName=QnuQuizApp
-                  OutputBaseFilename=QnuQuiz_Admin_Installer
+                  OutputBaseFilename=QnuQuiz_Admin
                   Compression=lzma
                   SolidCompression=yes
                   ArchitecturesInstallIn64BitMode=x64
@@ -98,27 +116,27 @@ jobs:
                   "@
                   $script | Out-File -FilePath installer.iss -Encoding UTF8
 
-            - name: Compile Windows Installer (.exe)
+            - name: Compile Windows Installer
               run: iscc installer.iss
 
             - name: Upload Windows Artifact
               uses: actions/upload-artifact@v4
               with:
                   name: windows-installer
-                  path: frontend/Output/QnuQuiz_Admin_Installer.exe
+                  path: frontend/Output/QnuQuiz_Admin.exe
 
     # ============================================================
-    # BUILD LINUX (main_admin.dart)
+    # BUILD LINUX
     # ============================================================
     build-linux:
         runs-on: ubuntu-latest
         steps:
             - uses: actions/checkout@v6
 
-            - name: Install dependencies for Linux desktop
+            - name: Install System Dependencies
               run: |
                   sudo apt-get update
-                  sudo apt-get install -y libgtk-3-dev liblzma-dev clang cmake ninja-build pkg-config libayatana-appindicator3-dev
+                  sudo apt-get install -y libgtk-3-dev liblzma-dev clang cmake ninja-build pkg-config libayatana-appindicator3-dev libwebkit2gtk-4.1-dev libsecret-1-dev
 
             - name: Setup Flutter
               uses: subosito/flutter-action@v2
@@ -128,30 +146,29 @@ jobs:
             - name: Enable Linux
               run: flutter config --enable-linux-desktop
 
-            - name: Install deps
+            - name: Install dependencies
               run: flutter pub get
 
-            - name: Build Linux (main_admin.dart)
+            - name: Build Linux
               run: flutter build linux -t lib/main_admin.dart
 
             - name: Compress Linux Build
               run: |
                   cd build/linux/x64/release/bundle
-                  tar -czf ../../../../../linux-admin-app.tar.gz .
+                  tar -czf ../../../../../QnuQuiz_Admin.tar.gz .
 
             - name: Upload Linux Artifact
               uses: actions/upload-artifact@v4
               with:
                   name: linux-build
-                  path: frontend/linux-admin-app.tar.gz
+                  path: frontend/QnuQuiz_Admin.tar.gz
 
     # ============================================================
     # CREATE RELEASE
     # ============================================================
     release:
-        needs: [build-mobile, build-windows, build-linux]
+        needs: [build-android, build-ios, build-windows, build-linux]
         runs-on: ubuntu-latest
-
         steps:
             - uses: actions/download-artifact@v4
               with:
@@ -164,15 +181,16 @@ jobs:
                   body: |
                       Builds generated from tag: ${{ github.ref_name }}
 
-                      **Mobile:**
-                      - Android APK (Debug)
-                      - iOS Simulator Build (Zip)
+                      **Mobile (User App):**
+                      - Android: `QnuQuiz.apk`
+                      - iOS: `QnuQuiz.zip`
 
-                      **Desktop:**
-                      - Windows: File cài đặt `.exe` (Setup)
-                      - Linux: File nén `.tar.gz` (Giải nén và chạy file executable bên trong)
+                      **Desktop (Admin App):**
+                      - Windows: `QnuQuiz_Admin.exe`
+                      - Linux: `QnuQuiz_Admin.tar.gz`
                   files: |
-                      ./dist/mobile-build/*
+                      ./dist/android-build/*
+                      ./dist/ios-build/*
                       ./dist/windows-installer/*
                       ./dist/linux-build/*
               env:
