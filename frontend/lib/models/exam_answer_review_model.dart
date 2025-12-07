@@ -39,7 +39,7 @@ class ExamAnswerReviewModel {
       questionText: json['questionContent'],
       type: json['type'],
       selectedOptionId: selected,
-      correctOptionId: correctOption.id,
+      correctOptionId: correctOption.id ?? -1,
       isCorrect: json['correct'],
       options: opts,
     );

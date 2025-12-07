@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/models/exam_result_model.dart';
+import 'package:frontend/screens/feedback_screen.dart';
 import 'package:frontend/screens/quiz/quiz_review_screen.dart';
-import 'package:frontend/services/exam_service.dart';
+import 'package:frontend/providers/service_providers.dart';
 
-class QuizResultScreen extends StatelessWidget {
+class QuizResultScreen extends ConsumerWidget {
   final int totalQuestions;
   final ExamResultModel result;
   final int attemptId;
   final VoidCallback onBackHome;
+  final String examTitle;
+  final int examId;
 
   const QuizResultScreen({
     super.key,
@@ -15,11 +19,16 @@ class QuizResultScreen extends StatelessWidget {
     required this.result,
     required this.attemptId,
     required this.onBackHome,
+    required this.examTitle,
+    required this.examId
   });
 
-  Future<void> handleReviewExam(BuildContext context, int attemptId) async {
+  Future<void> handleReviewExam(
+    BuildContext context,
+    WidgetRef ref,
+    int attemptId,
+  ) async {
     try {
-      // Hiển thị loading dialog
       showDialog(
         context: context,
         barrierDismissible: false,
@@ -40,15 +49,14 @@ class QuizResultScreen extends StatelessWidget {
         },
       );
 
-      // Gọi API để lấy dữ liệu review
-      final examReview = await ExamService().reviewExamAttempt(attemptId);
+      final examReview = await ref
+          .read(examServiceProvider)
+          .reviewExamAttempt(attemptId);
 
-      // Đóng loading dialog
       if (context.mounted) {
         Navigator.of(context).pop();
       }
 
-      // Chuyển sang QuizReviewScreen với dữ liệu từ API
       if (context.mounted) {
         Navigator.of(context).push(
           MaterialPageRoute(
@@ -60,12 +68,10 @@ class QuizResultScreen extends StatelessWidget {
         );
       }
     } catch (e) {
-      // Đóng loading dialog nếu có lỗi
       if (context.mounted) {
         Navigator.of(context).pop();
       }
 
-      // Hiển thị error message
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -77,15 +83,36 @@ class QuizResultScreen extends StatelessWidget {
     }
   }
 
+  void handleFeedback(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) =>
+            FeedbackScreen(examId: examId, examTitle: examTitle),
+      ),
+    );
+  }
+
   @override
-  Widget build(BuildContext context) {
-    final points = result.score;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final score = result.score;
+    final correctCount = result.correctCount;
 
     return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
         child: Column(
           children: [
+            // Back button at top left
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: GestureDetector(
+                  onTap: onBackHome,
+                  child: const Icon(Icons.close, color: Colors.black, size: 32),
+                ),
+              ),
+            ),
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(24),
@@ -148,9 +175,9 @@ class QuizResultScreen extends StatelessWidget {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          const Text(
-                            'Nhập học & thủ tục',
-                            style: TextStyle(
+                          Text(
+                            examTitle,
+                            style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
                               color: Colors.black87,
@@ -187,7 +214,7 @@ class QuizResultScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 20),
                               Text(
-                                '$points/$totalQuestions',
+                                '$correctCount/$totalQuestions',
                                 style: const TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
@@ -210,7 +237,7 @@ class QuizResultScreen extends StatelessWidget {
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                '$points điểm',
+                                '$score điểm',
                                 style: const TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
@@ -229,16 +256,18 @@ class QuizResultScreen extends StatelessWidget {
               ),
             ),
 
-            // Buttons
+            // Buttons at bottom
             Padding(
               padding: const EdgeInsets.all(16),
               child: Column(
                 children: [
+                  // Review button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
                     child: ElevatedButton(
-                      onPressed: () => handleReviewExam(context, attemptId),
+                      onPressed: () =>
+                          handleReviewExam(context, ref, attemptId),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
@@ -256,23 +285,24 @@ class QuizResultScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 12),
+                  // Feedback button
                   SizedBox(
                     width: double.infinity,
                     height: 48,
-                    child: ElevatedButton(
-                      onPressed: onBackHome,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.grey.shade300,
-                        foregroundColor: Colors.black,
+                    child: OutlinedButton(
+                      onPressed: () => handleFeedback(context),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.blue, width: 2),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
                       child: const Text(
-                        'Về trang chủ',
+                        'Gửi đánh giá và phản hồi',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
+                          color: Colors.blue,
                         ),
                       ),
                     ),

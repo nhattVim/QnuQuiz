@@ -1,25 +1,11 @@
 import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../services/health_service.dart';
-import '../services/auth_service.dart';
-
-enum AppStartupState { checkingHealth, serverDown, loggedIn, loggedOut }
-
-class AppStartupResult {
-  final AppStartupState state;
-  final bool isServerUp;
-  final bool? isLoggedIn;
-
-  AppStartupResult({
-    required this.state,
-    required this.isServerUp,
-    this.isLoggedIn,
-  });
-}
+import 'package:frontend/providers/service_providers.dart';
+import 'package:frontend/providers/user_provider.dart';
 
 final appStartupProvider =
     AsyncNotifierProvider<AppStartupNotifier, AppStartupResult>(
-      // AppStartupNotifier.new,
       () => AppStartupNotifier(),
     );
 
@@ -38,7 +24,7 @@ class AppStartupNotifier extends AsyncNotifier<AppStartupResult> {
   Future<AppStartupResult> _checkHealthAndLogin() async {
     state = const AsyncValue.loading();
 
-    final isServerUp = await HealthService().checkHealth();
+    final isServerUp = await ref.read(healthServiceProvider).checkHealth();
 
     if (!isServerUp) {
       _retryTimer?.cancel();
@@ -53,21 +39,44 @@ class AppStartupNotifier extends AsyncNotifier<AppStartupResult> {
       );
     }
 
-    // Server up → check login
-    final isLoggedIn = await AuthService().isLoggedIn();
+    // Server up → restore session by checking BOTH token and cached user
+    final authService = ref.read(authServiceProvider);
+    final token = await authService.getToken();
+    final cachedUser = await ref.read(userServiceProvider).getUser();
 
-    if (isLoggedIn) {
+    final hasSession = token != null && token.isNotEmpty && cachedUser != null;
+
+    if (hasSession) {
+      // Keep in-memory user state in sync so UI can read immediately
+      ref.read(userProvider.notifier).setUser(cachedUser);
       return AppStartupResult(
         state: AppStartupState.loggedIn,
         isServerUp: true,
         isLoggedIn: true,
       );
-    } else {
-      return AppStartupResult(
-        state: AppStartupState.loggedOut,
-        isServerUp: true,
-        isLoggedIn: false,
-      );
     }
+
+    // Missing token or user → treat as logged out and clear leftovers
+    await authService.logout();
+    await ref.read(userProvider.notifier).clearUser();
+    return AppStartupResult(
+      state: AppStartupState.loggedOut,
+      isServerUp: true,
+      isLoggedIn: false,
+    );
   }
 }
+
+class AppStartupResult {
+  final AppStartupState state;
+  final bool isServerUp;
+  final bool? isLoggedIn;
+
+  AppStartupResult({
+    required this.state,
+    required this.isServerUp,
+    this.isLoggedIn,
+  });
+}
+
+enum AppStartupState { checkingHealth, serverDown, loggedIn, loggedOut }

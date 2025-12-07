@@ -2,9 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:frontend/providers/user_provider.dart';
+import 'package:frontend/models/user_model.dart';
 import '../providers/auth_provider.dart';
 import '../widgets/link_text.dart';
 import 'home_screen.dart';
+import 'forgot_password_screen.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -20,6 +24,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _studentIdFocus = FocusNode();
   final _passwordFocus = FocusNode();
   bool _rememberMe = false;
+  bool _isLoadingCredentials = true;
+  bool _hasNavigated = false;
+
+  static const String _keyRememberUsername = 'remember_username';
+  static const String _keyRememberPassword = 'remember_password';
+  static const String _keyRememberMe = 'remember_me';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSavedCredentials();
+  }
 
   @override
   void dispose() {
@@ -30,44 +46,158 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     super.dispose();
   }
 
+  Future<void> _loadSavedCredentials() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final rememberMe = prefs.getBool(_keyRememberMe) ?? false;
+      
+      if (rememberMe) {
+        final savedUsername = prefs.getString(_keyRememberUsername);
+        final savedPassword = prefs.getString(_keyRememberPassword);
+        
+        if (savedUsername != null && savedPassword != null) {
+          setState(() {
+            _rememberMe = true;
+            _studentIdController.text = savedUsername;
+            _passwordController.text = savedPassword;
+            _isLoadingCredentials = false;
+          });
+          return;
+        }
+      }
+      
+      setState(() {
+        _isLoadingCredentials = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoadingCredentials = false;
+      });
+    }
+  }
+
+  Future<void> _saveCredentials() async {
+    if (_rememberMe) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setBool(_keyRememberMe, true);
+      await prefs.setString(_keyRememberUsername, _studentIdController.text.trim());
+      await prefs.setString(_keyRememberPassword, _passwordController.text);
+    } else {
+      await _clearSavedCredentials();
+    }
+  }
+
+  Future<void> _clearSavedCredentials() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_keyRememberMe);
+    await prefs.remove(_keyRememberUsername);
+    await prefs.remove(_keyRememberPassword);
+  }
+
   Future<void> _handleLogin() async {
     if (!_formKey.currentState!.validate()) return;
 
-    await ref
+    final result = await ref
         .read(authProvider.notifier)
         .login(_studentIdController.text.trim(), _passwordController.text);
+    
+    if (result) {
+      await _saveCredentials();
+    } else {
+      final errorMessage = ref.read(authProvider.notifier).errorMessage;
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage ?? 'Sai tên đăng nhập hoặc mật khẩu'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  void _checkAndNavigate() {
+    if (!mounted || _hasNavigated) return;
+    
+    final authState = ref.read(authProvider);
+    final userAsyncValue = ref.read(userProvider);
+    
+    if (authState == AuthState.authenticated) {
+          userAsyncValue.when(
+            data: (user) {
+          if (user != null && !_hasNavigated) {
+            _hasNavigated = true;
+                if (user.role == 'ADMIN') {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text(
+                        'Tài khoản quản trị không thể truy cập trang này',
+                      ),
+                      backgroundColor: Colors.red,
+                    ),
+                  );
+                  ref.read(authProvider.notifier).logout();
+              _hasNavigated = false;
+                } else {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                  );
+                }
+              }
+            },
+        loading: () {},
+            error: (err, stack) {
+          if (mounted && !_hasNavigated) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text(
+                    'Lỗi tải thông tin người dùng. Vui lòng đăng nhập lại.',
+                  ),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              ref.read(authProvider.notifier).logout();
+            _hasNavigated = false;
+          }
+            },
+          );
+    } else if (authState != AuthState.authenticated) {
+      _hasNavigated = false;
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
-
-    // Auto redirect after login
-    if (authState == AuthState.authenticated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-          );
-        }
-      });
-    }
-
-    // Display error
+    
     ref.listen<AuthState>(authProvider, (previous, next) {
-      if (next == AuthState.error && mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Đăng nhập thất bại'),
-            backgroundColor: Colors.red,
-          ),
-        );
+      if (next == AuthState.authenticated) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndNavigate());
+      } else {
+        _hasNavigated = false;
       }
     });
+    
+    ref.listen<AsyncValue<UserModel?>>(userProvider, (previous, next) {
+      final currentAuthState = ref.read(authProvider);
+      if (currentAuthState == AuthState.authenticated) {
+        WidgetsBinding.instance.addPostFrameCallback((_) => _checkAndNavigate());
+      }
+    });
+    
+    if (_isLoadingCredentials) {
+      return Scaffold(
+        backgroundColor: Theme.of(context).colorScheme.surface,
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.colorScheme.surface,
       body: SafeArea(
         child: Form(
           key: _formKey,
@@ -76,7 +206,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Logo
                 Center(
                   child: SvgPicture.asset(
                     'assets/images/login.svg',
@@ -85,18 +214,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 SizedBox(height: 40.h),
 
-                // Title
                 Text(
                   'Đăng nhập',
                   style: TextStyle(
                     fontSize: 32.sp,
                     fontWeight: FontWeight.bold,
-                    color: Colors.black87,
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 SizedBox(height: 16.h),
 
-                // Student ID
                 TextFormField(
                   controller: _studentIdController,
                   focusNode: _studentIdFocus,
@@ -113,7 +240,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 SizedBox(height: 20.h),
 
-                // Password
                 TextFormField(
                   controller: _passwordController,
                   focusNode: _passwordFocus,
@@ -131,7 +257,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 ),
                 SizedBox(height: 16.h),
 
-                // Remember Me + Forgot Password
                 Row(
                   children: [
                     _buildRememberMe(),
@@ -139,14 +264,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     LinkText(
                       text: 'Quên mật khẩu?',
                       onPressed: () {
-                        // TODO: Navigate
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const ForgotPasswordScreen(),
+                          ),
+                        );
                       },
                     ),
                   ],
                 ),
                 SizedBox(height: 16.h),
 
-                // Login Button
                 SizedBox(
                   width: double.infinity,
                   height: 56.h,
@@ -178,24 +307,6 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           ),
                   ),
                 ),
-                SizedBox(height: 24.h),
-
-                // Register
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'Chưa có tài khoản? ',
-                      style: TextStyle(fontSize: 14.sp, color: Colors.grey),
-                    ),
-                    LinkText(
-                      text: 'Đăng ký',
-                      onPressed: () {
-                        // TODO: Navigate
-                      },
-                    ),
-                  ],
-                ),
               ],
             ),
           ),
@@ -205,8 +316,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   }
 
   Widget _buildRememberMe() {
+    final theme = Theme.of(context);
     return InkWell(
-      onTap: () => setState(() => _rememberMe = !_rememberMe),
+      onTap: () async {
+        setState(() => _rememberMe = !_rememberMe);
+        if (!_rememberMe) {
+          await _clearSavedCredentials();
+        }
+      },
       borderRadius: BorderRadius.circular(4.r),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -216,15 +333,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
             height: 24.h,
             child: Checkbox(
               value: _rememberMe,
-              onChanged: (v) => setState(() => _rememberMe = v ?? false),
+              onChanged: (v) async {
+                setState(() => _rememberMe = v ?? false);
+                if (!_rememberMe) {
+                  await _clearSavedCredentials();
+                }
+              },
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(4.r),
               ),
-              activeColor: Colors.blue,
+              activeColor: theme.colorScheme.primary,
             ),
           ),
           SizedBox(width: 8.w),
-          Text('Nhớ mật khẩu', style: TextStyle(fontSize: 14.sp)),
+          Text(
+            'Nhớ mật khẩu',
+            style: TextStyle(
+              fontSize: 14.sp,
+              color: theme.colorScheme.onSurface,
+            ),
+          ),
         ],
       ),
     );

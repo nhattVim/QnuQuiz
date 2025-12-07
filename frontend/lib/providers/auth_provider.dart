@@ -1,20 +1,28 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_riverpod/legacy.dart';
+import 'package:frontend/providers/service_providers.dart';
 import 'package:frontend/providers/user_provider.dart';
+import 'package:frontend/services/auth_service.dart';
 
-import '../services/auth_service.dart';
-
-final authProvider = StateNotifierProvider<AuthNotifier, AuthState>(
-  (ref) => AuthNotifier(ref),
+final authProvider = NotifierProvider<AuthNotifier, AuthState>(
+  AuthNotifier.new,
 );
 
-class AuthNotifier extends StateNotifier<AuthState> {
-  final Ref ref;
-  final _authService = AuthService();
-  AuthNotifier(this.ref) : super(AuthState.initial);
+class AuthNotifier extends Notifier<AuthState> {
+  late final AuthService _authService;
 
-  Future<void> login(String username, String password) async {
+  @override
+  AuthState build() {
+    _authService = ref.read(authServiceProvider);
+    return AuthState.initial;
+  }
+
+  String? _errorMessage;
+
+  String? get errorMessage => _errorMessage;
+
+  Future<bool> login(String username, String password) async {
     state = AuthState.loading;
+    _errorMessage = null;
 
     final result = await _authService.login(
       username: username,
@@ -26,8 +34,19 @@ class AuthNotifier extends StateNotifier<AuthState> {
       final user = result['user'];
       ref.read(userProvider.notifier).setUser(user);
       state = AuthState.authenticated;
+      return true;
     } else {
+      final statusCode = result['statusCode'];
+      final error = result['error'];
+      
+      if (statusCode == 401 || error == 'Unauthorized') {
+        _errorMessage = 'Sai tên đăng nhập hoặc mật khẩu';
+      } else {
+        _errorMessage = result['message'] ?? 'Sai tên đăng nhập hoặc mật khẩu';
+      }
+      
       state = AuthState.error;
+      return false;
     }
   }
 

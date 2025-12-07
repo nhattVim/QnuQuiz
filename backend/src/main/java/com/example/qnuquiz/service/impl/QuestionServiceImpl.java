@@ -16,16 +16,20 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.example.qnuquiz.dto.questions.QuestionFullDto;
+import com.example.qnuquiz.dto.media.MediaFileDto;
+import com.example.qnuquiz.dto.questions.QuestionDTO;
 import com.example.qnuquiz.dto.questions.QuestionOptionDto;
 import com.example.qnuquiz.entity.Exams;
 import com.example.qnuquiz.entity.QuestionOptions;
 import com.example.qnuquiz.entity.Questions;
 import com.example.qnuquiz.entity.Users;
+import com.example.qnuquiz.mapper.QuestionMapper;
 import com.example.qnuquiz.repository.ExamRepository;
 import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.repository.UserRepository;
+import com.example.qnuquiz.security.SecurityUtils;
+import com.example.qnuquiz.service.MediaFileService;
 import com.example.qnuquiz.service.QuestionService;
 
 import jakarta.transaction.Transactional;
@@ -39,6 +43,8 @@ public class QuestionServiceImpl implements QuestionService {
     private final QuestionOptionsRepository questionOptionsRepository;
     private final UserRepository userRepository;
     private final ExamRepository examRepository;
+    private final QuestionMapper questionMapper;
+    private final MediaFileService mediaFileService;
 
     @Override
     @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
@@ -111,23 +117,13 @@ public class QuestionServiceImpl implements QuestionService {
 
     @Override
     @Cacheable("allQuestionsOfExam")
-    public List<QuestionFullDto> getAllQuestionsInExam(Long examId) {
+    public List<QuestionDTO> getAllQuestionsInExam(Long examId) {
         if (!examRepository.existsById(examId)) {
             throw new RuntimeException("Exam not found");
         }
 
         return questionsRepository.findByExamsId(examId).stream()
-                .map(q -> QuestionFullDto.builder()
-                        .id(q.getId())
-                        .content(q.getContent())
-                        .options(questionOptionsRepository.findByQuestions_Id(q.getId()).stream()
-                                .map(o -> QuestionOptionDto.builder()
-                                        .id(o.getId())
-                                        .content(o.getContent())
-                                        .correct(o.isIsCorrect())
-                                        .build())
-                                .toList())
-                        .build())
+                .map(this::buildQuestionDTO)
                 .toList();
     }
 
@@ -142,33 +138,149 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     @Transactional
     @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
-    public QuestionFullDto updateQuestion(QuestionFullDto dto) {
+    public QuestionDTO updateQuestion(QuestionDTO dto) {
         Questions question = questionsRepository.findById(dto.getId())
                 .orElseThrow(() -> new RuntimeException("Question not found"));
 
         question.setContent(dto.getContent());
 
-        List<QuestionOptionDto> updatedOptions = dto.getOptions().stream()
+        List<QuestionOptionDto> updatedOptions;
+        if (dto.getOptions() != null && !dto.getOptions().isEmpty()) {
+            // Update options if provided
+            updatedOptions = dto.getOptions().stream()
                 .map(optionDto -> {
                     QuestionOptions option = questionOptionsRepository.findById(optionDto.getId())
                             .orElseThrow(() -> new RuntimeException("Option not found with id: " + optionDto.getId()));
                     option.setContent(optionDto.getContent());
                     option.setIsCorrect(optionDto.isCorrect());
+                    option.setPosition(optionDto.getPosition());
                     questionOptionsRepository.save(option);
                     return QuestionOptionDto.builder()
                             .id(option.getId())
                             .content(option.getContent())
                             .correct(option.isIsCorrect())
+                            .position(option.getPosition())
                             .build();
                 })
                 .collect(Collectors.toList());
+        } else {
+            // If options is null or empty, fetch existing options from database
+            updatedOptions = questionOptionsRepository.findByQuestions_Id(question.getId())
+                    .stream()
+                    .map(opt -> QuestionOptionDto.builder()
+                            .id(opt.getId())
+                            .content(opt.getContent())
+                            .correct(opt.isIsCorrect())
+                            .position(opt.getPosition())
+                            .build())
+                    .collect(Collectors.toList());
+        }
 
         questionsRepository.save(question);
 
-        return QuestionFullDto.builder()
+        return QuestionDTO.builder()
                 .id(question.getId())
                 .content(question.getContent())
+                .type(question.getType())
                 .options(updatedOptions)
                 .build();
+    }
+
+    private Users getCurrentAuthenticatedUser() {
+        UUID userId = SecurityUtils.getCurrentUserId();
+        userId = userId == null ? null : userId;
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    @Override
+    public List<QuestionDTO> getAllQuestions() {
+        return questionsRepository.findAll().stream()
+                .map(this::buildQuestionDTO)
+                .toList();
+    }
+
+    @Override
+    @Transactional
+    @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
+    public QuestionDTO createQuestion(QuestionDTO dto, Long examId) {
+        Exams exam = examRepository.findById(examId)
+                .orElseThrow(() -> new RuntimeException("Exam not found with id: " + examId));
+
+        Users user = getCurrentAuthenticatedUser();
+
+        if (!exam.getUsers().getId().equals(user.getId())) {
+            throw new RuntimeException("You are not allowed to add questions to this exam");
+        }
+
+        Questions question = questionMapper.toEntity(dto);
+        question.setExams(exam);
+        question.setUsers(user);
+
+        List<Questions> allQuestions = questionsRepository.findByExamsId(exam.getId());
+        question.setOrdering(allQuestions.size() + 1);
+        question.setType(dto.getType());
+
+        question.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        question.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+
+        Questions savedQuestion = questionsRepository.save(question);
+
+        // Validate and create options based on question type
+        if (dto.getOptions() != null && !dto.getOptions().isEmpty()) {
+            // MULTIPLE_CHOICE questions require options
+            if ("MULTIPLE_CHOICE".equalsIgnoreCase(dto.getType()) || "TRUE_FALSE".equalsIgnoreCase(dto.getType())) {
+        dto.getOptions().forEach(optionDto -> createOption(savedQuestion, optionDto.getContent(), optionDto.isCorrect(),
+                optionDto.getPosition()));
+            }
+        } else if ("MULTIPLE_CHOICE".equalsIgnoreCase(dto.getType()) || "TRUE_FALSE".equalsIgnoreCase(dto.getType())) {
+            // MULTIPLE_CHOICE and TRUE_FALSE questions must have options
+            throw new RuntimeException("Options are required for MULTIPLE_CHOICE and TRUE_FALSE question types");
+        }
+
+        List<QuestionOptionDto> createdOptions = questionOptionsRepository.findByQuestions_Id(savedQuestion.getId())
+                .stream()
+                .map(opt -> QuestionOptionDto.builder()
+                        .id(opt.getId())
+                        .content(opt.getContent())
+                        .correct(opt.isIsCorrect())
+                        .position(opt.getPosition())
+                        .build())
+                .collect(Collectors.toList());
+
+        return buildQuestionDTO(savedQuestion);
+    }
+
+    /**
+     * Helper method to build QuestionDTO with options and media files
+     */
+    private QuestionDTO buildQuestionDTO(Questions question) {
+        // Load options
+        List<QuestionOptionDto> options = questionOptionsRepository.findByQuestions_Id(question.getId()).stream()
+                .map(o -> QuestionOptionDto.builder()
+                        .id(o.getId())
+                        .content(o.getContent())
+                        .correct(o.isIsCorrect())
+                        .position(o.getPosition())
+                        .build())
+                .toList();
+
+        // Load media files
+        List<MediaFileDto> mediaFiles = mediaFileService.getMediaFilesByQuestionId(question.getId());
+
+        // Build DTO
+        QuestionDTO.QuestionDTOBuilder builder = QuestionDTO.builder()
+                .id(question.getId())
+                .content(question.getContent())
+                .type(question.getType())
+                .options(options)
+                .mediaFiles(mediaFiles);
+
+        // For backward compatibility, set mediaUrl to first media file URL if exists
+        if (!mediaFiles.isEmpty()) {
+            builder.mediaUrl(mediaFiles.get(0).getFileUrl());
+        }
+
+        return builder.build();
     }
 }

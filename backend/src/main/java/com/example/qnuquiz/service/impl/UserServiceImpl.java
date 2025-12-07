@@ -10,8 +10,8 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.qnuquiz.dto.user.UserRegisterDto;
 import com.example.qnuquiz.dto.user.UserDto;
+import com.example.qnuquiz.dto.user.UserRegisterDto;
 import com.example.qnuquiz.entity.Students;
 import com.example.qnuquiz.entity.Teachers;
 import com.example.qnuquiz.entity.Users;
@@ -76,6 +76,45 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @CacheEvict(value = "allUsers", allEntries = true)
+    public UserDto createUser(UserDto userDto) {
+        if (userRepository.existsByUsername(userDto.getUsername())) {
+            throw new RuntimeException("Username already exists");
+        }
+
+        Users user = userMapper.toEntity(userDto);
+        user.setStatus("ACTIVE");
+        user.setPasswordHash(passwordEncoder.encode("password")); // Default password
+        user.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+
+        Users saved = userRepository.save(user);
+        return userMapper.toDto(saved);
+    }
+
+    @Override
+    @CacheEvict(value = "allUsers", allEntries = true)
+    public UserDto updateUser(String id, UserDto userDto) {
+        Users existingUser = userRepository.findById(UUID.fromString(id))
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        existingUser.setFullName(userDto.getFullName());
+        existingUser.setEmail(userDto.getEmail());
+        existingUser.setPhoneNumber(userDto.getPhoneNumber());
+        existingUser.setRole(userDto.getRole().toUpperCase());
+        existingUser.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+
+        Users updated = userRepository.save(existingUser);
+        return userMapper.toDto(updated);
+    }
+
+    @Override
+    @CacheEvict(value = "allUsers", allEntries = true)
+    public void deleteUser(String id) {
+        userRepository.deleteById(UUID.fromString(id));
+    }
+
+    @Override
     public Object getCurrentUserProfile() {
         UUID currentUserId = SecurityUtils.getCurrentUserId();
         if (currentUserId == null) {
@@ -98,5 +137,16 @@ public class UserServiceImpl implements UserService {
         } else {
             return userMapper.toDto(user);
         }
+    }
+
+    @Override
+    @CacheEvict(value = "allUsers", allEntries = true)
+    public void updatePasswordByEmail(String email, String newPassword) {
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+        
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        userRepository.save(user);
     }
 }

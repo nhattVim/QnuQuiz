@@ -155,12 +155,15 @@ class QuizReviewScreen extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(Icons.star, color: Colors.amber, size: 20),
+                        const Icon(
+                          Boxicons.bx_bolt_circle,
+                          color: Colors.amber,
+                        ),
                         const SizedBox(width: 8),
                         Text(
-                          'Điểm: ${examReview!.score}/${totalQuestions ?? examReview!.answers.length}',
+                          '${examReview!.score} điểm',
                           style: const TextStyle(
-                            fontSize: 14,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.black87,
                           ),
@@ -320,8 +323,6 @@ class QuizReviewScreen extends StatelessWidget {
                       );
                     }),
                   ),
-
-                  const SizedBox(height: 20),
 
                   // Divider
                   if (index < examReview!.answers.length - 1)

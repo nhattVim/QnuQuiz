@@ -1,5 +1,6 @@
 class ApiConstants {
-  static const String baseUrl = 'https://qnuquiz.onrender.com';
+  static const String baseUrl = 'http://localhost:8080';
+  // static const String baseUrl = 'https://qnuquiz.onrender.com';
   static const String health = '/actuator/health';
   static const String auth = '/api/auth';
   static const String users = '/api/users';
@@ -8,4 +9,8 @@ class ApiConstants {
   static const String students = '/api/students';
   static const String teachers = '/api/teachers';
   static const String analytics = '/api/analytics';
+  static const String feedbacks = '/api/feedbacks';
+  static const String notifications = '/api/notifications';
+  static const String announcements = '/api/announcements';
+  static const String mediaFiles = '/api/media-files';
 }

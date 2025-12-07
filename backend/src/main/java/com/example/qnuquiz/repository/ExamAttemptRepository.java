@@ -17,12 +17,16 @@ public interface ExamAttemptRepository extends JpaRepository<ExamAttempts, Long>
 
 	List<ExamAttempts> findByStudentsIdAndSubmittedTrueOrderByEndTimeDesc(Long studentId);
 
+	List<ExamAttempts> findByExamsIdAndStudentsIdAndSubmittedFalseOrderByCreatedAtDesc(Long examId, Long studentId);
+
+	List<ExamAttempts> findByExamsIdAndStudentsIdOrderByCreatedAtDesc(Long examId, Long studentId);
+
 	List<ExamAttempts> findByStudents_IdOrderByEndTimeDesc(Long studentId);
 
 	@Query("""
 			    SELECT new com.example.qnuquiz.dto.analytics.RankingDto(
 			        u.username,
-    				COALESCE(SUM(ea.score), 0),
+			 				COALESCE(SUM(ea.score), 0),
 			        u.fullName,
 			        COALESCE(u.avatarUrl, 'https://i.pinimg.com/736x/8f/1c/a2/8f1ca2029e2efceebd22fa05cca423d7.jpg')
 			    )
@@ -37,7 +41,7 @@ public interface ExamAttemptRepository extends JpaRepository<ExamAttempts, Long>
 	@Query("""
 			    SELECT new com.example.qnuquiz.dto.analytics.RankingDto(
 			        u.username,
-    				COALESCE(SUM(ea.score), 0),
+			 				COALESCE(SUM(ea.score), 0),
 			        u.fullName,
 			        COALESCE(u.avatarUrl, 'https://i.pinimg.com/736x/8f/1c/a2/8f1ca2029e2efceebd22fa05cca423d7.jpg')
 			    )
@@ -49,4 +53,26 @@ public interface ExamAttemptRepository extends JpaRepository<ExamAttempts, Long>
 			    ORDER BY SUM(ea.score) DESC
 			""")
 	List<RankingDto> rankingAllThisWeek(Timestamp fromDate);
+
+	@Query("""
+			    SELECT new com.example.qnuquiz.dto.analytics.RankingDto(
+			        u.username,
+			 				COALESCE(SUM(ea.score), 0),
+			        u.fullName,
+			        COALESCE(u.avatarUrl, 'https://i.pinimg.com/736x/8f/1c/a2/8f1ca2029e2efceebd22fa05cca423d7.jpg')
+			    )
+			    FROM ExamAttempts ea
+			    JOIN ea.students s
+			    JOIN s.users u
+				WHERE ea.exams.id = :examId
+			    GROUP BY u.username, u.fullName, u.avatarUrl
+			    ORDER BY SUM(ea.score) DESC
+			""")
+	List<RankingDto> rankingByExamId(Long examId);
+
+	@Query("SELECT AVG(ea.score) FROM ExamAttempts ea WHERE ea.submitted = true")
+	Double findAverageScoreOverall();
+
+	@Query("SELECT COUNT(DISTINCT ea.exams.id) FROM ExamAttempts ea JOIN ea.exams e JOIN Questions q ON q.exams = e")
+	Long countDistinctExamsWithQuestions();
 }

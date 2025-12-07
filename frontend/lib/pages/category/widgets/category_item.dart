@@ -45,7 +45,7 @@ class CategoryItem extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 16,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -54,22 +54,23 @@ class CategoryItem extends StatelessWidget {
 
                   Text(
                     subtitle,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey.shade500,
-                    ),
+                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
                   ),
 
                   const SizedBox(height: 8),
 
                   Row(
                     children: [
-                      Icon(Icons.book_outlined, size: 16, color: Colors.blue),
+                      const Icon(
+                        Icons.book_outlined,
+                        size: 16,
+                        color: Colors.blue,
+                      ),
                       const SizedBox(width: 6),
                       Text(
                         '$examCount kỳ thi',
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 14,
                           fontWeight: FontWeight.w500,
                         ),
                       ),

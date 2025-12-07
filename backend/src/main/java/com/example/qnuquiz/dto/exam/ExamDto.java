@@ -2,11 +2,15 @@ package com.example.qnuquiz.dto.exam;
 
 import java.sql.Timestamp;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ExamDto {
 
     private long id;
@@ -17,4 +21,8 @@ public class ExamDto {
     private boolean random;
     private Integer durationMinutes;
     private String status;
+    private boolean hasUnfinishedAttempt;
+    private long categoryId;
+    @Builder.Default
+    private boolean hasAttempt = false; // Có attempt (làm qua) hay chưa
 }

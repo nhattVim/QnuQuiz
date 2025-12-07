@@ -1,11 +1,11 @@
 class QuestionOptionModel {
-  final int id;
+  final int? id;
   final String content;
   final bool correct;
   final int? position;
 
   QuestionOptionModel({
-    required this.id,
+    this.id,
     required this.content,
     required this.correct,
     this.position,
@@ -13,7 +13,7 @@ class QuestionOptionModel {
 
   factory QuestionOptionModel.fromJson(Map<String, dynamic> json) {
     return QuestionOptionModel(
-      id: json['id'] as int,
+      id: json['id'] as int?,
       content: json['content'],
       correct: json['correct'],
       position: json['position'] as int?,
@@ -21,9 +21,9 @@ class QuestionOptionModel {
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'content': content,
-    'correct': correct,
-    'position': position,
-  };
+        if (id != null) 'id': id,
+        'content': content,
+        'correct': correct,
+        'position': position,
+      };
 }

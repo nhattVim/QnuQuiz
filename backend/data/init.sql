@@ -159,7 +159,6 @@ CREATE TABLE IF NOT EXISTS questions (
   id BIGSERIAL PRIMARY KEY,
   exam_id BIGINT NOT NULL REFERENCES exams(id) ON DELETE CASCADE,
   content TEXT NOT NULL,
-  image_url TEXT,
   type question_type NOT NULL DEFAULT 'MULTIPLE_CHOICE',
   created_by UUID REFERENCES users(id) ON DELETE SET NULL,
   ordering INT DEFAULT 0,
@@ -217,6 +216,7 @@ CREATE TABLE IF NOT EXISTS exam_answers (
 );
 
 CREATE INDEX IF NOT EXISTS idx_answers_attempt ON exam_answers(attempt_id);
+CREATE INDEX IF NOT EXISTS idx_answers_question_id ON exam_answers(question_id);
 
 -- ========================
 -- TABLE: feedbacks
@@ -224,16 +224,28 @@ CREATE INDEX IF NOT EXISTS idx_answers_attempt ON exam_answers(attempt_id);
 CREATE TABLE IF NOT EXISTS feedbacks (
   id BIGSERIAL PRIMARY KEY,
   user_id UUID REFERENCES users(id) ON DELETE SET NULL,
+  exam_id BIGINT REFERENCES exams(id) ON DELETE CASCADE,
   question_id BIGINT REFERENCES questions(id) ON DELETE SET NULL,
   content TEXT NOT NULL,
+  rating INT CHECK (rating BETWEEN 1 AND 5),
   status feedback_status NOT NULL DEFAULT 'PENDING',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   reviewed_by UUID REFERENCES users(id) ON DELETE SET NULL,
-  reviewed_at TIMESTAMPTZ
+  reviewed_at TIMESTAMPTZ,
+  teacher_reply TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_feedbacks_user ON feedbacks(user_id);
 CREATE INDEX IF NOT EXISTS idx_feedbacks_question ON feedbacks(question_id);
+
+-- Mỗi user chỉ được feedback 1 lần cho 1 câu hỏi hoặc 1 bài thi
+CREATE UNIQUE INDEX IF NOT EXISTS ux_feedback_user_question
+  ON feedbacks(user_id, question_id)
+  WHERE question_id IS NOT NULL;
+
+CREATE UNIQUE INDEX IF NOT EXISTS ux_feedback_user_exam
+  ON feedbacks(user_id, exam_id)
+  WHERE exam_id IS NOT NULL;
 
 -- ========================
 -- TABLE: announcements

@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frontend/models/media_file_model.dart';
 import 'package:frontend/models/question_model.dart';
 import 'package:frontend/models/question_option_model.dart';
-import 'package:frontend/services/question_service.dart';
+import 'package:frontend/providers/service_providers.dart';
+import 'package:frontend/widgets/media/media_list_viewer.dart';
 
-class QuestionEditScreen extends StatefulWidget {
+class QuestionEditScreen extends ConsumerStatefulWidget {
   final QuestionModel question;
   const QuestionEditScreen({super.key, required this.question});
 
   @override
-  State<QuestionEditScreen> createState() => _QuestionEditScreenState();
+  ConsumerState<QuestionEditScreen> createState() => _QuestionEditScreenState();
 }
 
-class _QuestionEditScreenState extends State<QuestionEditScreen> {
-  // Services
-  final _questionService = QuestionService();
-
+class _QuestionEditScreenState extends ConsumerState<QuestionEditScreen> {
   // Controllers
   late TextEditingController _contentController;
   late List<TextEditingController> _optionControllers;
@@ -24,6 +24,9 @@ class _QuestionEditScreenState extends State<QuestionEditScreen> {
   // State
   int? _correctOptionId;
   QuestionModel? _updatedQuestion;
+  List<MediaFileModel> _mediaFiles = [];
+  bool _isLoadingMedia = false;
+  bool _isUploadingFile = false;
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +81,67 @@ class _QuestionEditScreenState extends State<QuestionEditScreen> {
                 ),
               ),
 
+              SizedBox(height: 16.h),
+              // Media files section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Media files',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  OutlinedButton.icon(
+                    onPressed: _isUploadingFile ? null : _uploadMediaFile,
+                    icon: _isUploadingFile
+                        ? SizedBox(
+                            width: 16.sp,
+                            height: 16.sp,
+                            child: const CircularProgressIndicator(
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : Icon(Icons.add, size: 16.sp),
+                    label: const Text('Thêm media'),
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8.r),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              SizedBox(height: 8.h),
+              // Show media files
+              if (_isLoadingMedia)
+                const Padding(
+                  padding: EdgeInsets.all(16.0),
+                  child: Center(child: CircularProgressIndicator()),
+                )
+              else if (_mediaFiles.isNotEmpty)
+                MediaListViewer(
+                  mediaFiles: _mediaFiles,
+                  showDeleteButton: true,
+                  onDelete: _deleteMediaFile,
+                )
+              else
+                Container(
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    border: Border.all(color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
+                  child: Center(
+                    child: Text(
+                      'Chưa có media files. Nhấn "Thêm media" để thêm file.',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: Colors.grey.shade600,
+                      ),
+                    ),
+                  ),
+                ),
+
               SizedBox(height: 24.h),
 
               Text(
@@ -116,7 +180,7 @@ class _QuestionEditScreenState extends State<QuestionEditScreen> {
   void initState() {
     super.initState();
     _contentController = TextEditingController(text: widget.question.content);
-    _options = List.from(widget.question.options);
+    _options = List.from(widget.question.options ?? []);
     _optionControllers = _options
         .map((option) => TextEditingController(text: option.content))
         .toList();
@@ -127,6 +191,117 @@ class _QuestionEditScreenState extends State<QuestionEditScreen> {
               QuestionOptionModel(id: -1, content: '', correct: false),
         )
         .id;
+    // Load media files
+    _loadMediaFiles();
+  }
+
+  Future<void> _loadMediaFiles() async {
+    if (widget.question.id == null) return;
+
+    setState(() => _isLoadingMedia = true);
+    try {
+      final mediaFileService = ref.read(mediaFileServiceProvider);
+      final mediaFilesData = await mediaFileService.getMediaFilesByQuestionId(
+        widget.question.id!,
+      );
+      if (!mounted) return;
+      setState(() {
+        _mediaFiles = mediaFilesData
+            .map((data) => MediaFileModel.fromJson(data))
+            .toList();
+      });
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi khi tải media files: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoadingMedia = false);
+      }
+    }
+  }
+
+  Future<void> _uploadMediaFile() async {
+    if (widget.question.id == null) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Question ID không hợp lệ')));
+      return;
+    }
+
+    setState(() => _isUploadingFile = true);
+    try {
+      final mediaFileService = ref.read(mediaFileServiceProvider);
+      await mediaFileService.uploadMediaFileFromPicker(
+        questionId: widget.question.id!,
+        description: 'Media file for question',
+      );
+      if (!mounted) return;
+      // Reload media files
+      await _loadMediaFiles();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Upload file thành công'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi khi upload file: $e')));
+    } finally {
+      if (mounted) {
+        setState(() => _isUploadingFile = false);
+      }
+    }
+  }
+
+  Future<void> _deleteMediaFile(MediaFileModel media) async {
+    if (media.id == null) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Xác nhận xóa'),
+        content: Text('Bạn có chắc chắn muốn xóa file "${media.fileName}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Hủy'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('Xóa'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final mediaFileService = ref.read(mediaFileServiceProvider);
+      await mediaFileService.deleteMediaFile(media.id!);
+      if (!mounted) return;
+      // Reload media files
+      await _loadMediaFiles();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Xóa file thành công'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Lỗi khi xóa file: $e')));
+    }
   }
 
   Widget _buildOptionEditor({
@@ -226,7 +401,9 @@ class _QuestionEditScreenState extends State<QuestionEditScreen> {
     );
 
     try {
-      final result = await _questionService.updateQuestion(updatedQuestion);
+      final result = await ref
+          .read(questionServiceProvider)
+          .updateQuestion(updatedQuestion);
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -250,7 +427,8 @@ class _QuestionEditScreenState extends State<QuestionEditScreen> {
     }
   }
 
-  void _selectCorrectOption(int optionId) {
+  void _selectCorrectOption(int? optionId) {
+    if (optionId == null) return;
     setState(() {
       _correctOptionId = optionId;
     });

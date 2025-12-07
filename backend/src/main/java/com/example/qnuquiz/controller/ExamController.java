@@ -21,7 +21,7 @@ import com.example.qnuquiz.dto.exam.ExamCategoryDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
-import com.example.qnuquiz.dto.exam.QuestionDTO;
+import com.example.qnuquiz.dto.questions.QuestionDTO;
 import com.example.qnuquiz.service.ExamService;
 
 import lombok.RequiredArgsConstructor;
@@ -99,14 +99,22 @@ public class ExamController {
 		return ResponseEntity.ok(examService.reviewExamAttempt(attemptId));
 	}
 
+	// Lấy latest attempt của student cho exam (không tạo mới)
+	@GetMapping("/{examId}/latest-attempt")
+	@PreAuthorize("hasAnyRole('ADMIN', 'STUDENT')")
+	public ResponseEntity<ExamAttemptDto> getLatestAttempt(@PathVariable Long examId) {
+		return ResponseEntity.ok(examService.getLatestAttempt(examId));
+	}
+
 	@GetMapping("/categories")
 	public ResponseEntity<List<ExamCategoryDto>> getAllCategories() {
-    return ResponseEntity.ok(examService.getAllCategories());
+		return ResponseEntity.ok(examService.getAllCategories());
 	}
 
 	@GetMapping("/categories/{categoryId}")
+	@PreAuthorize("hasRole('STUDENT')")
 	public ResponseEntity<List<ExamDto>> getExamsByCategory(@PathVariable Long categoryId) {
-    return ResponseEntity.ok(examService.getExamsByCategory(categoryId));
+		return ResponseEntity.ok(examService.getExamsByCategory(categoryId));
 	}
 
 	@GetMapping("/getAll")

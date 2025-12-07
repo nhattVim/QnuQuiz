@@ -1,14 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_boxicons/flutter_boxicons.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/exam_model.dart';
 import 'package:frontend/screens/exam/widgets/exam_status_helper.dart';
+import 'package:frontend/screens/exam_ranking.dart';
 import 'package:frontend/utils/datetime_format.dart';
 
 class ExamCard extends StatelessWidget {
   final ExamModel exam;
   final VoidCallback? onPressed;
+  final VoidCallback? onReviewPressed;
 
-  const ExamCard({super.key, required this.exam, this.onPressed});
+  const ExamCard({
+    super.key,
+    required this.exam,
+    this.onPressed,
+    this.onReviewPressed,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -90,23 +98,48 @@ class ExamCard extends StatelessWidget {
           Container(
             height: 124,
             alignment: Alignment.bottomRight,
-            child: ElevatedButton(
-              onPressed: buttonEnabled ? onPressed : null,
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 8,
-                  horizontal: 12,
+            child: Column(
+              children: [
+                InkWell(
+                  child: Image.network(
+                    "https://cdn-icons-png.flaticon.com/512/983/983865.png",
+                    width: 50.w,
+                  ),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => ExamRanking(id: exam.id),
+                      ),
+                    );
+                  },
                 ),
-                backgroundColor: buttonBgColor,
-                disabledBackgroundColor: Colors.grey.shade400,
-                side: buttonEnabled
-                    ? const BorderSide(color: Colors.blue)
-                    : null,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                const Spacer(),
+                ElevatedButton(
+                  onPressed: buttonEnabled
+                      ? (buttonText == "Xem lại bài"
+                            ? onReviewPressed
+                            : onPressed)
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8,
+                      horizontal: 12,
+                    ),
+                    backgroundColor: buttonBgColor,
+                    disabledBackgroundColor: Colors.grey.shade400,
+                    side: buttonEnabled
+                        ? const BorderSide(color: Colors.blue)
+                        : null,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  child: Text(
+                    buttonText,
+                    style: TextStyle(color: buttonTextColor),
+                  ),
                 ),
-              ),
-              child: Text(buttonText, style: TextStyle(color: buttonTextColor)),
+              ],
             ),
           ),
         ],

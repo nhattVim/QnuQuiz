@@ -2,13 +2,12 @@ package com.example.qnuquiz.service;
 
 import java.util.List;
 
-import com.example.qnuquiz.dto.analytics.RankingDto;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
 import com.example.qnuquiz.dto.exam.ExamCategoryDto;
 import com.example.qnuquiz.dto.exam.ExamDto;
 import com.example.qnuquiz.dto.exam.ExamResultDto;
 import com.example.qnuquiz.dto.exam.ExamReviewDTO;
-import com.example.qnuquiz.dto.exam.QuestionDTO;
+import com.example.qnuquiz.dto.questions.QuestionDTO;
 
 public interface ExamService {
 
@@ -36,9 +35,7 @@ public interface ExamService {
 
 	List<ExamDto> getExamsByCategory(Long categoryId);
 
-	List<RankingDto> rankingAll();
-
-	List<RankingDto> rankingAllThisWeek();
+	ExamAttemptDto getLatestAttempt(Long examId);
 
 	List<ExamCategoryDto> getAllCategories();
 

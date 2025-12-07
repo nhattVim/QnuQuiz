@@ -8,7 +8,8 @@ import com.example.qnuquiz.entity.Students;
 import com.example.qnuquiz.entity.Users;
 
 public interface StudentRepository extends JpaRepository<Students, Long> {
-	
-	Optional<Students> findByUsers(Users users);
 
+    Optional<Students> findByUsers(Users users);
+
+    boolean existsByStudentCode(String studentCode);
 }
