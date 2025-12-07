@@ -141,7 +141,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
       body: SafeArea(
         child: SingleChildScrollView(
           child: Column(
-              children: [
+            children: [
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,

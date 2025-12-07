@@ -5,6 +5,9 @@ import com.example.qnuquiz.service.AnalyticsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -84,5 +87,41 @@ public class AnalyticsController {
     @PreAuthorize("hasRole('ADMIN')")
     public AdminQuestionAnalyticsDto getQuestionAnalyticsAdmin() {
         return analyticsService.getQuestionAnalyticsAdmin();
+    }
+
+    @GetMapping("/admin/users/export")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> exportUserAnalyticsCsv() {
+        byte[] csvBytes = analyticsService.exportUserAnalyticsCsv();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDispositionFormData("attachment", "user_analytics.csv");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csvBytes);
+    }
+
+    @GetMapping("/admin/exams/export")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> exportExamAnalyticsCsv() {
+        byte[] csvBytes = analyticsService.exportExamAnalyticsCsv();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDispositionFormData("attachment", "exam_analytics.csv");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csvBytes);
+    }
+
+    @GetMapping("/admin/questions/export")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> exportQuestionAnalyticsCsv() {
+        byte[] csvBytes = analyticsService.exportQuestionAnalyticsCsv();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.parseMediaType("text/csv"));
+        headers.setContentDispositionFormData("attachment", "question_analytics.csv");
+        return ResponseEntity.ok()
+                .headers(headers)
+                .body(csvBytes);
     }
 }

@@ -37,4 +37,10 @@ public interface AnalyticsService {
     AdminExamAnalyticsDto getExamAnalyticsAdmin();
 
     AdminQuestionAnalyticsDto getQuestionAnalyticsAdmin();
+
+    byte[] exportUserAnalyticsCsv();
+
+    byte[] exportExamAnalyticsCsv();
+
+    byte[] exportQuestionAnalyticsCsv();
 }
