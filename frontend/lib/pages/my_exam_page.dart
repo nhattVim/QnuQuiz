@@ -339,10 +339,11 @@ class _MyExamPageState extends ConsumerState<MyExamPage> {
               'Xóa',
               style: TextStyle(color: theme.colorScheme.error),
             ),
-            onPressed: () {
-              ref.read(examServiceProvider).deleteExam(exam.id);
-              _refreshExams();
+            onPressed: () async {
               Navigator.of(ctx).pop();
+              await ref.read(examServiceProvider).deleteExam(exam.id);
+              if (!mounted) return;
+              _refreshExams();
             },
           ),
         ],

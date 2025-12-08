@@ -24,6 +24,7 @@ import com.example.qnuquiz.entity.QuestionOptions;
 import com.example.qnuquiz.entity.Questions;
 import com.example.qnuquiz.entity.Users;
 import com.example.qnuquiz.mapper.QuestionMapper;
+import com.example.qnuquiz.repository.ExamAnswerRepository;
 import com.example.qnuquiz.repository.ExamRepository;
 import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
@@ -41,6 +42,7 @@ public class QuestionServiceImpl implements QuestionService {
 
     private final QuestionRepository questionsRepository;
     private final QuestionOptionsRepository questionOptionsRepository;
+    private final ExamAnswerRepository examAnswerRepository;
     private final UserRepository userRepository;
     private final ExamRepository examRepository;
     private final QuestionMapper questionMapper;
@@ -131,6 +133,17 @@ public class QuestionServiceImpl implements QuestionService {
     @Transactional
     @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
     public void deleteQuestion(List<Long> ids) {
+        List<QuestionOptions> optionsToDelete = questionOptionsRepository.findByQuestions_IdIn(ids);
+        List<Long> optionIds = optionsToDelete.stream()
+                .map(QuestionOptions::getId)
+                .collect(Collectors.toList());
+        
+        if (!optionIds.isEmpty()) {
+            examAnswerRepository.setQuestionOptionsToNullByOptionIds(optionIds);
+        }
+        
+        examAnswerRepository.deleteByQuestionIds(ids);
+        
         questionOptionsRepository.deleteAllByQuestions_IdIn(ids);
         questionsRepository.deleteAllById(ids);
     }

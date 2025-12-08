@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
 
 import com.example.qnuquiz.dto.exam.ExamAnswerReviewDTO;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
@@ -34,6 +35,7 @@ import com.example.qnuquiz.repository.ExamAnswerRepository;
 import com.example.qnuquiz.repository.ExamAttemptRepository;
 import com.example.qnuquiz.repository.ExamCategoryRepository;
 import com.example.qnuquiz.repository.ExamRepository;
+import com.example.qnuquiz.repository.FeedbackRepository;
 import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.repository.StudentRepository;
@@ -63,6 +65,7 @@ public class ExamServiceImpl implements ExamService {
     private final QuestionRepository questionRepository;
     private final ExamAttemptRepository examAttemptRepository;
     private final ExamAnswerRepository examAnswerRepository;
+    private final FeedbackRepository feedbackRepository;
     private final QuestionMapper questionMapper;
     private final com.example.qnuquiz.service.MediaFileService mediaFileService;
 
@@ -344,7 +347,41 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    @Transactional
     public void deleteExam(Long id) {
+        // Collect question ids for this exam (to clean related feedbacks if needed)
+        List<Questions> questions = questionRepository.findByExamsId(id);
+        List<Long> questionIds = questions.stream()
+                .map(Questions::getId)
+                .toList();
+
+        // 1) Remove feedbacks linked to exam and its questions (FK constraints)
+        feedbackRepository.deleteByExamId(id);
+        if (!questionIds.isEmpty()) {
+            feedbackRepository.deleteByQuestionIds(questionIds);
+        }
+
+        // 2) Remove exam answers via attempt ids (some DBs may not enforce ON DELETE CASCADE)
+        List<Long> attemptIds = examAttemptRepository.findIdsByExamId(id);
+        if (!attemptIds.isEmpty()) {
+            examAnswerRepository.deleteByAttemptIds(attemptIds);
+            examAttemptRepository.deleteByExamId(id);
+        }
+
+        // 3) Delete question options (some DBs may not have ON DELETE CASCADE)
+        if (!questionIds.isEmpty()) {
+            optionRepo.deleteAllByQuestions_IdIn(questionIds);
+            for (Long qid : questionIds) {
+                try {
+                    mediaFileService.deleteMediaFilesByQuestionId(qid);
+                } catch (Exception e) {
+                    log.warn("Failed to delete media files for question {}: {}", qid, e.getMessage());
+                }
+            }
+            questionRepository.deleteAllById(questionIds);
+        }
+
+        // 4) Finally delete exam
         examRepository.deleteById(id);
     }
 
