@@ -62,8 +62,9 @@ void main() {
     });
 
     test('getUser returns UserModel if data exists in storage', () async {
-      when(() => mockStorage.read(key: 'user'))
-          .thenAnswer((_) async => jsonEncode(userModel.toJson()));
+      when(
+        () => mockStorage.read(key: 'user'),
+      ).thenAnswer((_) async => jsonEncode(userModel.toJson()));
 
       final result = await userService.getUser();
 
@@ -80,14 +81,21 @@ void main() {
     });
 
     test('saveUser saves the user to storage', () async {
-      when(() => mockStorage.write(key: 'user', value: any(named: 'value')))
-          .thenAnswer((_) async => {});
+      when(
+        () => mockStorage.write(
+          key: 'user',
+          value: any(named: 'value'),
+        ),
+      ).thenAnswer((_) async => {});
 
       await userService.saveUser(userModel);
 
-      verify(() =>
-              mockStorage.write(key: 'user', value: jsonEncode(userModel.toJson())))
-          .called(1);
+      verify(
+        () => mockStorage.write(
+          key: 'user',
+          value: jsonEncode(userModel.toJson()),
+        ),
+      ).called(1);
     });
 
     test('updateProfile returns updated UserModel on success', () async {
@@ -109,7 +117,6 @@ void main() {
         fullName: 'New Name',
         email: 'new@example.com',
         phoneNumber: '111222333',
-        newPassword: 'newpassword',
       );
 
       expect(result, isA<UserModel>());
@@ -140,8 +147,9 @@ void main() {
 
     group('getCurrentUserProfile', () {
       test('returns StudentModel for STUDENT role', () async {
-        when(() => mockStorage.read(key: 'user'))
-            .thenAnswer((_) async => jsonEncode(userModel.toJson()));
+        when(
+          () => mockStorage.read(key: 'user'),
+        ).thenAnswer((_) async => jsonEncode(userModel.toJson()));
         when(() => mockDio.get(any())).thenAnswer(
           (_) async => Response(
             requestOptions: RequestOptions(path: ''),
@@ -157,10 +165,15 @@ void main() {
       });
 
       test('returns TeacherModel for TEACHER role', () async {
-        final teacherUser =
-            UserModel(id: '1', username: 'testuser', email: 'test@example.com', role: 'TEACHER');
-        when(() => mockStorage.read(key: 'user'))
-            .thenAnswer((_) async => jsonEncode(teacherUser.toJson()));
+        final teacherUser = UserModel(
+          id: '1',
+          username: 'testuser',
+          email: 'test@example.com',
+          role: 'TEACHER',
+        );
+        when(
+          () => mockStorage.read(key: 'user'),
+        ).thenAnswer((_) async => jsonEncode(teacherUser.toJson()));
         when(() => mockDio.get(any())).thenAnswer(
           (_) async => Response(
             requestOptions: RequestOptions(path: ''),
@@ -176,10 +189,15 @@ void main() {
       });
 
       test('returns UserModel for ADMIN role', () async {
-        final adminUser =
-            UserModel(id: '1', username: 'testuser', email: 'test@example.com', role: 'ADMIN');
-        when(() => mockStorage.read(key: 'user'))
-            .thenAnswer((_) async => jsonEncode(adminUser.toJson()));
+        final adminUser = UserModel(
+          id: '1',
+          username: 'testuser',
+          email: 'test@example.com',
+          role: 'ADMIN',
+        );
+        when(
+          () => mockStorage.read(key: 'user'),
+        ).thenAnswer((_) async => jsonEncode(adminUser.toJson()));
         when(() => mockDio.get(any())).thenAnswer(
           (_) async => Response(
             requestOptions: RequestOptions(path: ''),
@@ -195,8 +213,9 @@ void main() {
       });
 
       test('throws exception on DioException', () async {
-        when(() => mockStorage.read(key: 'user'))
-            .thenAnswer((_) async => jsonEncode(userModel.toJson()));
+        when(
+          () => mockStorage.read(key: 'user'),
+        ).thenAnswer((_) async => jsonEncode(userModel.toJson()));
         when(() => mockDio.get(any())).thenThrow(
           DioException(
             requestOptions: RequestOptions(path: ''),

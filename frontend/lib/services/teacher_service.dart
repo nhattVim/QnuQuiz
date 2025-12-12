@@ -11,7 +11,7 @@ class TeacherService {
   TeacherService(this._apiService);
 
   Dio get _dio => _apiService.dio;
-  
+
   Future<List<TeacherModel>> getAllTeachers() async {
     try {
       final response = await _dio.get(ApiConstants.teachers);
@@ -54,8 +54,7 @@ class TeacherService {
           'phoneNumber': phoneNumber,
           'departmentId': departmentId,
           'title': title,
-          if (avatarUrl != null && avatarUrl.isNotEmpty)
-            'avatarUrl': avatarUrl,
+          if (avatarUrl != null && avatarUrl.isNotEmpty) 'avatarUrl': avatarUrl,
         },
       );
       return TeacherModel.fromJson(response.data);
@@ -70,20 +69,17 @@ class TeacherService {
     required String newPassword,
   }) async {
     try {
-      final response = await _dio.put(
+      await _dio.put(
         '${ApiConstants.teachers}/me/password',
-        data: {
-          'oldPassword': oldPassword,
-          'newPassword': newPassword,
-        },
+        data: {'oldPassword': oldPassword, 'newPassword': newPassword},
       );
-      // Success - no need to do anything, response is handled
       return;
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);
-      final errorMessage = e.response?.data?['message'] ?? 
-                          e.response?.data?['error'] ?? 
-                          'Lỗi đổi mật khẩu';
+      final errorMessage =
+          e.response?.data?['message'] ??
+          e.response?.data?['error'] ??
+          'Lỗi đổi mật khẩu';
       throw Exception(errorMessage);
     } catch (e) {
       _log.e('Unexpected error: $e');
