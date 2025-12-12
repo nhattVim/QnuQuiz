@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/class_model.dart';
 import 'package:frontend/models/department_model.dart';
 import 'package:frontend/models/student_model.dart';
@@ -123,7 +124,9 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
           // Delete old avatar from Appwrite if exists
           if (_currentAvatarUrl != null && _currentAvatarUrl!.isNotEmpty) {
             try {
-              await ref.read(appwriteServiceProvider).deleteFileByUrl(_currentAvatarUrl);
+              await ref
+                  .read(appwriteServiceProvider)
+                  .deleteFileByUrl(_currentAvatarUrl);
             } catch (e) {
               // Log but continue even if deletion fails
               debugPrint('Failed to delete old avatar: $e');
@@ -131,9 +134,12 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
           }
 
           // Upload new avatar
-          newAvatarUrl = await ref.read(appwriteServiceProvider).uploadFile(
+          newAvatarUrl = await ref
+              .read(appwriteServiceProvider)
+              .uploadFile(
                 file: _selectedAvatarFile!,
-                fileName: 'avatar_${user.username}_${DateTime.now().millisecondsSinceEpoch}.jpg',
+                fileName:
+                    'avatar_${user.username}_${DateTime.now().millisecondsSinceEpoch}.jpg',
               );
         } catch (e) {
           if (mounted) {
@@ -161,7 +167,9 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
         case 'STUDENT':
           if (_profileData is StudentModel) {
             final student = _profileData as StudentModel;
-            await ref.read(studentServiceProvider).updateProfile(
+            await ref
+                .read(studentServiceProvider)
+                .updateProfile(
                   fullName: _fullNameController.text.trim(),
                   email: _emailController.text.trim(),
                   phoneNumber: _phoneNumberController.text.trim(),
@@ -174,7 +182,9 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
         case 'TEACHER':
           if (_profileData is TeacherModel) {
             final teacher = _profileData as TeacherModel;
-            await ref.read(teacherServiceProvider).updateProfile(
+            await ref
+                .read(teacherServiceProvider)
+                .updateProfile(
                   fullName: _fullNameController.text.trim(),
                   email: _emailController.text.trim(),
                   phoneNumber: _phoneNumberController.text.trim(),
@@ -185,7 +195,9 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
           }
           break;
         case 'ADMIN':
-          await ref.read(userServiceProvider).updateProfile(
+          await ref
+              .read(userServiceProvider)
+              .updateProfile(
                 fullName: _fullNameController.text.trim(),
                 email: _emailController.text.trim(),
                 phoneNumber: _phoneNumberController.text.trim(),
@@ -237,22 +249,20 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
   @override
   Widget build(BuildContext context) {
     final userAsync = ref.watch(userProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Cập nhật hồ sơ',
-          style: TextStyle(
-            color: Colors.black,
+          style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            fontSize: 20,
           ),
         ),
         centerTitle: true,
@@ -265,13 +275,12 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
             return const Center(child: Text("User not found"));
           }
 
-          // Determine which avatar to show
           final displayAvatarUrl = _selectedAvatarFile != null
-              ? null // Will show placeholder when file is selected
+              ? null
               : (_currentAvatarUrl ?? user.avatarUrl);
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: EdgeInsets.only(left: 20.w, right: 20.w, top: 4.h),
             child: Form(
               key: _formKey,
               child: Column(
@@ -287,11 +296,14 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
                           backgroundColor: Colors.pink[300],
                           backgroundImage: _selectedAvatarFile != null
                               ? FileImage(_selectedAvatarFile!)
-                              : (displayAvatarUrl != null && displayAvatarUrl.isNotEmpty
-                                  ? NetworkImage(displayAvatarUrl)
-                                  : null),
-                          child: (_selectedAvatarFile == null &&
-                                  (displayAvatarUrl == null || displayAvatarUrl.isEmpty))
+                              : (displayAvatarUrl != null &&
+                                        displayAvatarUrl.isNotEmpty
+                                    ? NetworkImage(displayAvatarUrl)
+                                    : null),
+                          child:
+                              (_selectedAvatarFile == null &&
+                                  (displayAvatarUrl == null ||
+                                      displayAvatarUrl.isEmpty))
                               ? const Icon(
                                   Icons.person,
                                   size: 70,
@@ -329,19 +341,17 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 8.h),
                   Text(
                     user.fullName ?? user.username,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
+                    style: theme.textTheme.titleMedium,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     '@${user.username}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                    ),
                   ),
                   const SizedBox(height: 32),
 
@@ -361,7 +371,7 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
                           _usernameController,
                           'Tên đăng nhập',
                           Icons.account_circle_outlined,
-                          enabled: false,
+                          enabled: false, // Readonly
                         ),
                       ),
                       const SizedBox(width: 12),
@@ -400,7 +410,9 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
                     width: double.infinity,
                     height: 50,
                     child: ElevatedButton(
-                      onPressed: (_isLoading || _isUploadingAvatar) ? null : _saveProfile,
+                      onPressed: (_isLoading || _isUploadingAvatar)
+                          ? null
+                          : _saveProfile,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
@@ -445,6 +457,8 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
     bool enabled = true,
     TextInputType keyboardType = TextInputType.text,
   }) {
+    final theme = Theme.of(context);
+
     return TextFormField(
       controller: controller,
       enabled: enabled,
@@ -452,21 +466,28 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12.r),
+          borderSide: BorderSide(
+            color: theme.dividerColor.withValues(alpha: 0.5),
+          ),
+        ),
         filled: true,
-        fillColor: enabled ? Colors.white : Colors.grey[200],
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        fillColor: theme.colorScheme.surface,
+        contentPadding: EdgeInsets.all(16.sp),
       ),
-      style: const TextStyle(fontSize: 16),
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'Vui lòng nhập $label';
-        }
-        if (label == 'Email' && !value.contains('@')) {
-          return 'Email không hợp lệ';
-        }
-        return null;
-      },
+      style: TextStyle(fontSize: 16.sp),
+      validator: enabled
+          ? (value) {
+              if (value == null || value.trim().isEmpty) {
+                return 'Vui lòng nhập $label';
+              }
+              if (label == 'Email' && !value.contains('@')) {
+                return 'Email không hợp lệ';
+              }
+              return null;
+            }
+          : null,
     );
   }
 
@@ -476,8 +497,8 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
         future: ref.read(departmentServiceProvider).getAllDepartments(),
         builder: (context, deptSnapshot) {
           String deptName = 'Chưa cập nhật';
-          if (deptSnapshot.hasData && 
-              profile.departmentId != null && 
+          if (deptSnapshot.hasData &&
+              profile.departmentId != null &&
               deptSnapshot.data!.isNotEmpty) {
             try {
               final dept = deptSnapshot.data!.firstWhere(
@@ -489,16 +510,18 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
             }
           }
 
+          final deptController = TextEditingController(text: deptName);
+
           return FutureBuilder<List<ClassModel>>(
             future: profile.departmentId != null
                 ? ref
-                    .read(classServiceProvider)
-                    .getClassesByDepartment(profile.departmentId!)
+                      .read(classServiceProvider)
+                      .getClassesByDepartment(profile.departmentId!)
                 : Future.value(<ClassModel>[]),
             builder: (context, classSnapshot) {
               String className = 'Chưa cập nhật';
-              if (classSnapshot.hasData && 
-                  profile.classId != null && 
+              if (classSnapshot.hasData &&
+                  profile.classId != null &&
                   classSnapshot.data!.isNotEmpty) {
                 try {
                   final cls = classSnapshot.data!.firstWhere(
@@ -510,11 +533,23 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
                 }
               }
 
+              final classController = TextEditingController(text: className);
+
               return Column(
                 children: [
-                  _buildReadOnlyField('Khoa', deptName, Icons.school_outlined),
+                  _buildTextFormField(
+                    deptController,
+                    'Khoa',
+                    Icons.school_outlined,
+                    enabled: false,
+                  ),
                   const SizedBox(height: 16),
-                  _buildReadOnlyField('Lớp', className, Icons.class_outlined),
+                  _buildTextFormField(
+                    classController,
+                    'Lớp',
+                    Icons.class_outlined,
+                    enabled: false,
+                  ),
                 ],
               );
             },
@@ -527,8 +562,8 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
         builder: (context, snapshot) {
           String deptName = 'Chưa cập nhật';
           String title = profile.title ?? 'Chưa cập nhật';
-          if (snapshot.hasData && 
-              profile.departmentId != null && 
+          if (snapshot.hasData &&
+              profile.departmentId != null &&
               snapshot.data!.isNotEmpty) {
             try {
               final dept = snapshot.data!.firstWhere(
@@ -540,55 +575,29 @@ class _UpdateProfilePageState extends ConsumerState<UpdateProfilePage> {
             }
           }
 
+          final deptController = TextEditingController(text: deptName);
+          final titleController = TextEditingController(text: title);
+
           return Column(
             children: [
-              _buildReadOnlyField('Khoa', deptName, Icons.school_outlined),
+              _buildTextFormField(
+                deptController,
+                'Khoa',
+                Icons.school_outlined,
+                enabled: false,
+              ),
               const SizedBox(height: 16),
-              _buildReadOnlyField('Chức danh', title, Icons.work_outline),
+              _buildTextFormField(
+                titleController,
+                'Chức danh',
+                Icons.work_outline,
+                enabled: false,
+              ),
             ],
           );
         },
       );
     }
     return const SizedBox.shrink();
-  }
-
-  Widget _buildReadOnlyField(String label, String value, IconData icon) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      decoration: BoxDecoration(
-        color: Colors.grey[200],
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.grey[600]),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  value,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
   }
 }

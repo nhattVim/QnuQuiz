@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/student_model.dart';
 import 'package:frontend/models/teacher_model.dart';
 import 'package:frontend/models/user_model.dart';
@@ -20,7 +21,6 @@ class ProfilePage extends ConsumerStatefulWidget {
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
   dynamic _profileData;
-  bool _isLoadingProfile = false;
 
   @override
   void initState() {
@@ -29,38 +29,34 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   Future<void> _loadProfile() async {
-    setState(() => _isLoadingProfile = true);
     try {
-      final profile = await ref.read(userServiceProvider).getCurrentUserProfile();
+      final profile = await ref
+          .read(userServiceProvider)
+          .getCurrentUserProfile();
       if (mounted) {
         setState(() {
           _profileData = profile;
-          _isLoadingProfile = false;
         });
       }
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoadingProfile = false);
-      }
+      // Error handling - profile data will remain null
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final userAsync = ref.watch(userProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         automaticallyImplyLeading: false,
-        title: const Text(
+        title: Text(
           'Hồ sơ của tôi',
-          style: TextStyle(
-            color: Colors.black,
+          style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            fontSize: 20,
           ),
         ),
         centerTitle: true,
@@ -73,7 +69,6 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
             return const Center(child: Text("User not found"));
           }
 
-          // Get avatar URL from profile data or user
           String? avatarUrl;
           if (_profileData != null) {
             if (_profileData is StudentModel) {
@@ -84,95 +79,67 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
               avatarUrl = (_profileData as UserModel).avatarUrl;
             }
           }
+
           avatarUrl ??= user.avatarUrl;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            padding: EdgeInsets.only(left: 20.w, right: 20.w, top: 4.h),
             child: Column(
               children: [
-                const SizedBox(height: 20),
-                // Avatar
                 CircleAvatar(
-                  radius: 60,
+                  radius: 50.r,
                   backgroundColor: Colors.purple[200],
                   backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
                       ? NetworkImage(avatarUrl) as ImageProvider
                       : null,
                   child: avatarUrl == null || avatarUrl.isEmpty
-                      ? const Icon(
-                          Icons.person,
-                          size: 70,
-                          color: Colors.white,
-                        )
+                      ? Icon(Icons.person, size: 70.sp, color: Colors.white)
                       : null,
                 ),
-                const SizedBox(height: 16),
-                // Name
+                SizedBox(height: 8.h),
                 Text(
                   user.fullName ?? user.username,
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
+                  style: theme.textTheme.titleMedium,
                 ),
-                const SizedBox(height: 4),
-                // Username
+                SizedBox(height: 4.h),
                 Text(
                   '@${user.username}',
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-                const SizedBox(height: 24),
-                // Update Profile Button
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: () async {
-                      final result = await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const UpdateProfilePage(),
-                        ),
-                      );
-                      if (result == true) {
-                        _loadProfile();
-                      }
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      elevation: 0,
-                    ),
-                    child: const Text(
-                      'Cập nhật hồ sơ',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
                   ),
                 ),
-                const SizedBox(height: 32),
-                // Menu Options
-                _buildMenuCard(
-                  context,
+                SizedBox(height: 32.h),
+                Divider(height: 1.h),
+                Column(
                   children: [
                     _buildMenuTile(
                       context,
-                      icon: Icons.settings_outlined,
-                      title: 'Cài đặt',
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Tính năng đang phát triển'),
+                      icon: Icons.edit_outlined,
+                      title: 'Cập nhật hồ sơ',
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const UpdateProfilePage(),
                           ),
                         );
+                        if (result == true) {
+                          _loadProfile();
+                        }
                       },
                     ),
+                    // _buildMenuTile(
+                    //   context,
+                    //   icon: Icons.settings_outlined,
+                    //   title: 'Cài đặt',
+                    //   onTap: () {
+                    //     ScaffoldMessenger.of(context).showSnackBar(
+                    //       const SnackBar(
+                    //         content: Text('Tính năng đang phát triển'),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
                     _buildMenuTile(
                       context,
                       icon: Icons.dark_mode_outlined,
@@ -191,7 +158,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       title: 'Chia sẻ hồ sơ',
                       onTap: () => _shareProfile(context, user),
                     ),
-                    const Divider(height: 1),
+                    Divider(height: 1.h),
                     _buildMenuTile(
                       context,
                       icon: Icons.help_outline,
@@ -213,23 +180,11 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
+                SizedBox(height: 20.h),
               ],
             ),
           );
         },
-      ),
-    );
-  }
-
-  Widget _buildMenuCard(BuildContext context, {required List<Widget> children}) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Column(
-        children: children,
       ),
     );
   }
@@ -241,25 +196,27 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
     required VoidCallback onTap,
     bool isDestructive = false,
   }) {
+    final theme = Theme.of(context);
+
     return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
       leading: Icon(
         icon,
-        color: isDestructive ? Colors.red : Colors.black87,
-        size: 24,
+        color: isDestructive ? Colors.red : theme.colorScheme.onSurface,
+        size: 24.sp,
       ),
       title: Text(
         title,
         style: TextStyle(
-          color: isDestructive ? Colors.red : Colors.black87,
+          color: isDestructive ? Colors.red : theme.colorScheme.onSurface,
           fontWeight: FontWeight.w500,
-          fontSize: 16,
+          fontSize: 16.sp,
         ),
       ),
       trailing: Icon(
         Icons.chevron_right,
-        color: Colors.grey[400],
-        size: 20,
+        color: isDestructive ? Colors.red : theme.colorScheme.onSurface,
+        size: 20.sp,
       ),
       onTap: onTap,
     );
@@ -308,7 +265,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           ],
         ),
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
         ),
       ),
     );
@@ -347,7 +304,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
                   TextFormField(
                     controller: newPasswordController,
                     decoration: const InputDecoration(
@@ -366,7 +323,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16.h),
                   TextFormField(
                     controller: confirmPasswordController,
                     decoration: const InputDecoration(
@@ -391,9 +348,7 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           ),
           actions: [
             TextButton(
-              onPressed: isLoading
-                  ? null
-                  : () => Navigator.pop(context),
+              onPressed: isLoading ? null : () => Navigator.pop(context),
               child: const Text('Hủy'),
             ),
             ElevatedButton(
@@ -405,25 +360,32 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         try {
                           final user = ref.read(userProvider).value;
                           if (user == null) {
-                            throw Exception('Không tìm thấy thông tin người dùng');
+                            throw Exception(
+                              'Không tìm thấy thông tin người dùng',
+                            );
                           }
 
-                          // Change password using dedicated API
                           switch (user.role) {
                             case 'STUDENT':
-                              await ref.read(studentServiceProvider).changePassword(
+                              await ref
+                                  .read(studentServiceProvider)
+                                  .changePassword(
                                     oldPassword: oldPasswordController.text,
                                     newPassword: newPasswordController.text,
                                   );
                               break;
                             case 'TEACHER':
-                              await ref.read(teacherServiceProvider).changePassword(
+                              await ref
+                                  .read(teacherServiceProvider)
+                                  .changePassword(
                                     oldPassword: oldPasswordController.text,
                                     newPassword: newPasswordController.text,
                                   );
                               break;
                             case 'ADMIN':
-                              await ref.read(userServiceProvider).changePassword(
+                              await ref
+                                  .read(userServiceProvider)
+                                  .changePassword(
                                     oldPassword: oldPasswordController.text,
                                     newPassword: newPasswordController.text,
                                   );
@@ -443,7 +405,10 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                           if (context.mounted) {
                             String errorMessage = 'Lỗi đổi mật khẩu';
                             if (e is Exception) {
-                              final message = e.toString().replaceAll('Exception: ', '');
+                              final message = e.toString().replaceAll(
+                                'Exception: ',
+                                '',
+                              );
                               if (message.isNotEmpty) {
                                 errorMessage = message;
                               }
@@ -464,16 +429,16 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       }
                     },
               child: isLoading
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                  ? SizedBox(
+                      width: 20.w,
+                      height: 20.h,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Text('Đổi mật khẩu'),
             ),
           ],
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(16.r),
           ),
         ),
       ),
@@ -481,13 +446,14 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
   }
 
   void _shareProfile(BuildContext context, UserModel user) {
-    final profileText = '''
+    final profileText =
+        '''
 Hồ sơ của tôi trên QnuQuiz:
 Tên: ${user.fullName ?? user.username}
 Username: @${user.username}
-Email: ${user.email ?? 'Chưa cập nhật'}
+Email: ${user.email}
 ''';
-    Share.share(profileText);
+    SharePlus.instance.share(ShareParams(text: profileText));
   }
 
   void _showLogoutDialog(BuildContext context) {
@@ -507,9 +473,7 @@ Email: ${user.email ?? 'Chưa cập nhật'}
               if (context.mounted) {
                 Navigator.pushAndRemoveUntil(
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => const LoginScreen(),
-                  ),
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
                   (route) => false,
                 );
               }
@@ -522,7 +486,7 @@ Email: ${user.email ?? 'Chưa cập nhật'}
           ),
         ],
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(16.r),
         ),
       ),
     );
