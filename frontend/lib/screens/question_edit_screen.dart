@@ -285,7 +285,11 @@ class _QuestionEditScreenState extends ConsumerState<QuestionEditScreen> {
 
     try {
       final mediaFileService = ref.read(mediaFileServiceProvider);
-      await mediaFileService.deleteMediaFile(media.id!);
+      // Delete from Appwrite first, then from backend
+      await mediaFileService.deleteMediaFile(
+        media.id!,
+        fileUrl: media.fileUrl,
+      );
       if (!mounted) return;
       // Reload media files
       await _loadMediaFiles();

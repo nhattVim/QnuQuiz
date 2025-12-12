@@ -8,7 +8,6 @@ import 'package:frontend/pages/my_exam_page.dart';
 import 'package:frontend/pages/category/category_page.dart';
 import 'package:frontend/pages/profile_page.dart';
 import 'package:frontend/pages/ranking_page.dart';
-import 'package:frontend/pages/setting_page.dart';
 import '../providers/user_provider.dart';
 import 'package:frontend/pages/teacher_analytics_page.dart';
 import 'package:frontend/pages/notification_page.dart';
@@ -65,14 +64,7 @@ const notificationItem = NavItem(
   label: "Thông báo",
 );
 
-const settingItem = NavItem(
-  page: SettingPage(),
-  icon: Icons.settings,
-  label: "Setting",
-);
-
 const studentNav = [
-  settingItem,
   dashboardItem,
   categoryItem,
   rankingItem,

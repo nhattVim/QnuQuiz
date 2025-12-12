@@ -9,7 +9,6 @@ import com.example.qnuquiz.repository.MediaFileRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.repository.UserRepository;
 import com.example.qnuquiz.security.SecurityUtils;
-import com.example.qnuquiz.service.AppwriteService;
 import com.example.qnuquiz.service.MediaFileService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +28,6 @@ public class MediaFileServiceImpl implements MediaFileService {
     private final MediaFileRepository mediaFileRepository;
     private final QuestionRepository questionRepository;
     private final UserRepository userRepository;
-    private final AppwriteService appwriteService;
 
     @Override
     @Transactional
@@ -83,17 +81,9 @@ public class MediaFileServiceImpl implements MediaFileService {
         MediaFiles mediaFile = mediaFileRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Media file not found with id: " + id));
         
-        try {
-            if (mediaFile.getFileUrl() != null) {
-                appwriteService.deleteFile(mediaFile.getFileUrl());
-            }
-        } catch (Exception e) {
-            log.warn("Failed to delete file from Appwrite: fileUrl={}, error={}", 
-                mediaFile.getFileUrl(), e.getMessage());
-        }
-        
+        // Backend only handles URL metadata, file deletion is handled by frontend
         mediaFileRepository.deleteById(id);
-        log.info("Media file deleted: ID={}", id);
+        log.info("Media file metadata deleted: ID={}", id);
     }
 
     @Override
@@ -102,19 +92,9 @@ public class MediaFileServiceImpl implements MediaFileService {
         List<MediaFiles> mediaFiles = mediaFileRepository.findByRelatedTableAndRelatedId(
             "questions", String.valueOf(questionId));
         
-        for (MediaFiles mediaFile : mediaFiles) {
-            try {
-                if (mediaFile.getFileUrl() != null) {
-                    appwriteService.deleteFile(mediaFile.getFileUrl());
-                }
-            } catch (Exception e) {
-                log.warn("Failed to delete file from Appwrite: fileUrl={}, error={}", 
-                    mediaFile.getFileUrl(), e.getMessage());
-            }
-        }
-        
+        // Backend only handles URL metadata, file deletion is handled by frontend
         mediaFileRepository.deleteByRelatedTableAndRelatedId("questions", String.valueOf(questionId));
-        log.info("Media files deleted for question: ID={}, count={}", questionId, mediaFiles.size());
+        log.info("Media files metadata deleted for question: ID={}, count={}", questionId, mediaFiles.size());
     }
 
     private MediaFileDto toDto(MediaFiles mediaFile) {
