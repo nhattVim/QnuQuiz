@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:frontend/providers/theme_provider.dart';
 
 import 'constants/theme_constants.dart';
 import 'providers/app_startup_provider.dart';
@@ -39,6 +40,7 @@ class MyApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final startupAsync = ref.watch(appStartupProvider);
+    final themeMode = ref.watch(themeModeProvider);
 
     return ScreenUtilInit(
       designSize: const Size(375, 812),
@@ -55,7 +57,7 @@ class MyApp extends ConsumerWidget {
           title: 'QnuQuiz',
           theme: ThemeConstants.lightTheme,
           darkTheme: ThemeConstants.darkTheme,
-          themeMode: ThemeMode.system,
+          themeMode: themeMode,
           home: startupAsync.when(
             loading: () => const SplashScreen(),
             error: (_, _) => const SplashScreen(),

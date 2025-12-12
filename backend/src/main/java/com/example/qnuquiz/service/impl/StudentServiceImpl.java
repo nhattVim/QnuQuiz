@@ -21,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.example.qnuquiz.dto.student.ExamAnswerHistoryDto;
 import com.example.qnuquiz.dto.student.ExamHistoryDto;
 import com.example.qnuquiz.dto.student.StudentDto;
+import com.example.qnuquiz.dto.user.ChangePasswordRequest;
 import com.example.qnuquiz.entity.Classes;
 import com.example.qnuquiz.entity.Departments;
 import com.example.qnuquiz.entity.ExamAnswers;
@@ -102,6 +103,9 @@ public class StudentServiceImpl implements StudentService {
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getAvatarUrl() != null) {
+            user.setAvatarUrl(request.getAvatarUrl());
+        }
         user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
         student.setDepartments(department);
@@ -111,6 +115,40 @@ public class StudentServiceImpl implements StudentService {
         userRepository.save(user);
 
         return studentMapper.toDto(student);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        if (request == null || request.getOldPassword() == null || request.getNewPassword() == null) {
+            throw new RuntimeException("Vui lòng điền đầy đủ thông tin mật khẩu");
+        }
+
+        if (request.getNewPassword().length() < 6) {
+            throw new RuntimeException("Mật khẩu mới phải có ít nhất 6 ký tự");
+        }
+
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new RuntimeException("Không xác định được người dùng hiện tại");
+        }
+
+        Users user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (!"STUDENT".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Chỉ sinh viên mới có thể đổi mật khẩu");
+        }
+
+        // Verify old password
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+            throw new RuntimeException("Mật khẩu hiện tại không đúng");
+        }
+
+        // Update password
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        userRepository.save(user);
     }
 
     @Override

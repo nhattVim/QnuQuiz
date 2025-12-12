@@ -17,6 +17,7 @@ public interface StudentMapper {
     @Mapping(source = "users.fullName", target = "fullName")
     @Mapping(source = "users.email", target = "email")
     @Mapping(source = "users.phoneNumber", target = "phoneNumber")
+    @Mapping(source = "users.avatarUrl", target = "avatarUrl")
     StudentDto toDto(Students student);
 
     List<StudentDto> toDtoList(List<Students> students);

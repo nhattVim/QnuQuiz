@@ -425,15 +425,16 @@ class _QuestionCreateScreenState extends ConsumerState<QuestionCreateScreen> {
     
     for (final platformFile in _selectedFiles) {
       try {
-          if (platformFile.path == null) {
-            continue;
-          }
-          final file = File(platformFile.path!);
-          await mediaFileService.uploadAndSaveMediaFile(
-            file: file,
-            questionId: questionId,
-            description: 'Media file for question',
-          );
+        if (platformFile.path == null) {
+          continue;
+        }
+        final file = File(platformFile.path!);
+
+        await mediaFileService.uploadAndSaveMediaFile(
+          file: file,
+          questionId: questionId,
+          description: 'Media file for question',
+        );
       } catch (e) {
         // Log error but continue with other files
         debugPrint('Error uploading file ${platformFile.name}: $e');

@@ -1,5 +1,6 @@
 package com.example.qnuquiz.service.impl;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -7,11 +8,14 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.example.qnuquiz.dto.teacher.TeacherDto;
 import com.example.qnuquiz.dto.teacher.TeacherNotificationDto;
+import com.example.qnuquiz.dto.user.ChangePasswordRequest;
 import com.example.qnuquiz.entity.Announcements;
 import com.example.qnuquiz.entity.Classes;
 import com.example.qnuquiz.entity.ExamAttempts;
@@ -48,10 +52,91 @@ public class TeacherServiceImpl implements TeacherService {
     private final FeedbackRepository feedbackRepository;
     private final QuestionRepository questionRepository;
     private final StudentRepository studentRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<TeacherDto> getAllTeachers() {
         return teacherMapper.toDtoList(teacherRepository.findAll());
+    }
+
+    @Override
+    @Transactional
+    public TeacherDto updateCurrentTeacherProfile(TeacherDto request) {
+        if (request == null) {
+            throw new RuntimeException("Dữ liệu cập nhật không hợp lệ");
+        }
+
+        if (!StringUtils.hasText(request.getFullName()) || !StringUtils.hasText(request.getEmail())
+                || !StringUtils.hasText(request.getPhoneNumber())) {
+            throw new RuntimeException("Vui lòng điền đầy đủ thông tin họ tên, email và số điện thoại");
+        }
+
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+        if (currentUserId == null) {
+            throw new RuntimeException("Không xác định được người dùng hiện tại");
+        }
+
+        Users user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (!"TEACHER".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Chỉ giáo viên mới có thể cập nhật thông tin cá nhân");
+        }
+
+        Teachers teacher = teacherRepository.findByUsers(user)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin giáo viên"));
+
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+        user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getAvatarUrl() != null) {
+            user.setAvatarUrl(request.getAvatarUrl());
+        }
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+
+        if (request.getTitle() != null) {
+            teacher.setTitle(request.getTitle());
+        }
+
+        teacherRepository.save(teacher);
+        userRepository.save(user);
+
+        return teacherMapper.toDto(teacher);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        if (request == null || request.getOldPassword() == null || request.getNewPassword() == null) {
+            throw new RuntimeException("Vui lòng điền đầy đủ thông tin mật khẩu");
+        }
+
+        if (request.getNewPassword().length() < 6) {
+            throw new RuntimeException("Mật khẩu mới phải có ít nhất 6 ký tự");
+        }
+
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new RuntimeException("Không xác định được người dùng hiện tại");
+        }
+
+        Users user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (!"TEACHER".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Chỉ giáo viên mới có thể đổi mật khẩu");
+        }
+
+        // Verify old password
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+            throw new RuntimeException("Mật khẩu hiện tại không đúng");
+        }
+
+        // Update password
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        userRepository.save(user);
     }
 
     @Override

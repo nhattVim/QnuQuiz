@@ -5,6 +5,7 @@ class UserModel {
   final String role;
   final String? fullName;
   final String? phoneNumber;
+  final String? avatarUrl;
 
   UserModel({
     this.id,
@@ -13,6 +14,7 @@ class UserModel {
     required this.role,
     this.fullName,
     this.phoneNumber,
+    this.avatarUrl,
   });
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class UserModel {
       role: json['role'] as String,
       fullName: json['fullName'] as String?,
       phoneNumber: json['phoneNumber'] as String?,
+      avatarUrl: json['avatarUrl'] as String?,
     );
   }
 
@@ -33,6 +36,7 @@ class UserModel {
     'role': role,
     'fullName': fullName,
     'phoneNumber': phoneNumber,
+    'avatarUrl': avatarUrl,
   };
 
   UserModel copyWith({
@@ -42,6 +46,7 @@ class UserModel {
     String? role,
     String? fullName,
     String? phoneNumber,
+    String? avatarUrl,
   }) {
     return UserModel(
       id: id ?? this.id,
@@ -50,6 +55,7 @@ class UserModel {
       role: role ?? this.role,
       fullName: fullName ?? this.fullName,
       phoneNumber: phoneNumber ?? this.phoneNumber,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
     );
   }
 }

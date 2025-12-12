@@ -6,12 +6,15 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.example.qnuquiz.dto.student.ExamHistoryDto;
 import com.example.qnuquiz.dto.student.StudentDto;
+import com.example.qnuquiz.dto.user.ChangePasswordRequest;
 
 public interface StudentService {
 
     List<StudentDto> getAllStudents();
 
     StudentDto updateCurrentStudentProfile(StudentDto request);
+
+    void changePassword(ChangePasswordRequest request);
 
     List<ExamHistoryDto> getExamHistory();
 
