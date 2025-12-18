@@ -12,4 +12,6 @@ class ApiConstants {
   static const String feedbacks = '/api/feedbacks';
   static const String notifications = '/api/notifications';
   static const String announcements = '/api/announcements';
+  static const String myExamFeedbacks = '/api/feedbacks/my-feedbacks/exams';
+  static const String myQuestionFeedbacks = '/api/feedbacks/my-feedbacks/questions';
 }

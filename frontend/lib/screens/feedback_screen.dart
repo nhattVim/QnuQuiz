@@ -5,13 +5,15 @@ import 'package:frontend/models/feedbacks/feedback_template_model.dart';
 import 'package:frontend/providers/service_providers.dart';
 
 class FeedbackScreen extends ConsumerStatefulWidget {
-  final int examId;
+  final int? examId;
   final String examTitle;
+  final int? questionId;
 
   const FeedbackScreen({
     super.key,
-    required this.examId,
+    this.examId,
     required this.examTitle,
+    this.questionId,
   });
 
   @override
@@ -107,9 +109,10 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
     });
 
     try {
-      // Tạo model feedback
+      // Tạo model feedback với questionId nếu có
       final createFeedbackModel = CreateFeedbackModel(
         examId: widget.examId,
+        questionId: widget.questionId,
         rating: rating,
         content: commentController.text.trim(),
       );
@@ -160,9 +163,11 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  const Text(
-                    'Đánh giá bài kiểm tra',
-                    style: TextStyle(
+                  Text(
+                    widget.questionId != null
+                        ? 'Đánh giá chi tiết câu hỏi'
+                        : 'Đánh giá bài kiểm tra',
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,

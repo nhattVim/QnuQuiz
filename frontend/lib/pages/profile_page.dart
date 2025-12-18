@@ -10,6 +10,7 @@ import 'package:frontend/providers/service_providers.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/screens/home_screen.dart';
 import 'package:frontend/screens/login_screen.dart';
+import 'package:frontend/screens/feedback_list_screen.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -182,6 +183,31 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // View Feedbacks Button
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const FeedbackListScreen(),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.rate_review_outlined),
+                      label: const Text('Xem đánh giá'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.orange,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),

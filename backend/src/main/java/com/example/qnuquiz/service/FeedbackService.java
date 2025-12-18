@@ -12,6 +12,8 @@ public interface FeedbackService {
 
     List<FeedbackDto> getAllFeedbacks();
 
+    List<FeedbackDto> getFeedbacksByUserId();
+
     FeedbackDto createFeedback(CreateFeedbackRequest request);
 
     List<FeedbackDto> getFeedbacksForQuestion(Long questionId, String status);

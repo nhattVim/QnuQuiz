@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/models/feedback_model.dart';
+import 'package:frontend/models/feedbacks/feedback_dto.dart';
 import 'package:frontend/providers/service_providers.dart';
 import 'package:intl/intl.dart';
 
@@ -14,7 +14,7 @@ class FeedbackManagementPage extends ConsumerStatefulWidget {
 
 class _FeedbackManagementPageState
     extends ConsumerState<FeedbackManagementPage> {
-  late Future<List<FeedbackModel>> _feedbacksFuture;
+  late Future<List<FeedbackDto>> _feedbacksFuture;
   final DateFormat _dateFormat = DateFormat('dd/MM/yyyy HH:mm');
 
   @override
@@ -39,12 +39,12 @@ class _FeedbackManagementPageState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Delete Feedback'),
-        content: const Text('Are you sure you want to delete this feedback?'),
+        title: const Text('Xóa đánh giá'),
+        content: const Text('Bạn chắc chắn muốn xóa đánh giá này không?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Cancel'),
+            child: const Text('Hủy'),
           ),
           FilledButton(
             onPressed: () async {
@@ -56,17 +56,17 @@ class _FeedbackManagementPageState
                 if (!mounted) return;
                 _fetchFeedbacks();
                 scaffoldMessenger.showSnackBar(
-                  const SnackBar(content: Text('Feedback deleted successfully!')),
+                  const SnackBar(content: Text('Xóa đánh giá thành công!')),
                 );
                 navigator.pop();
               } catch (e) {
                 if (!mounted) return;
                 scaffoldMessenger.showSnackBar(
-                  SnackBar(content: Text('Failed to delete feedback: $e')),
+                  SnackBar(content: Text('Lỗi xóa đánh giá: $e')),
                 );
               }
             },
-            child: const Text('Delete'),
+            child: const Text('Xóa'),
           ),
         ],
       ),
@@ -83,21 +83,24 @@ class _FeedbackManagementPageState
             FilledButton.icon(
               onPressed: () => _refresh(),
               icon: const Icon(Icons.refresh),
-              label: const Text('Reload feedbacks'),
+              label: const Text('Tải lại'),
             ),
           ],
         ),
         const SizedBox(height: 16),
         Expanded(
-          child: FutureBuilder<List<FeedbackModel>>(
+          child: FutureBuilder<List<FeedbackDto>>(
             future: _feedbacksFuture,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
               } else if (snapshot.hasError) {
-                return _ErrorState(message: '${snapshot.error}', onRetry: _fetchFeedbacks);
+                return _ErrorState(
+                  message: '${snapshot.error}',
+                  onRetry: _fetchFeedbacks,
+                );
               } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                return const _EmptyState(message: 'No feedback found.');
+                return const _EmptyState(message: 'Không có đánh giá nào.');
               }
 
               final feedbacks = snapshot.data!;
@@ -111,12 +114,13 @@ class _FeedbackManagementPageState
                       child: DataTable(
                         columns: const [
                           DataColumn(label: Text('ID')),
-                          DataColumn(label: Text('Subject')),
-                          DataColumn(label: Text('Content')),
-                          DataColumn(label: Text('User')),
-                          DataColumn(label: Text('Email')),
-                          DataColumn(label: Text('Created At')),
-                          DataColumn(label: Text('Actions')),
+                          DataColumn(label: Text('Câu hỏi')),
+                          DataColumn(label: Text('Nội dung')),
+                          DataColumn(label: Text('Người dùng')),
+                          DataColumn(label: Text('Sao')),
+                          DataColumn(label: Text('Trạng thái')),
+                          DataColumn(label: Text('Tạo lúc')),
+                          DataColumn(label: Text('Hành động')),
                         ],
                         rows: feedbacks.map(_buildRow).toList(),
                       ),
@@ -131,11 +135,20 @@ class _FeedbackManagementPageState
     );
   }
 
-  DataRow _buildRow(FeedbackModel feedback) {
+  DataRow _buildRow(FeedbackDto feedback) {
     return DataRow(
       cells: [
         DataCell(Text('${feedback.id ?? '-'}')),
-        DataCell(Text(feedback.subject ?? 'No subject')),
+        DataCell(
+          ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 200),
+            child: Text(
+              feedback.questionContent ?? 'Đánh giá chung',
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ),
         DataCell(
           ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 300),
@@ -146,8 +159,41 @@ class _FeedbackManagementPageState
             ),
           ),
         ),
-        DataCell(Text(feedback.user?.fullName ?? 'N/A')),
-        DataCell(Text(feedback.userEmail ?? feedback.user?.email ?? '')),
+        DataCell(Text(feedback.userName ?? 'Ẩn danh')),
+        DataCell(
+          Row(
+            children: [
+              ...List.generate(5, (index) {
+                return Icon(
+                  Icons.star,
+                  size: 14,
+                  color: index < (feedback.rating ?? 0)
+                      ? Colors.amber
+                      : Colors.grey.shade300,
+                );
+              }),
+              const SizedBox(width: 4),
+              Text('${feedback.rating ?? 0}'),
+            ],
+          ),
+        ),
+        DataCell(
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: _getStatusColor(feedback.status).withValues(alpha: 0.2),
+              borderRadius: BorderRadius.circular(4),
+            ),
+            child: Text(
+              _getStatusText(feedback.status),
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: _getStatusColor(feedback.status),
+              ),
+            ),
+          ),
+        ),
         DataCell(Text(_dateFormat.format(feedback.createdAt))),
         DataCell(
           IconButton(
@@ -155,11 +201,37 @@ class _FeedbackManagementPageState
                 ? null
                 : () => _confirmDeleteFeedback(feedback.id!),
             icon: const Icon(Icons.delete_outline),
-            tooltip: 'Delete feedback',
+            tooltip: 'Xóa đánh giá',
           ),
         ),
       ],
     );
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+        return Colors.orange;
+      case 'REVIEWED':
+        return Colors.blue;
+      case 'RESOLVED':
+        return Colors.green;
+      default:
+        return Colors.grey;
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status.toUpperCase()) {
+      case 'PENDING':
+        return 'Chờ xử lý';
+      case 'REVIEWED':
+        return 'Đã xem';
+      case 'RESOLVED':
+        return 'Đã giải quyết';
+      default:
+        return status;
+    }
   }
 }
 
@@ -202,7 +274,7 @@ class _ErrorState extends StatelessWidget {
           FilledButton.icon(
             onPressed: onRetry,
             icon: const Icon(Icons.refresh),
-            label: const Text('Try again'),
+            label: const Text('Thử lại'),
           ),
         ],
       ),
