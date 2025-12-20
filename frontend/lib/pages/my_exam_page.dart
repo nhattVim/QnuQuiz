@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/exam_model.dart';
 import 'package:frontend/providers/service_providers.dart';
 import 'package:frontend/screens/exam_detail_screen.dart';
+import 'package:frontend/screens/feedback_tab_screen.dart';
 import 'package:frontend/widgets/exams/create_exam_dialog.dart';
 import 'package:intl/intl.dart';
 
@@ -11,12 +12,14 @@ class ExamCard extends StatelessWidget {
   final ExamModel exam;
   final Function(ExamModel) onUpdate;
   final VoidCallback onDelete;
+  final VoidCallback onViewFeedback;
 
   const ExamCard({
     super.key,
     required this.exam,
     required this.onUpdate,
     required this.onDelete,
+    required this.onViewFeedback,
   });
 
   @override
@@ -105,9 +108,30 @@ class ExamCard extends StatelessWidget {
                   color: theme.colorScheme.onSurfaceVariant,
                 ),
                 onSelected: (value) {
-                  if (value == 'delete') onDelete();
+                  if (value == 'delete') {
+                    onDelete();
+                  } else if (value == 'feedback') {
+                    onViewFeedback();
+                  }
                 },
                 itemBuilder: (BuildContext context) => [
+                  PopupMenuItem<String>(
+                    value: 'feedback',
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.feedback_outlined,
+                          color: theme.colorScheme.primary,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Xem phản hồi',
+                          style: TextStyle(color: theme.colorScheme.onSurface),
+                        ),
+                      ],
+                    ),
+                  ),
                   PopupMenuItem<String>(
                     value: 'delete',
                     child: Row(
@@ -253,6 +277,8 @@ class _MyExamPageState extends ConsumerState<MyExamPage> {
                                 exams[index] = updatedExam;
                               });
                             },
+                            onViewFeedback: () =>
+                                _navigateToFeedback(exams[index]),
                           );
                         },
                       ),
@@ -347,6 +373,19 @@ class _MyExamPageState extends ConsumerState<MyExamPage> {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  void _navigateToFeedback(ExamModel exam) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => FeedbackTabScreen(
+          examId: exam.id,
+          examContent: exam.title,
+          isTeacher: true,
+        ),
       ),
     );
   }

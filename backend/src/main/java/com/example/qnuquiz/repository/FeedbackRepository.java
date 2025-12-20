@@ -25,6 +25,8 @@ public interface FeedbackRepository extends JpaRepository<Feedbacks, Long> {
     Optional<Feedbacks> findByUsersByUserIdAndExams(com.example.qnuquiz.entity.Users user,
             com.example.qnuquiz.entity.Exams exam);
 
+    List<Feedbacks> findByUsersByUserId(com.example.qnuquiz.entity.Users user);
+
     @Query("SELECT f FROM Feedbacks f WHERE f.questions.id IN :questionIds ORDER BY f.createdAt DESC")
     List<Feedbacks> findByQuestionIds(@Param("questionIds") List<Long> questionIds);
 

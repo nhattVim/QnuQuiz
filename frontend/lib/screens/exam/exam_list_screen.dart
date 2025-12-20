@@ -82,7 +82,7 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => QuizReviewScreen(examReview: reviewData),
+          builder: (_) => QuizReviewScreen(examReview: reviewData, examId: exam.id,),
         ),
       );
 

@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_boxicons/flutter_boxicons.dart';
 import 'package:frontend/models/exam_review_model.dart';
 import 'package:frontend/models/exam_answer_review_model.dart';
+import 'package:frontend/screens/feedback_screen.dart';
 
 class QuizReviewScreen extends StatelessWidget {
   final ExamReviewModel? examReview;
   final List<Map<String, dynamic>>? quizData;
   final List<int?>? answeredQuestions;
   final int? totalQuestions; // Tổng số câu hỏi trong bài thi
+  final int? examId;
 
   const QuizReviewScreen({
     super.key,
@@ -15,6 +17,7 @@ class QuizReviewScreen extends StatelessWidget {
     this.quizData,
     this.answeredQuestions,
     this.totalQuestions,
+    this.examId
   });
 
   @override
@@ -232,6 +235,32 @@ class QuizReviewScreen extends StatelessWidget {
                               ),
                             ),
                           ],
+                        ),
+                      ),
+                      // Rating icon on the right
+                      GestureDetector(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => FeedbackScreen(
+                                examId: examId,
+                                examTitle: examReview!.examTitle,
+                                questionId: answer.questionId,
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: Colors.yellow.shade100,
+                          ),
+                          child: const Icon(
+                            Icons.star_border,
+                            color: Colors.amber,
+                          ),
                         ),
                       ),
                     ],

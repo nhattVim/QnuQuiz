@@ -1,6 +1,5 @@
 import 'package:dio/dio.dart';
 import 'package:frontend/constants/api_constants.dart';
-import 'package:frontend/models/feedback_model.dart';
 import 'package:frontend/models/feedbacks/create_feedback_model.dart';
 import 'package:frontend/models/feedbacks/feedback_dto.dart';
 import 'package:frontend/models/feedbacks/update_feedback_model.dart';
@@ -17,16 +16,31 @@ class FeedbackService {
 
   Dio get _dio => _apiService.dio;
 
-  /// Lấy tất cả phản hồi
-  Future<List<FeedbackModel>> getAllFeedbacks() async {
+  /// Lấy tất cả phản hồi (chỉ dùng cho admin)
+  Future<List<FeedbackDto>> getAllFeedbacks() async {
     try {
       final response = await _dio.get(ApiConstants.feedbacks);
       final List<dynamic> data = response.data;
-      return data.map((json) => FeedbackModel.fromJson(json)).toList();
+      return data.map((json) => FeedbackDto.fromJson(json)).toList();
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);
       throw Exception(
         e.response?.data?['message'] ?? 'Lỗi lấy danh sách phản hồi',
+      );
+    }
+  }
+
+  /// Lấy tất cả phản hồi của người dùng hiện tại
+  Future<List<FeedbackDto>> getFeedbacksByCurrentUser() async {
+    try {
+      final response = await _dio.get('${ApiConstants.feedbacks}/my-feedbacks');
+      final List<dynamic> data = response.data;
+      return data.map((json) => FeedbackDto.fromJson(json)).toList();
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(
+        e.response?.data?['message'] ??
+            'Lỗi lấy danh sách phản hồi của người dùng',
       );
     }
   }
@@ -123,10 +137,7 @@ class FeedbackService {
   }
 
   /// Thêm phản hồi từ giáo viên
-  Future<FeedbackDto> addTeacherReply(
-    int id,
-    TeacherReplyModel request,
-  ) async {
+  Future<FeedbackDto> addTeacherReply(int id, TeacherReplyModel request) async {
     try {
       final response = await _dio.post(
         '${ApiConstants.feedbacks}/$id/reply',

@@ -4,6 +4,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
+import java.util.UUID;
 
 import org.springframework.stereotype.Service;
 
@@ -43,14 +44,26 @@ public class FeedbackServiceImpl implements FeedbackService {
     }
 
     @Override
+    public List<FeedbackDto> getFeedbacksByUserId() {
+        Users user = getCurrentAuthenticatedUser();
+        return feedbacksMapper.toDtoList(feedbacksRepository.findByUsersByUserId(user));
+    }
+
+    @Override
     public FeedbackDto createFeedback(CreateFeedbackRequest request) {
         if (request.getRating() != null
                 && (request.getRating() < 1 || request.getRating() > 5)) {
             throw new IllegalArgumentException("Rating must be between 1 and 5");
         }
 
-        if (request.getQuestionId() == null && request.getExamId() == null) {
-            throw new IllegalArgumentException("Either questionId or examId is required");
+        // If questionId is provided, examId is required (feedback on specific question)
+        // If only examId is provided, it's exam-level feedback
+        if (request.getQuestionId() != null && request.getExamId() == null) {
+            throw new IllegalArgumentException("When rating a question, examId must also be provided");
+        }
+
+        if (request.getExamId() == null) {
+            throw new IllegalArgumentException("examId is required");
         }
 
         var currentUserId = SecurityUtils.getCurrentUserId();
@@ -63,6 +76,12 @@ public class FeedbackServiceImpl implements FeedbackService {
         Feedbacks feedback = new Feedbacks();
         feedback.setUsersByUserId(user);
 
+        // Set exam (always required)
+        Exams exam = examRepository.findById(request.getExamId())
+                .orElseThrow(() -> new EntityNotFoundException("Exam not found"));
+        feedback.setExams(exam);
+
+        // If questionId is provided, set question and check duplicate question feedback
         if (request.getQuestionId() != null) {
             Questions question = questionRepository.findById(request.getQuestionId())
                     .orElseThrow(() -> new EntityNotFoundException("Question not found"));
@@ -73,17 +92,14 @@ public class FeedbackServiceImpl implements FeedbackService {
                     });
 
             feedback.setQuestions(question);
-        }
-
-        if (request.getExamId() != null) {
-            Exams exam = examRepository.findById(request.getExamId())
-                    .orElseThrow(() -> new EntityNotFoundException("Exam not found"));
+        } else {
+            // For exam-level feedback, check duplicate exam feedback
             feedbacksRepository.findByUsersByUserIdAndExams(user, exam)
                     .ifPresent(existing -> {
                         throw new IllegalArgumentException("You have already given feedback for this exam");
                     });
-            feedback.setExams(exam);
         }
+
         feedback.setContent(request.getContent());
         feedback.setRating(request.getRating());
         feedback.setStatus("PENDING");
@@ -191,6 +207,15 @@ public class FeedbackServiceImpl implements FeedbackService {
 
         Feedbacks saved = feedbacksRepository.save(feedback);
         return feedbacksMapper.toDto(saved);
+    }
+
+    private Users getCurrentAuthenticatedUser() {
+        UUID userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new IllegalArgumentException("Current user not found");
+        }
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
     }
 
 }

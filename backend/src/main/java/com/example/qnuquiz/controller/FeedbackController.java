@@ -3,6 +3,7 @@ package com.example.qnuquiz.controller;
 import java.util.List;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -31,8 +32,14 @@ public class FeedbackController {
     private final FeedbackService feedbackService;
 
     @GetMapping
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<List<FeedbackDto>> getAllFeedbacks() {
         return ResponseEntity.ok(feedbackService.getAllFeedbacks());
+    }
+
+    @GetMapping("/my-feedbacks")
+    public ResponseEntity<List<FeedbackDto>> getFeedbacksByCurrentUser() {
+        return ResponseEntity.ok(feedbackService.getFeedbacksByUserId());
     }
 
     @GetMapping("/question/{questionId}")
@@ -62,6 +69,7 @@ public class FeedbackController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<Void> deleteFeedback(@PathVariable Long id) {
         feedbackService.deleteFeedback(id);
         return ResponseEntity.noContent().build();

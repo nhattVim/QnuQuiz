@@ -27,6 +27,7 @@ class QuizResultScreen extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     int attemptId,
+    int examId,
   ) async {
     try {
       showDialog(
@@ -61,6 +62,7 @@ class QuizResultScreen extends ConsumerWidget {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => QuizReviewScreen(
+              examId: examId, 
               examReview: examReview,
               totalQuestions: totalQuestions,
             ),
@@ -267,7 +269,7 @@ class QuizResultScreen extends ConsumerWidget {
                     height: 48,
                     child: ElevatedButton(
                       onPressed: () =>
-                          handleReviewExam(context, ref, attemptId),
+                          handleReviewExam(context, ref, attemptId, examId),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,

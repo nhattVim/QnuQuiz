@@ -10,6 +10,7 @@ import 'package:frontend/providers/service_providers.dart';
 import 'package:frontend/providers/theme_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/screens/login_screen.dart';
+import 'package:frontend/screens/feedback_list_screen.dart';
 import 'package:share_plus/share_plus.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
@@ -128,6 +129,21 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                         }
                       },
                     ),
+                    // View Feedbacks Button (only for students)
+                    if (user.role == 'STUDENT')
+                      _buildMenuTile(
+                        context,
+                        icon: Icons.rate_review_outlined,
+                        title: 'Xem đánh giá',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const FeedbackListScreen(),
+                            ),
+                          );
+                        },
+                      ),
                     // _buildMenuTile(
                     //   context,
                     //   icon: Icons.settings_outlined,

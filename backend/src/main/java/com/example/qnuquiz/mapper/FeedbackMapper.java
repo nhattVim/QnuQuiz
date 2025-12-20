@@ -16,12 +16,17 @@ public interface FeedbackMapper {
 	@Mapping(target = "questionContent", ignore = true)
 	@Mapping(target = "reviewedBy", ignore = true)
 	@Mapping(target = "userName", ignore = true)
+	@Mapping(target = "teacherReply", source = "teacherReply")
 	FeedbackDto toDto(Feedbacks feedback);
 
 	List<FeedbackDto> toDtoList(List<Feedbacks> feedbacks);
 
 	@AfterMapping
 	default void enrichDto(Feedbacks feedback, @MappingTarget FeedbackDto dto) {
+		if (feedback.getExams() != null) {
+			dto.setExamContent(feedback.getExams().getTitle());
+		}
+
 		if (feedback.getQuestions() != null) {
 			dto.setQuestionContent(feedback.getQuestions().getContent());
 		}
