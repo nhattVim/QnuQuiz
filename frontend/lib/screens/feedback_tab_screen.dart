@@ -130,7 +130,7 @@ class _FeedbackTabScreenState extends ConsumerState<FeedbackTabScreen>
           child: Container(
             margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withOpacity(0.5),
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(12),
             ),
             child: TabBar(
@@ -265,7 +265,7 @@ class _FeedbackTabScreenState extends ConsumerState<FeedbackTabScreen>
         color: colorScheme.surface,
         border: Border(
           bottom: BorderSide(
-            color: colorScheme.outlineVariant.withOpacity(0.4),
+            color: colorScheme.outlineVariant.withValues(alpha: 0.4),
           ),
         ),
       ),
@@ -342,10 +342,12 @@ class _FeedbackTabScreenState extends ConsumerState<FeedbackTabScreen>
               height: 34,
               padding: const EdgeInsets.symmetric(horizontal: 10),
               decoration: BoxDecoration(
-                color: colorScheme.surfaceContainerHighest.withOpacity(0.35),
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.35,
+                ),
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: colorScheme.outlineVariant.withOpacity(0.4),
+                  color: colorScheme.outlineVariant.withValues(alpha: 0.4),
                 ),
               ),
               child: Row(
@@ -401,11 +403,13 @@ class _FeedbackTabScreenState extends ConsumerState<FeedbackTabScreen>
         color: selected ? colorScheme.onPrimary : colorScheme.onSurfaceVariant,
       ),
       selectedColor: colorScheme.primary,
-      backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(0.35),
+      backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+        alpha: 0.35,
+      ),
       side: BorderSide(
         color: selected
             ? Colors.transparent
-            : colorScheme.outlineVariant.withOpacity(0.4),
+            : colorScheme.outlineVariant.withValues(alpha: 0.4),
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -583,13 +587,13 @@ class _FeedbackList extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: colorScheme.primaryContainer.withOpacity(0.3),
+                color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 emptyIcon,
                 size: 48,
-                color: colorScheme.primary.withOpacity(0.7),
+                color: colorScheme.primary.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: 24),
@@ -637,10 +641,12 @@ class _QuestionFeedbackGroup extends ConsumerWidget {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.05),
+            color: colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -712,7 +718,7 @@ class _QuestionFeedbackGroup extends ConsumerWidget {
             separatorBuilder: (context, index) => Padding(
               padding: const EdgeInsets.symmetric(vertical: 12),
               child: Divider(
-                color: colorScheme.outlineVariant.withOpacity(0.3),
+                color: colorScheme.outlineVariant.withValues(alpha: 0.3),
                 height: 1,
               ),
             ),
@@ -781,7 +787,7 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   border: Border.all(
-                    color: colorScheme.primary.withOpacity(0.2),
+                    color: colorScheme.primary.withValues(alpha: 0.2),
                     width: 2,
                   ),
                 ),
@@ -862,7 +868,7 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
             width: double.infinity,
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
@@ -964,10 +970,12 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: colorScheme.outlineVariant.withOpacity(0.5)),
+        border: Border.all(
+          color: colorScheme.outlineVariant.withValues(alpha: 0.5),
+        ),
         boxShadow: [
           BoxShadow(
-            color: colorScheme.shadow.withOpacity(0.05),
+            color: colorScheme.shadow.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1033,7 +1041,7 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: colorScheme.primary.withOpacity(0.2),
+                          color: colorScheme.primary.withValues(alpha: 0.2),
                           width: 2,
                         ),
                       ),
@@ -1114,7 +1122,9 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+                    color: colorScheme.surfaceContainerHighest.withValues(
+                      alpha: 0.3,
+                    ),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -1276,9 +1286,9 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: colorScheme.primary.withOpacity(0.2)),
+        border: Border.all(color: colorScheme.primary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1305,7 +1315,7 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: colorScheme.outline.withOpacity(0.5),
+                  color: colorScheme.outline.withValues(alpha: 0.5),
                 ),
               ),
               focusedBorder: OutlineInputBorder(
@@ -1328,7 +1338,7 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(
-                  color: colorScheme.outline.withOpacity(0.5),
+                  color: colorScheme.outline.withValues(alpha: 0.5),
                 ),
               ),
               contentPadding: const EdgeInsets.symmetric(
