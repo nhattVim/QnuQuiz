@@ -29,6 +29,12 @@ spring:
     caffeine:
         spec: maximumSize=1000,expireAfterWrite=10m
 
+# Email service configuration
+brevo:
+    api-key: ${BREVO_API_KEY:}
+    from-email: ${BREVO_FROM_EMAIL:}
+    from-name: ${BREVO_FROM_NAME:QnuQuiz Team}
+
 jwt:
     secret: TRUONG-TRUNG-PHUC-PHUOC-VINH-THI-TUYET
 

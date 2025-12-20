@@ -13,11 +13,13 @@ defaults:
         working-directory: frontend
 
 jobs:
-    build-and-release:
-        runs-on: macos-latest
+    # ============================================================
+    # BUILD ANDROID
+    # ============================================================
+    build-android:
+        runs-on: ubuntu-latest
         steps:
-            - name: Checkout repository
-              uses: actions/checkout@v6.0.0
+            - uses: actions/checkout@v6
 
             - name: Setup Flutter
               uses: subosito/flutter-action@v2
@@ -27,50 +29,169 @@ jobs:
             - name: Install dependencies
               run: flutter pub get
 
-            - name: Clean Build
-              run: flutter clean
+            - name: Build Android APK
+              run: flutter build apk --debug -t lib/main.dart
 
-            - name: Build Android debug APK
-              run: flutter build apk --debug
+            - name: Move APK to root
+              run: mv build/app/outputs/flutter-apk/app-debug.apk QnuQuiz.apk
 
-            - name: Build iOS debug app (simulator)
-              run: flutter build ios --debug --no-codesign
+            - name: Upload Android Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: android-build
+                  path: frontend/QnuQuiz.apk
 
-            - name: Zip and Move iOS App
+    # ============================================================
+    # BUILD IOS
+    # ============================================================
+    build-ios:
+        runs-on: macos-latest
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                  flutter-version: "3.35.7"
+
+            - name: Install dependencies
+              run: flutter pub get
+
+            - name: Build iOS (Simulator)
+              run: flutter build ios --debug --no-codesign -t lib/main.dart
+
+            - name: Zip iOS App
               run: |
-                  echo "Finding Runner.app in folder build/ios..."
-
                   APP_PATH=$(find build/ios -name "Runner.app" -type d | head -n 1)
+                  zip -r QnuQuiz.zip "$APP_PATH"
 
-                  if [ -z "$APP_PATH" ]; then
-                    echo "Error: Runner.app not found!"
-                    echo "Folder content:"
-                    ls -R build/ios
-                    exit 1
-                  fi
+            - name: Upload iOS Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: ios-build
+                  path: frontend/QnuQuiz.zip
 
-                  echo "Found Runner.app: $APP_PATH"
+    # ============================================================
+    # BUILD WINDOWS
+    # ============================================================
+    build-windows:
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@v6
 
-                  PARENT_DIR=$(dirname "$APP_PATH")
-                  cd "$PARENT_DIR"
-                  zip -r Runner.app.zip Runner.app
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                  flutter-version: "3.35.7"
 
-                  echo "Move Runner.app.zip to frontend..."
-                  mv Runner.app.zip "$GITHUB_WORKSPACE/frontend/ios-simulator-build.zip"
+            - name: Enable Windows
+              run: flutter config --enable-windows-desktop
 
-                  echo "Finished! File already at: frontend/ios-simulator-build.zip"
+            - name: Install dependencies
+              run: flutter pub get
 
-            - name: Create Release and Upload Assets
+            - name: Build Windows
+              run: flutter build windows -t lib/main_admin.dart
+
+            - name: Create Inno Setup Script
+              shell: powershell
+              run: |
+                  $script = @"
+                  [Setup]
+                  AppName=AdminApp
+                  AppVersion=${{ github.ref_name }}
+                  DefaultDirName={autopf}\QnuQuizApp
+                  DefaultGroupName=QnuQuizApp
+                  OutputBaseFilename=QnuQuiz_Admin
+                  Compression=lzma
+                  SolidCompression=yes
+                  ArchitecturesInstallIn64BitMode=x64
+
+                  [Files]
+                  Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+
+                  [Icons]
+                  Name: "{group}\QnuQuizApp"; Filename: "{app}\frontend.exe"
+                  Name: "{commondesktop}\QnuQuizApp"; Filename: "{app}\frontend.exe"
+                  "@
+                  $script | Out-File -FilePath installer.iss -Encoding UTF8
+
+            - name: Compile Windows Installer
+              run: iscc installer.iss
+
+            - name: Upload Windows Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: windows-installer
+                  path: frontend/Output/QnuQuiz_Admin.exe
+
+    # ============================================================
+    # BUILD LINUX
+    # ============================================================
+    build-linux:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v6
+
+            - name: Install System Dependencies
+              run: |
+                  sudo apt-get update
+                  sudo apt-get install -y libgtk-3-dev liblzma-dev clang cmake ninja-build pkg-config libayatana-appindicator3-dev libwebkit2gtk-4.1-dev libsecret-1-dev
+
+            - name: Setup Flutter
+              uses: subosito/flutter-action@v2
+              with:
+                  flutter-version: "3.35.7"
+
+            - name: Enable Linux
+              run: flutter config --enable-linux-desktop
+
+            - name: Install dependencies
+              run: flutter pub get
+
+            - name: Build Linux
+              run: flutter build linux -t lib/main_admin.dart
+
+            - name: Compress Linux Build
+              run: |
+                  cd build/linux/x64/release/bundle
+                  tar -czf ../../../../../QnuQuiz_Admin.tar.gz .
+
+            - name: Upload Linux Artifact
+              uses: actions/upload-artifact@v4
+              with:
+                  name: linux-build
+                  path: frontend/QnuQuiz_Admin.tar.gz
+
+    # ============================================================
+    # CREATE RELEASE
+    # ============================================================
+    release:
+        needs: [build-android, build-ios, build-windows, build-linux]
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/download-artifact@v4
+              with:
+                  path: ./dist
+
+            - name: Create GitHub Release
               uses: softprops/action-gh-release@v1
-              if: startsWith(github.ref, 'refs/tags/')
               with:
                   name: Release ${{ github.ref_name }}
                   body: |
-                      ${{ github.event.inputs.release_note || format('Debug build for version {0}', github.ref_name) }}
-                      Includes Android APK and iOS app (simulator build).
+                      Builds generated from tag: ${{ github.ref_name }}
 
+                      **Mobile (User App):**
+                      - Android: `QnuQuiz.apk`
+                      - iOS: `QnuQuiz.zip`
+
+                      **Desktop (Admin App):**
+                      - Windows: `QnuQuiz_Admin.exe`
+                      - Linux: `QnuQuiz_Admin.tar.gz`
                   files: |
-                      frontend/build/app/outputs/flutter-apk/app-debug.apk
-                      frontend/ios-simulator-build.zip
+                      ./dist/android-build/*
+                      ./dist/ios-build/*
+                      ./dist/windows-installer/*
+                      ./dist/linux-build/*
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

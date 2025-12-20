@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/providers/service_providers.dart';
+import 'package:frontend/providers/user_provider.dart';
 
 final appStartupProvider =
     AsyncNotifierProvider<AppStartupNotifier, AppStartupResult>(
@@ -38,24 +39,31 @@ class AppStartupNotifier extends AsyncNotifier<AppStartupResult> {
       );
     }
 
-    // Server up → check login
-    final isLoggedIn = await ref
-        .read(authServiceProvider)
-        .isLoggedIn(); // Use provider
+    // Server up → restore session by checking BOTH token and cached user
+    final authService = ref.read(authServiceProvider);
+    final token = await authService.getToken();
+    final cachedUser = await ref.read(userServiceProvider).getUser();
 
-    if (isLoggedIn) {
+    final hasSession = token != null && token.isNotEmpty && cachedUser != null;
+
+    if (hasSession) {
+      // Keep in-memory user state in sync so UI can read immediately
+      ref.read(userProvider.notifier).setUser(cachedUser);
       return AppStartupResult(
         state: AppStartupState.loggedIn,
         isServerUp: true,
         isLoggedIn: true,
       );
-    } else {
-      return AppStartupResult(
-        state: AppStartupState.loggedOut,
-        isServerUp: true,
-        isLoggedIn: false,
-      );
     }
+
+    // Missing token or user → treat as logged out and clear leftovers
+    await authService.logout();
+    await ref.read(userProvider.notifier).clearUser();
+    return AppStartupResult(
+      state: AppStartupState.loggedOut,
+      isServerUp: true,
+      isLoggedIn: false,
+    );
   }
 }
 

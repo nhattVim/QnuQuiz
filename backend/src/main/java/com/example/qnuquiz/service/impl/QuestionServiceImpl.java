@@ -16,6 +16,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.qnuquiz.dto.media.MediaFileDto;
 import com.example.qnuquiz.dto.questions.QuestionDTO;
 import com.example.qnuquiz.dto.questions.QuestionOptionDto;
 import com.example.qnuquiz.entity.Exams;
@@ -23,11 +24,13 @@ import com.example.qnuquiz.entity.QuestionOptions;
 import com.example.qnuquiz.entity.Questions;
 import com.example.qnuquiz.entity.Users;
 import com.example.qnuquiz.mapper.QuestionMapper;
+import com.example.qnuquiz.repository.ExamAnswerRepository;
 import com.example.qnuquiz.repository.ExamRepository;
 import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.repository.UserRepository;
 import com.example.qnuquiz.security.SecurityUtils;
+import com.example.qnuquiz.service.MediaFileService;
 import com.example.qnuquiz.service.QuestionService;
 
 import jakarta.transaction.Transactional;
@@ -39,9 +42,11 @@ public class QuestionServiceImpl implements QuestionService {
 
     private final QuestionRepository questionsRepository;
     private final QuestionOptionsRepository questionOptionsRepository;
+    private final ExamAnswerRepository examAnswerRepository;
     private final UserRepository userRepository;
     private final ExamRepository examRepository;
     private final QuestionMapper questionMapper;
+    private final MediaFileService mediaFileService;
 
     @Override
     @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
@@ -120,19 +125,7 @@ public class QuestionServiceImpl implements QuestionService {
         }
 
         return questionsRepository.findByExamsId(examId).stream()
-                .map(q -> QuestionDTO.builder()
-                        .id(q.getId())
-                        .content(q.getContent())
-                        .type(q.getType())
-                        .options(questionOptionsRepository.findByQuestions_Id(q.getId()).stream()
-                                .map(o -> QuestionOptionDto.builder()
-                                        .id(o.getId())
-                                        .content(o.getContent())
-                                        .correct(o.isIsCorrect())
-                                        .position(o.getPosition())
-                                        .build())
-                                .toList())
-                        .build())
+                .map(this::buildQuestionDTO)
                 .toList();
     }
 
@@ -140,6 +133,17 @@ public class QuestionServiceImpl implements QuestionService {
     @Transactional
     @CacheEvict(value = "allQuestionsOfExam", allEntries = true)
     public void deleteQuestion(List<Long> ids) {
+        List<QuestionOptions> optionsToDelete = questionOptionsRepository.findByQuestions_IdIn(ids);
+        List<Long> optionIds = optionsToDelete.stream()
+                .map(QuestionOptions::getId)
+                .collect(Collectors.toList());
+        
+        if (!optionIds.isEmpty()) {
+            examAnswerRepository.setQuestionOptionsToNullByOptionIds(optionIds);
+        }
+        
+        examAnswerRepository.deleteByQuestionIds(ids);
+        
         questionOptionsRepository.deleteAllByQuestions_IdIn(ids);
         questionsRepository.deleteAllById(ids);
     }
@@ -153,7 +157,10 @@ public class QuestionServiceImpl implements QuestionService {
 
         question.setContent(dto.getContent());
 
-        List<QuestionOptionDto> updatedOptions = dto.getOptions().stream()
+        List<QuestionOptionDto> updatedOptions;
+        if (dto.getOptions() != null && !dto.getOptions().isEmpty()) {
+            // Update options if provided
+            updatedOptions = dto.getOptions().stream()
                 .map(optionDto -> {
                     QuestionOptions option = questionOptionsRepository.findById(optionDto.getId())
                             .orElseThrow(() -> new RuntimeException("Option not found with id: " + optionDto.getId()));
@@ -169,6 +176,18 @@ public class QuestionServiceImpl implements QuestionService {
                             .build();
                 })
                 .collect(Collectors.toList());
+        } else {
+            // If options is null or empty, fetch existing options from database
+            updatedOptions = questionOptionsRepository.findByQuestions_Id(question.getId())
+                    .stream()
+                    .map(opt -> QuestionOptionDto.builder()
+                            .id(opt.getId())
+                            .content(opt.getContent())
+                            .correct(opt.isIsCorrect())
+                            .position(opt.getPosition())
+                            .build())
+                    .collect(Collectors.toList());
+        }
 
         questionsRepository.save(question);
 
@@ -190,19 +209,7 @@ public class QuestionServiceImpl implements QuestionService {
     @Override
     public List<QuestionDTO> getAllQuestions() {
         return questionsRepository.findAll().stream()
-                .map(q -> QuestionDTO.builder()
-                        .id(q.getId())
-                        .content(q.getContent())
-                        .type(q.getType())
-                        .options(questionOptionsRepository.findByQuestions_Id(q.getId()).stream()
-                                .map(o -> QuestionOptionDto.builder()
-                                        .id(o.getId())
-                                        .content(o.getContent())
-                                        .correct(o.isIsCorrect())
-                                        .position(o.getPosition())
-                                        .build())
-                                .toList())
-                        .build())
+                .map(this::buildQuestionDTO)
                 .toList();
     }
 
@@ -232,8 +239,17 @@ public class QuestionServiceImpl implements QuestionService {
 
         Questions savedQuestion = questionsRepository.save(question);
 
+        // Validate and create options based on question type
+        if (dto.getOptions() != null && !dto.getOptions().isEmpty()) {
+            // MULTIPLE_CHOICE questions require options
+            if ("MULTIPLE_CHOICE".equalsIgnoreCase(dto.getType()) || "TRUE_FALSE".equalsIgnoreCase(dto.getType())) {
         dto.getOptions().forEach(optionDto -> createOption(savedQuestion, optionDto.getContent(), optionDto.isCorrect(),
                 optionDto.getPosition()));
+            }
+        } else if ("MULTIPLE_CHOICE".equalsIgnoreCase(dto.getType()) || "TRUE_FALSE".equalsIgnoreCase(dto.getType())) {
+            // MULTIPLE_CHOICE and TRUE_FALSE questions must have options
+            throw new RuntimeException("Options are required for MULTIPLE_CHOICE and TRUE_FALSE question types");
+        }
 
         List<QuestionOptionDto> createdOptions = questionOptionsRepository.findByQuestions_Id(savedQuestion.getId())
                 .stream()
@@ -245,11 +261,39 @@ public class QuestionServiceImpl implements QuestionService {
                         .build())
                 .collect(Collectors.toList());
 
-        return QuestionDTO.builder()
-                .id(savedQuestion.getId())
-                .content(savedQuestion.getContent())
-                .type(savedQuestion.getType())
-                .options(createdOptions)
-                .build();
+        return buildQuestionDTO(savedQuestion);
+    }
+
+    /**
+     * Helper method to build QuestionDTO with options and media files
+     */
+    private QuestionDTO buildQuestionDTO(Questions question) {
+        // Load options
+        List<QuestionOptionDto> options = questionOptionsRepository.findByQuestions_Id(question.getId()).stream()
+                .map(o -> QuestionOptionDto.builder()
+                        .id(o.getId())
+                        .content(o.getContent())
+                        .correct(o.isIsCorrect())
+                        .position(o.getPosition())
+                        .build())
+                .toList();
+
+        // Load media files
+        List<MediaFileDto> mediaFiles = mediaFileService.getMediaFilesByQuestionId(question.getId());
+
+        // Build DTO
+        QuestionDTO.QuestionDTOBuilder builder = QuestionDTO.builder()
+                .id(question.getId())
+                .content(question.getContent())
+                .type(question.getType())
+                .options(options)
+                .mediaFiles(mediaFiles);
+
+        // For backward compatibility, set mediaUrl to first media file URL if exists
+        if (!mediaFiles.isEmpty()) {
+            builder.mediaUrl(mediaFiles.get(0).getFileUrl());
+        }
+
+        return builder.build();
     }
 }

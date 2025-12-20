@@ -1,5 +1,7 @@
+import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:file_picker/file_picker.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,6 +37,93 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
     _fetchAdminAnalytics(analyticsService);
     _teacherAnalyticsFuture =
         _fetchTeacherAnalytics(teacherService, analyticsService);
+  }
+
+  Future<void> _onExportUsersCsv() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final analyticsService = ref.read(analyticsServiceProvider);
+      final bytes = await analyticsService.downloadUserAnalyticsCsv();
+      
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: 'Lưu file CSV thống kê người dùng',
+        fileName: 'user_analytics_${DateTime.now().millisecondsSinceEpoch}.csv',
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      );
+      
+      if (result != null) {
+        final file = File(result);
+        await file.writeAsBytes(bytes);
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Đã xuất file CSV thống kê người dùng thành công.'),
+          ),
+        );
+      }
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Lỗi export thống kê người dùng: $e')),
+      );
+    }
+  }
+
+  Future<void> _onExportExamsCsv() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final analyticsService = ref.read(analyticsServiceProvider);
+      final bytes = await analyticsService.downloadExamAnalyticsCsv();
+      
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: 'Lưu file CSV thống kê bài thi',
+        fileName: 'exam_analytics_${DateTime.now().millisecondsSinceEpoch}.csv',
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      );
+      
+      if (result != null) {
+        final file = File(result);
+        await file.writeAsBytes(bytes);
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Đã xuất file CSV thống kê bài thi thành công.'),
+          ),
+        );
+      }
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Lỗi export thống kê bài thi: $e')),
+      );
+    }
+  }
+
+  Future<void> _onExportQuestionsCsv() async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      final analyticsService = ref.read(analyticsServiceProvider);
+      final bytes = await analyticsService.downloadQuestionAnalyticsCsv();
+      
+      final result = await FilePicker.platform.saveFile(
+        dialogTitle: 'Lưu file CSV thống kê câu hỏi',
+        fileName: 'question_analytics_${DateTime.now().millisecondsSinceEpoch}.csv',
+        type: FileType.custom,
+        allowedExtensions: ['csv'],
+      );
+      
+      if (result != null) {
+        final file = File(result);
+        await file.writeAsBytes(bytes);
+        messenger.showSnackBar(
+          const SnackBar(
+            content: Text('Đã xuất file CSV thống kê câu hỏi thành công.'),
+          ),
+        );
+      }
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Lỗi export thống kê câu hỏi: $e')),
+      );
+    }
   }
 
   void _fetchAdminAnalytics(AnalyticsService analyticsService) {
@@ -122,27 +211,30 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
         final double activePercent =
             user.totalUsers == 0 ? 0 : user.activeUsers / user.totalUsers;
 
+        final theme = Theme.of(context);
+        final scheme = theme.colorScheme;
+
         final metrics = [
           _MetricData(
             label: 'Total Users',
             value: user.totalUsers.toString(),
             trend: '+${user.newUsersThisMonth} new this month',
             icon: Icons.people_alt_outlined,
-            color: Colors.indigo,
+            color: scheme.primary,
           ),
           _MetricData(
             label: 'Active Users',
             value: user.activeUsers.toString(),
             trend: '${(activePercent * 100).toStringAsFixed(1)}% active',
             icon: Icons.speed,
-            color: Colors.teal,
+            color: scheme.secondary,
           ),
           _MetricData(
             label: 'Total Exams',
             value: exam.totalExams.toString(),
             trend: '${exam.activeExams} active right now',
             icon: Icons.assignment,
-            color: Colors.deepPurple,
+            color: scheme.tertiary,
           ),
           _MetricData(
             label: 'Question Bank',
@@ -150,7 +242,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
             trend:
                 '${question.averageOptionsPerQuestion.toStringAsFixed(1)} options / question',
             icon: Icons.quiz_outlined,
-            color: Colors.orange,
+            color: scheme.secondaryContainer,
           ),
         ];
 
@@ -218,32 +310,46 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'User role distribution',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
                   height: 260,
-                  child: PieChart(
-                    PieChartData(
-                      sectionsSpace: 4,
-                      centerSpaceRadius: 60,
-                      sections: slices.map((slice) {
-                        final percent =
-                            ((slice.value / total) * 100).toStringAsFixed(0);
-                        return PieChartSectionData(
-                          color: slice.color,
-                          value: slice.value,
-                          title: '$percent%',
-                          radius: 80,
-                          titleStyle: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      PieChart(
+                        PieChartData(
+                          sectionsSpace: 4,
+                          centerSpaceRadius: 70,
+                          sections: slices.map((slice) {
+                            return PieChartSectionData(
+                              color: slice.color,
+                              value: slice.value,
+                              radius: 80,
+                              title: '',
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            data.totalUsers.toString(),
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                        );
-                      }).toList(),
-                    ),
+                          const Text('Total users'),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -259,6 +365,18 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                         ),
                       )
                       .toList(),
+                ),
+                const Divider(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total users: ${data.totalUsers}',
+                    ),
+                    Text(
+                      'New this month: ${data.newUsersThisMonth}',
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -284,6 +402,7 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
         }
 
         final analytics = snapshot.data!;
+        final scheme = Theme.of(context).colorScheme;
         final inactive = (analytics.totalExams - analytics.activeExams).clamp(
           0,
           analytics.totalExams,
@@ -292,12 +411,12 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
           _ChartSlice(
             label: 'Active',
             value: analytics.activeExams.toDouble(),
-            color: Colors.green,
+            color: scheme.secondary,
           ),
           _ChartSlice(
             label: 'Inactive',
             value: inactive.toDouble(),
-            color: Colors.grey.shade400,
+            color: scheme.outlineVariant,
           ),
         ];
 
@@ -307,9 +426,11 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Exam status',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const SizedBox(height: 12),
                 SizedBox(
@@ -383,140 +504,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
     );
   }
 
-  Widget _buildQuestionTypeChart() {
-    return FutureBuilder<AdminQuestionAnalyticsModel>(
-      future: _adminQuestionAnalyticsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return _buildLoadingChartCard('Question types');
-        } else if (snapshot.hasError) {
-          return _buildPlaceholderCard(
-            'Question types',
-            message: 'Failed to load: ${snapshot.error}',
-          );
-        } else if (!snapshot.hasData) {
-          return const SizedBox.shrink();
-        }
-
-        final analytics = snapshot.data!;
-        final double maxValue = math.max(
-          analytics.multipleChoiceQuestions.toDouble(),
-          analytics.trueFalseQuestions.toDouble(),
-        );
-        final double maxY = maxValue == 0 ? 1 : maxValue * 1.2;
-
-        return Card(
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Question types',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  height: 260,
-                  child: BarChart(
-                    BarChartData(
-                      maxY: maxY,
-                      barTouchData: BarTouchData(enabled: false),
-                      gridData:
-                          const FlGridData(show: true, drawVerticalLine: false),
-                      titlesData: FlTitlesData(
-                        topTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                        rightTitles: const AxisTitles(
-                          sideTitles: SideTitles(showTitles: false),
-                        ),
-                        leftTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            reservedSize: 36,
-                            interval: math.max(1, maxY / 4),
-                          ),
-                        ),
-                        bottomTitles: AxisTitles(
-                          sideTitles: SideTitles(
-                            showTitles: true,
-                            getTitlesWidget: (value, meta) {
-                              switch (value.toInt()) {
-                                case 0:
-                                  return const Padding(
-                                    padding: EdgeInsets.only(top: 8.0),
-                                    child: Text('Multiple choice'),
-                                  );
-                                case 1:
-                                  return const Padding(
-                                    padding: EdgeInsets.only(top: 8.0),
-                                    child: Text('True / False'),
-                                  );
-                              }
-                              return const SizedBox.shrink();
-                            },
-                          ),
-                        ),
-                      ),
-                      borderData: FlBorderData(show: false),
-                      barGroups: [
-                        BarChartGroupData(
-                          x: 0,
-                          barRods: [
-                            BarChartRodData(
-                              toY:
-                                  analytics.multipleChoiceQuestions.toDouble(),
-                              width: 28,
-                              borderRadius: BorderRadius.circular(6),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.deepPurple.shade200,
-                                  Colors.deepPurple,
-                                ],
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                              ),
-                            ),
-                          ],
-                        ),
-                        BarChartGroupData(
-                          x: 1,
-                          barRods: [
-                            BarChartRodData(
-                              toY: analytics.trueFalseQuestions.toDouble(),
-                              width: 28,
-                              borderRadius: BorderRadius.circular(6),
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.orange.shade200,
-                                  Colors.orange,
-                                ],
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Avg options/question: ${analytics.averageOptionsPerQuestion.toStringAsFixed(1)}',
-                ),
-                Text(
-                  'Avg usage in exams: ${analytics.averageUsageInExams.toStringAsFixed(1)}',
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
   Widget _buildLoadingChartCard(String title) {
     return Card(
       child: SizedBox(
@@ -575,9 +562,34 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'Admin Overview',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Admin Overview',
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  ),
+                  Wrap(
+                    spacing: 8,
+                    children: [
+                      OutlinedButton.icon(
+                        onPressed: _onExportUsersCsv,
+                        icon: const Icon(Icons.download),
+                        label: const Text('Export users CSV'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _onExportExamsCsv,
+                        icon: const Icon(Icons.download),
+                        label: const Text('Export exams CSV'),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: _onExportQuestionsCsv,
+                        icon: const Icon(Icons.download),
+                        label: const Text('Export questions CSV'),
+                      ),
+                    ],
+                  ),
+                ],
               ),
               const SizedBox(height: 16),
               _buildSummaryGrid(),
@@ -601,22 +613,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
                 ],
               ),
               const SizedBox(height: 32),
-              const Text(
-                'Detailed Analytics',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              _buildUserAnalyticsCard(),
-              const SizedBox(height: 16),
-              _buildExamAnalyticsCard(),
-              const SizedBox(height: 16),
-              _buildQuestionAnalyticsCard(),
-              const SizedBox(height: 32),
-              const Text(
-                'Teacher-Specific Analytics',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
           FutureBuilder<List<_TeacherAnalyticsData>>(
             future: _teacherAnalyticsFuture,
                 builder: (context, snapshot) {
@@ -631,28 +627,16 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
               final analyticsData = snapshot.data!;
               final hasExamData =
                   analyticsData.any((data) => data.examCount > 0);
-              final scoreCards = analyticsData
-                  .where((data) => data.scoreDistribution != null)
-                  .toList();
 
                   return Column(
                     children: [
                   if (hasExamData) ...[
                     _buildExamsPerTeacherChart(analyticsData),
-                    const SizedBox(height: 32),
                   ] else
                     _buildPlaceholderCard(
                       'Number of Exams per Teacher',
                       message:
                           'No teacher-created exams found. Encourage teachers to create exams to see this chart.',
-                    ),
-                  if (scoreCards.isNotEmpty)
-                    ...scoreCards.map(_buildScoreDistributionChart)
-                  else
-                    _buildPlaceholderCard(
-                      'Score distribution',
-                      message:
-                          'No score distribution data is available for teachers yet.',
                     ),
                     ],
                   );
@@ -665,121 +649,116 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
     );
   }
 
-  Widget _buildUserAnalyticsCard() {
-    return FutureBuilder<UserAnalyticsModel>(
-      future: _userAnalyticsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          return Text('Error loading user analytics: ${snapshot.error}');
-        } else if (!snapshot.hasData) {
-          return const Text('No user analytics data.');
-        }
-        final analytics = snapshot.data!;
-        return Card(
-          elevation: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'User Statistics',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const Divider(),
-                Text('Total Users: ${analytics.totalUsers}'),
-                Text('New Users This Month: ${analytics.newUsersThisMonth}'),
-                Text('Active Users: ${analytics.activeUsers}'),
-                Text('Students: ${analytics.studentsCount}'),
-                Text('Teachers: ${analytics.teachersCount}'),
-                Text('Admins: ${analytics.adminCount}'),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildExamAnalyticsCard() {
-    return FutureBuilder<AdminExamAnalyticsModel>(
-      future: _adminExamAnalyticsFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
-        } else if (snapshot.hasError) {
-          return Text('Error loading exam analytics: ${snapshot.error}');
-        } else if (!snapshot.hasData) {
-          return const Text('No exam analytics data.');
-        }
-        final analytics = snapshot.data!;
-        return Card(
-          elevation: 4,
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Exam Statistics',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const Divider(),
-                Text('Total Exams: ${analytics.totalExams}'),
-                Text('Active Exams: ${analytics.activeExams}'),
-                Text(
-                  'Avg. Questions per Exam: ${analytics.averageQuestionsPerExam.toStringAsFixed(2)}',
-                ),
-                Text(
-                  'Avg. Attempts per Exam: ${analytics.averageAttemptsPerExam.toStringAsFixed(2)}',
-                ),
-                Text(
-                  'Overall Avg. Score: ${analytics.overallAverageScore.toStringAsFixed(2)}',
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildQuestionAnalyticsCard() {
+  Widget _buildQuestionTypeChart() {
     return FutureBuilder<AdminQuestionAnalyticsModel>(
       future: _adminQuestionAnalyticsFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const CircularProgressIndicator();
+          return _buildLoadingChartCard('Question types');
         } else if (snapshot.hasError) {
-          return Text('Error loading question analytics: ${snapshot.error}');
+          return _buildPlaceholderCard(
+            'Question types',
+            message: 'Failed to load: ${snapshot.error}',
+          );
         } else if (!snapshot.hasData) {
-          return const Text('No question analytics data.');
+          return const SizedBox.shrink();
         }
+
         final analytics = snapshot.data!;
+        final scheme = Theme.of(context).colorScheme;
+        final slices = [
+          _ChartSlice(
+            label: 'Multiple Choice',
+            value: analytics.multipleChoiceQuestions.toDouble(),
+            color: scheme.primary,
+          ),
+          _ChartSlice(
+            label: 'True/False',
+            value: analytics.trueFalseQuestions.toDouble(),
+            color: scheme.secondary,
+          ),
+        ];
+        final total = slices.fold<double>(0, (sum, slice) => sum + slice.value);
+        if (total == 0) {
+          return _buildPlaceholderCard(
+            'Question types',
+            message: 'No questions available yet.',
+          );
+        }
+
         return Card(
-          elevation: 4,
           child: Padding(
             padding: const EdgeInsets.all(16.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Question Statistics',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                const Divider(),
-                Text('Total Questions: ${analytics.totalQuestions}'),
                 Text(
-                  'Multiple Choice Questions: ${analytics.multipleChoiceQuestions}',
+                  'Question types',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
-                Text('True/False Questions: ${analytics.trueFalseQuestions}'),
-                Text(
-                  'Avg. Options per Question: ${analytics.averageOptionsPerQuestion.toStringAsFixed(2)}',
+                const SizedBox(height: 12),
+                SizedBox(
+                  height: 260,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      PieChart(
+                        PieChartData(
+                          sectionsSpace: 4,
+                          centerSpaceRadius: 70,
+                          sections: slices.map((slice) {
+                            return PieChartSectionData(
+                              color: slice.color,
+                              value: slice.value,
+                              radius: 80,
+                              title: '',
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                      Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            analytics.totalQuestions.toString(),
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const Text('Total questions'),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                Text(
-                  'Avg. Usage in Exams: ${analytics.averageUsageInExams.toStringAsFixed(2)}',
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 8,
+                  children: slices
+                      .map(
+                        (slice) => _ChartLegend(
+                          color: slice.color,
+                          label:
+                              '${slice.label} (${slice.value.toInt().toString()})',
+                        ),
+                      )
+                      .toList(),
+                ),
+                const Divider(height: 32),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Avg options/question: ${analytics.averageOptionsPerQuestion.toStringAsFixed(1)}',
+                    ),
+                    Text(
+                      'Avg usage in exams: ${analytics.averageUsageInExams.toStringAsFixed(1)}',
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -876,81 +855,6 @@ class _AnalyticsPageState extends ConsumerState<AnalyticsPage> {
     );
   }
 
-  Widget _buildScoreDistributionChart(_TeacherAnalyticsData data) {
-    final scoreDist = data.scoreDistribution;
-    if (scoreDist == null) {
-      return const SizedBox.shrink();
-    }
-
-    final sections = [
-      PieChartSectionData(
-        color: Colors.green,
-        value: scoreDist.excellentCount.toDouble(),
-        title: 'Excellent\n(${scoreDist.excellentCount})',
-        radius: 100,
-        titleStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
-      PieChartSectionData(
-        color: Colors.blue,
-        value: scoreDist.goodCount.toDouble(),
-        title: 'Good\n(${scoreDist.goodCount})',
-        radius: 100,
-        titleStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
-      PieChartSectionData(
-        color: Colors.orange,
-        value: scoreDist.averageCount.toDouble(),
-        title: 'Average\n(${scoreDist.averageCount})',
-        radius: 100,
-        titleStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
-      PieChartSectionData(
-        color: Colors.red,
-        value: scoreDist.failCount.toDouble(),
-        title: 'Fail\n(${scoreDist.failCount})',
-        radius: 100,
-        titleStyle: const TextStyle(
-          fontSize: 12,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
-      ),
-    ];
-
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.symmetric(vertical: 16.0),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Score Distribution for ${data.teacher.fullName ?? data.teacher.username ?? 'Teacher ${data.teacher.id}'}',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            SizedBox(
-              height: 300,
-              child: PieChart(PieChartData(sections: sections)),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _TeacherAnalyticsData {

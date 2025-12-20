@@ -73,7 +73,16 @@ public class GlobalExceptionHandler {
                 "message", "You do not have permission to access this resource"));
     }
 
-    // 6. Handle Unknown Exceptions (Fallback)
+    // 6. Handle RuntimeException (for business logic errors)
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, Object>> handleRuntimeException(RuntimeException ex) {
+        log.warn("RuntimeException: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of(
+                "error", "Bad Request",
+                "message", ex.getMessage() != null ? ex.getMessage() : "An error occurred"));
+    }
+
+    // 7. Handle Unknown Exceptions (Fallback)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, Object>> handleGeneralException(Exception ex, WebRequest request) {
         log.error("Unknown internal error", ex);
@@ -87,7 +96,9 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EntityNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleNotFound(EntityNotFoundException ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(Map.of("error", ex.getMessage()));
+                .body(Map.of(
+                        "error", "Not Found",
+                        "message", ex.getMessage()));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)

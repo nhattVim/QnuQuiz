@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:dio/dio.dart';
 import 'package:frontend/constants/api_constants.dart';
 import 'package:frontend/models/analytics/admin_exam_analytics_model.dart';
@@ -218,5 +220,158 @@ class AnalyticsService {
         e.response?.data?['message'] ?? 'Lỗi lấy thống kê câu hỏi',
       );
     }
+  }
+
+  /// Download CSV for user analytics (admin only).
+  Future<List<int>> downloadUserAnalyticsCsv() async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/admin/users/export',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      
+      if (response.statusCode != 200) {
+        final errorMessage = _parseErrorFromBytes(response.data);
+        throw Exception(errorMessage ?? 'Lỗi export thống kê người dùng');
+      }
+      
+      if (response.data is List<int>) {
+        final bytes = response.data as List<int>;
+        if (_isErrorResponse(bytes)) {
+          final errorMessage = _parseErrorFromBytes(bytes);
+          throw Exception(errorMessage ?? 'Lỗi export thống kê người dùng');
+        }
+        return bytes;
+      } else {
+        throw Exception('Invalid response format');
+      }
+    } on DioException catch (e) {
+      final errorMessage = _parseErrorFromBytes(e.response?.data);
+      _log.e('DioException: ${errorMessage ?? e.message}');
+      
+      if (e.response?.statusCode == 404) {
+        throw Exception('Endpoint export chưa được triển khai trên backend');
+      }
+      
+      throw Exception(
+        errorMessage ?? 'Lỗi export thống kê người dùng',
+      );
+    } catch (e) {
+      _log.e('Unexpected error: $e');
+      rethrow;
+    }
+  }
+
+  /// Download CSV for exam analytics (admin only).
+  Future<List<int>> downloadExamAnalyticsCsv() async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/admin/exams/export',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      
+      if (response.statusCode != 200) {
+        final errorMessage = _parseErrorFromBytes(response.data);
+        throw Exception(errorMessage ?? 'Lỗi export thống kê bài thi');
+      }
+      
+      if (response.data is List<int>) {
+        final bytes = response.data as List<int>;
+        if (_isErrorResponse(bytes)) {
+          final errorMessage = _parseErrorFromBytes(bytes);
+          throw Exception(errorMessage ?? 'Lỗi export thống kê bài thi');
+        }
+        return bytes;
+      } else {
+        throw Exception('Invalid response format');
+      }
+    } on DioException catch (e) {
+      final errorMessage = _parseErrorFromBytes(e.response?.data);
+      _log.e('DioException: ${errorMessage ?? e.message}');
+      
+      if (e.response?.statusCode == 404) {
+        throw Exception('Endpoint export chưa được triển khai trên backend');
+      }
+      
+      throw Exception(
+        errorMessage ?? 'Lỗi export thống kê bài thi',
+      );
+    } catch (e) {
+      _log.e('Unexpected error: $e');
+      rethrow;
+    }
+  }
+
+  /// Download CSV for question analytics (admin only).
+  Future<List<int>> downloadQuestionAnalyticsCsv() async {
+    try {
+      final response = await _dio.get(
+        '${ApiConstants.analytics}/admin/questions/export',
+        options: Options(responseType: ResponseType.bytes),
+      );
+      
+      if (response.statusCode != 200) {
+        final errorMessage = _parseErrorFromBytes(response.data);
+        throw Exception(errorMessage ?? 'Lỗi export thống kê câu hỏi');
+      }
+      
+      if (response.data is List<int>) {
+        final bytes = response.data as List<int>;
+        if (_isErrorResponse(bytes)) {
+          final errorMessage = _parseErrorFromBytes(bytes);
+          throw Exception(errorMessage ?? 'Lỗi export thống kê câu hỏi');
+        }
+        return bytes;
+      } else {
+        throw Exception('Invalid response format');
+      }
+    } on DioException catch (e) {
+      final errorMessage = _parseErrorFromBytes(e.response?.data);
+      _log.e('DioException: ${errorMessage ?? e.message}');
+      
+      if (e.response?.statusCode == 404) {
+        throw Exception('Endpoint export chưa được triển khai trên backend');
+      }
+      
+      throw Exception(
+        errorMessage ?? 'Lỗi export thống kê câu hỏi',
+      );
+    } catch (e) {
+      _log.e('Unexpected error: $e');
+      rethrow;
+    }
+  }
+
+  bool _isErrorResponse(List<int> bytes) {
+    try {
+      final jsonString = String.fromCharCodes(bytes);
+      final json = jsonDecode(jsonString);
+      return json is Map && (json.containsKey('error') || json.containsKey('message'));
+    } catch (e) {
+      return false;
+    }
+  }
+
+  String? _parseErrorFromBytes(dynamic data) {
+    if (data == null) return null;
+    
+    try {
+      if (data is List<int>) {
+        final jsonString = String.fromCharCodes(data);
+        final json = jsonDecode(jsonString) as Map<String, dynamic>?;
+        if (json != null) {
+          if (json.containsKey('message')) {
+            return json['message'] as String?;
+          }
+          if (json.containsKey('error')) {
+            return json['error'] as String?;
+          }
+        }
+      }
+    } catch (e) {
+      _log.w('Failed to parse error from bytes: $e');
+    }
+    
+    return null;
   }
 }

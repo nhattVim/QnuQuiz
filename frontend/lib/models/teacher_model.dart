@@ -8,6 +8,7 @@ class TeacherModel {
   final int? departmentId;
   final String? teacherCode;
   final String? title;
+  final String? avatarUrl;
 
   TeacherModel({
     required this.id,
@@ -19,6 +20,7 @@ class TeacherModel {
     this.departmentId,
     this.teacherCode,
     this.title,
+    this.avatarUrl,
   });
 
   factory TeacherModel.fromJson(Map<String, dynamic> json) {
@@ -32,6 +34,7 @@ class TeacherModel {
       departmentId: json['departmentId'],
       teacherCode: json['teacherCode'],
       title: json['title'],
+      avatarUrl: json['avatarUrl'],
     );
   }
 
@@ -45,5 +48,6 @@ class TeacherModel {
     'departmentId': departmentId,
     'teacherCode': teacherCode,
     'title': title,
+    'avatarUrl': avatarUrl,
   };
 }

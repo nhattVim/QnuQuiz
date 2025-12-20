@@ -10,6 +10,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import com.example.qnuquiz.dto.user.ChangePasswordRequest;
 import com.example.qnuquiz.dto.user.UserDto;
 import com.example.qnuquiz.dto.user.UserRegisterDto;
 import com.example.qnuquiz.entity.Students;
@@ -102,9 +103,35 @@ public class UserServiceImpl implements UserService {
         existingUser.setEmail(userDto.getEmail());
         existingUser.setPhoneNumber(userDto.getPhoneNumber());
         existingUser.setRole(userDto.getRole().toUpperCase());
+        if (userDto.getAvatarUrl() != null) {
+            existingUser.setAvatarUrl(userDto.getAvatarUrl());
+        }
         existingUser.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
 
         Users updated = userRepository.save(existingUser);
+        return userMapper.toDto(updated);
+    }
+
+    @Override
+    @CacheEvict(value = "allUsers", allEntries = true)
+    public UserDto updateCurrentUserProfile(UserDto userDto) {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new RuntimeException("User not authenticated");
+        }
+
+        Users user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        user.setFullName(userDto.getFullName());
+        user.setEmail(userDto.getEmail());
+        user.setPhoneNumber(userDto.getPhoneNumber());
+        if (userDto.getAvatarUrl() != null) {
+            user.setAvatarUrl(userDto.getAvatarUrl());
+        }
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+
+        Users updated = userRepository.save(user);
         return userMapper.toDto(updated);
     }
 
@@ -137,5 +164,46 @@ public class UserServiceImpl implements UserService {
         } else {
             return userMapper.toDto(user);
         }
+    }
+
+    @Override
+    @CacheEvict(value = "allUsers", allEntries = true)
+    public void updatePasswordByEmail(String email, String newPassword) {
+        Users user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+        
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        userRepository.save(user);
+    }
+
+    @Override
+    @CacheEvict(value = "allUsers", allEntries = true)
+    public void changePassword(ChangePasswordRequest request) {
+        if (request == null || request.getOldPassword() == null || request.getNewPassword() == null) {
+            throw new RuntimeException("Vui lòng điền đầy đủ thông tin mật khẩu");
+        }
+
+        if (request.getNewPassword().length() < 6) {
+            throw new RuntimeException("Mật khẩu mới phải có ít nhất 6 ký tự");
+        }
+
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new RuntimeException("Không xác định được người dùng hiện tại");
+        }
+
+        Users user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        // Verify old password
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+            throw new RuntimeException("Mật khẩu hiện tại không đúng");
+        }
+
+        // Update password
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        userRepository.save(user);
     }
 }

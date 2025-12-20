@@ -112,9 +112,12 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     }
 
     final currentQuestion = quizData[currentQuestionIndex];
-    final correctOptionIndex = currentQuestion.options!.indexWhere(
-      (option) => option.correct,
-    );
+    final options = currentQuestion.options;
+    final correctOptionIndex = options != null && options.isNotEmpty
+        ? options.indexWhere(
+            (option) => option.correct,
+          )
+        : -1;
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -139,7 +142,6 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              // Progress
               Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
@@ -153,34 +155,36 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
               const SizedBox(height: 16),
 
-              // Question
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: QuizQuestion(
                   questionText: currentQuestion.content ?? '',
-                  imageUrl: null,
+                  imageUrl: currentQuestion.mediaUrl,
+                  mediaFiles: currentQuestion.mediaFiles,
                 ),
               ),
 
               const SizedBox(height: 16),
 
-              // Answer Options
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: QuizAnswerOptions(
-                  answers: currentQuestion.options!
-                      .map((o) => o.content)
-                      .toList(),
-                  selectedAnswerIndex: selectedAnswerIndex,
-                  correctAnswerIndex: correctOptionIndex,
-                  answered: false,
-                  onSelectAnswer: _selectAnswer,
-                ),
+                child: options != null && options.isNotEmpty
+                    ? QuizAnswerOptions(
+                        answers: options
+                            .map((o) => o.content)
+                            .toList(),
+                        selectedAnswerIndex: selectedAnswerIndex,
+                        correctAnswerIndex: correctOptionIndex,
+                        answered: false,
+                        onSelectAnswer: _selectAnswer,
+                      )
+                    : const Center(
+                        child: Text('Không có đáp án cho câu hỏi này'),
+                      ),
               ),
 
               const SizedBox(height: 16),
 
-              // Next Button
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: SizedBox(
@@ -391,7 +395,6 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   }
 
   void _selectAnswer(int index) {
-    // Không cho chọn đáp án nếu hết thời gian
     if (_isTimeUp) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -404,11 +407,9 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
     setState(() {
       if (selectedAnswerIndex == index) {
-        // Nếu bấm cùng đáp án → bỏ chọn
         selectedAnswerIndex = -1;
         answeredQuestions[currentQuestionIndex] = null;
       } else {
-        // Bấm đáp án khác → đổi lựa chọn
         selectedAnswerIndex = index;
         answeredQuestions[currentQuestionIndex] = index;
       }
@@ -464,7 +465,6 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
   }
 
   void _showPauseDialog() {
-    // Dừng timer khi pause
     if (_isTimerRunning) {
       _timer.cancel();
       _isTimerRunning = false;
@@ -482,7 +482,6 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         },
         onContinue: () {
           Navigator.pop(context);
-          // Tiếp tục timer khi đóng dialog
           _startTimer();
         },
       ),
@@ -500,7 +499,6 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           examTitle: widget.examTitle,
           examId: widget.examId,
           onBackHome: () {
-            // Pop về ExamListScreen để trigger refresh
             Navigator.pop(context);
           },
         ),
@@ -544,15 +542,13 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
   void _startTimer() {
     if (widget.durationMinutes == null || widget.durationMinutes == 0) {
-      return; // Không có giới hạn thời gian
+      return;
     }
 
-    // Nếu timer đã chạy, không khởi động lại
     if (_isTimerRunning) {
       return;
     }
 
-    // Chỉ khởi tạo thời gian nếu chưa khởi tạo
     if (_remainingSeconds == 0) {
       _remainingSeconds = widget.durationMinutes! * 60;
     }
@@ -586,9 +582,19 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
       if (selectedIndex == null) continue;
 
+      if (question.options == null || question.options!.isEmpty) {
+        continue;
+      }
+
+      if (selectedIndex < 0 || selectedIndex >= question.options!.length) {
+        continue;
+      }
+
       final selectedOption = question.options![selectedIndex];
       final optionId = selectedOption.id;
       if (optionId == null) continue;
+
+      if (question.id == null) continue;
 
       await examService.submitAnswer(
         attemptId: widget.attemptId,

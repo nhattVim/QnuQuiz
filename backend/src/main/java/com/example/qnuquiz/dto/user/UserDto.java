@@ -15,6 +15,7 @@ public class UserDto {
     private String fullName;
     private String email;
     private String phoneNumber;
+    private String avatarUrl;
     private String role;
     private String status;
     private Timestamp createdAt;

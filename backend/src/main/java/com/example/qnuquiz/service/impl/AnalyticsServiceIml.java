@@ -217,4 +217,44 @@ public class AnalyticsServiceIml implements AnalyticsService {
                 .averageUsageInExams(averageUsageInExams)
                 .build();
     }
+
+    @Override
+    public byte[] exportUserAnalyticsCsv() {
+        UserAnalyticsDto data = getUserAnalytics();
+        StringBuilder csv = new StringBuilder();
+        csv.append("Metric,Value\n");
+        csv.append("Total Users,").append(data.getTotalUsers()).append("\n");
+        csv.append("New Users This Month,").append(data.getNewUsersThisMonth()).append("\n");
+        csv.append("Active Users,").append(data.getActiveUsers()).append("\n");
+        csv.append("Students Count,").append(data.getStudentsCount()).append("\n");
+        csv.append("Teachers Count,").append(data.getTeachersCount()).append("\n");
+        csv.append("Admins Count,").append(data.getAdminCount()).append("\n");
+        return csv.toString().getBytes();
+    }
+
+    @Override
+    public byte[] exportExamAnalyticsCsv() {
+        AdminExamAnalyticsDto data = getExamAnalyticsAdmin();
+        StringBuilder csv = new StringBuilder();
+        csv.append("Metric,Value\n");
+        csv.append("Total Exams,").append(data.getTotalExams()).append("\n");
+        csv.append("Active Exams,").append(data.getActiveExams()).append("\n");
+        csv.append("Average Questions Per Exam,").append(String.format("%.2f", data.getAverageQuestionsPerExam())).append("\n");
+        csv.append("Average Attempts Per Exam,").append(String.format("%.2f", data.getAverageAttemptsPerExam())).append("\n");
+        csv.append("Overall Average Score,").append(String.format("%.2f", data.getOverallAverageScore())).append("\n");
+        return csv.toString().getBytes();
+    }
+
+    @Override
+    public byte[] exportQuestionAnalyticsCsv() {
+        AdminQuestionAnalyticsDto data = getQuestionAnalyticsAdmin();
+        StringBuilder csv = new StringBuilder();
+        csv.append("Metric,Value\n");
+        csv.append("Total Questions,").append(data.getTotalQuestions()).append("\n");
+        csv.append("Multiple Choice Questions,").append(data.getMultipleChoiceQuestions()).append("\n");
+        csv.append("True/False Questions,").append(data.getTrueFalseQuestions()).append("\n");
+        csv.append("Average Options Per Question,").append(String.format("%.2f", data.getAverageOptionsPerQuestion())).append("\n");
+        csv.append("Average Usage In Exams,").append(String.format("%.2f", data.getAverageUsageInExams())).append("\n");
+        return csv.toString().getBytes();
+    }
 }

@@ -23,10 +23,18 @@ class _TeacherAnalyticsPageState extends ConsumerState<TeacherAnalyticsPage>
 
   Future<List<ExamAnalytics>>? _examAnalyticsFuture;
   String? _teacherId;
+  String? _loadError;
 
   @override
   Widget build(BuildContext context) {
     if (_examAnalyticsFuture == null || _teacherId == null) {
+      if (_loadError != null) {
+        return Scaffold(
+          body: Center(
+            child: Text(_loadError!),
+          ),
+        );
+      }
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
@@ -96,16 +104,29 @@ class _TeacherAnalyticsPageState extends ConsumerState<TeacherAnalyticsPage>
   }
 
   Future<void> _loadUserAndData() async {
-    final user = await ref.read(userProvider.notifier).build();
-    if (user == null) return;
+    try {
+      final user = await ref.read(userProvider.future);
+      if (user == null) {
+        if (!mounted) return;
+        setState(() {
+          _loadError = 'Không tìm thấy thông tin giáo viên, vui lòng đăng nhập lại.';
+        });
+        return;
+      }
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    setState(() {
-      _teacherId = user.id;
-      _examAnalyticsFuture = ref
-          .read(analyticsServiceProvider)
-          .getExamAnalytics(_teacherId!);
-    });
+      setState(() {
+        _teacherId = user.id;
+        _examAnalyticsFuture = ref
+            .read(analyticsServiceProvider)
+            .getExamAnalytics(_teacherId!);
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _loadError = 'Lỗi tải dữ liệu: $e';
+      });
+    }
   }
 }

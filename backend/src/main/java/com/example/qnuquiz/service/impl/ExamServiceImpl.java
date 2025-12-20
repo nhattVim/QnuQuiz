@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
 
 import com.example.qnuquiz.dto.exam.ExamAnswerReviewDTO;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
@@ -34,6 +35,7 @@ import com.example.qnuquiz.repository.ExamAnswerRepository;
 import com.example.qnuquiz.repository.ExamAttemptRepository;
 import com.example.qnuquiz.repository.ExamCategoryRepository;
 import com.example.qnuquiz.repository.ExamRepository;
+import com.example.qnuquiz.repository.FeedbackRepository;
 import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.repository.StudentRepository;
@@ -43,6 +45,7 @@ import com.example.qnuquiz.service.ExamService;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import jakarta.persistence.EntityNotFoundException;
 
 @Service
 @AllArgsConstructor
@@ -62,17 +65,19 @@ public class ExamServiceImpl implements ExamService {
     private final QuestionRepository questionRepository;
     private final ExamAttemptRepository examAttemptRepository;
     private final ExamAnswerRepository examAnswerRepository;
+    private final FeedbackRepository feedbackRepository;
     private final QuestionMapper questionMapper;
+    private final com.example.qnuquiz.service.MediaFileService mediaFileService;
 
     @Override
     public void submitAnswer(Long attemptId, Long questionId, Long optionId) {
         // 1. Lấy attempt
         ExamAttempts attempt = examAttemptRepository.findById(attemptId)
-                .orElseThrow(() -> new RuntimeException("Attempt not found: " + attemptId));
+                .orElseThrow(() -> new EntityNotFoundException("Attempt not found: " + attemptId));
 
         // 2. Lấy option
         QuestionOptions option = optionRepo.findById(optionId)
-                .orElseThrow(() -> new RuntimeException("Option not found: " + optionId));
+                .orElseThrow(() -> new EntityNotFoundException("Option not found: " + optionId));
 
         // 4. Kiểm tra xem đã có câu trả lời cho attempt + question chưa
         Optional<ExamAnswers> existingOpt = examAnswerRepository.findByExamAttemptsIdAndQuestionsId(attemptId,
@@ -80,12 +85,10 @@ public class ExamServiceImpl implements ExamService {
 
         ExamAnswers answer;
         if (existingOpt.isPresent()) {
-            // Nếu đã có thì cập nhật
             answer = existingOpt.get();
             answer.setQuestionOptions(option);
             answer.setIsCorrect(option.isIsCorrect());
         } else {
-            // Nếu chưa có thì tạo mới
             answer = new ExamAnswers();
             answer.setExamAttempts(attempt);
             answer.setQuestions(option.getQuestions());
@@ -94,14 +97,15 @@ public class ExamServiceImpl implements ExamService {
             answer.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         }
 
-        // 5. Lưu
         examAnswerRepository.save(answer);
     }
 
     @Override
     public void submitEssay(Long attemptId, Long questionId, String answerText) {
-        ExamAttempts attempt = examAttemptRepository.findById(attemptId).orElseThrow();
-        Questions question = questionRepo.findById(questionId).orElseThrow();
+        ExamAttempts attempt = examAttemptRepository.findById(attemptId)
+                .orElseThrow(() -> new EntityNotFoundException("Attempt not found: " + attemptId));
+        Questions question = questionRepo.findById(questionId)
+                .orElseThrow(() -> new EntityNotFoundException("Question not found: " + questionId));
 
         ExamAnswers answer = new ExamAnswers();
         answer.setExamAttempts(attempt);
@@ -115,7 +119,7 @@ public class ExamServiceImpl implements ExamService {
     @Override
     public ExamResultDto finishExam(Long attemptId) {
         ExamAttempts attempt = examAttemptRepository.findById(attemptId)
-                .orElseThrow(() -> new RuntimeException("Attempt not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Attempt not found: " + attemptId));
 
         List<ExamAnswers> answers = examAnswerRepository.findByExamAttempts_Id(attemptId);
 
@@ -141,23 +145,19 @@ public class ExamServiceImpl implements ExamService {
     public ExamAttemptDto startExam(Long examId) {
         Users user = getCurrentAuthenticatedUser();
 
-        // Tìm student tương ứng với user
         Students student = studentRepository.findByUsers(user)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Student not found for user: " + user.getId()));
 
         log.debug("startExam called for exam {}, student {}", examId, student.getId());
 
-        // Tìm attempt gần nhất (bất kể submitted hay chưa)
         var allAttempts = examAttemptRepository
                 .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(examId, student.getId());
 
         log.debug("Found {} total attempts for exam {}", allAttempts.size(), examId);
 
-        // Kiểm tra attempt gần nhất
         if (!allAttempts.isEmpty()) {
             ExamAttempts latestAttempt = allAttempts.get(0);
 
-            // Nếu attempt gần nhất CHƯA submit (submitted = false) → return để continue
             if (!latestAttempt.isSubmitted()) {
                 log.debug("Returning existing unfinished attempt {}, submitted={}", latestAttempt.getId(),
                         latestAttempt.isSubmitted());
@@ -168,19 +168,15 @@ public class ExamServiceImpl implements ExamService {
                         .submit(latestAttempt.isSubmitted())
                         .build();
             }
-            // Nếu attempt gần nhất ĐÃ submit (submitted = true) → tạo attempt mới
             log.debug("Latest attempt {} already submitted. Creating new attempt.", latestAttempt.getId());
         }
 
-        // Tạo attempt mới
         log.debug("Creating new attempt for exam {}", examId);
         ExamAttempts attempt = new ExamAttempts();
 
-        // Lấy exam
         attempt.setExams(examRepository.findById(examId)
-                .orElseThrow(() -> new RuntimeException("Exam not found")));
+                .orElseThrow(() -> new EntityNotFoundException("Exam not found: " + examId)));
 
-        // Gán student vào attempt
         attempt.setStudents(student);
         attempt.setStartTime(new Timestamp(System.currentTimeMillis()));
         attempt.setSubmitted(false);
@@ -205,7 +201,7 @@ public class ExamServiceImpl implements ExamService {
 
         ExamCategories category = examCategoryRepository
                 .findById(dto.getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Category not found: " + dto.getCategoryId()));
 
         exam.setExamCategories(category);
         exam.setUsers(user);
@@ -241,7 +237,7 @@ public class ExamServiceImpl implements ExamService {
         Users user = getCurrentAuthenticatedUser();
 
         Exams exam = examRepository.findById(dto.getId())
-                .orElseThrow(() -> new RuntimeException("Exam not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Exam not found: " + dto.getId()));
 
         exam.setTitle(dto.getTitle());
         exam.setDescription(dto.getDescription());
@@ -289,11 +285,11 @@ public class ExamServiceImpl implements ExamService {
     @Override
     public List<QuestionDTO> getQuestionsForExam(Long examId) {
         Exams exam = examRepository.findById(examId)
-                .orElseThrow(() -> new RuntimeException("Exam not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Exam not found: " + examId));
 
         List<Questions> questions = questionRepository.findByExamsId(examId);
         if (questions.isEmpty()) {
-            throw new RuntimeException("No questions found for this exam");
+            throw new EntityNotFoundException("No questions found for this exam");
         }
         List<Questions> selectedQuestions;
         if (!exam.isRandom()) {
@@ -304,7 +300,7 @@ public class ExamServiceImpl implements ExamService {
             selectedQuestions = questionsRandom.stream().limit(30).toList();
         }
 
-        // Populate options
+        // Populate options and media files
         return selectedQuestions.stream().map(q -> {
             QuestionDTO dto = questionMapper.toQuestionDTO(q);
             // Lấy tất cả options của câu hỏi này
@@ -318,6 +314,15 @@ public class ExamServiceImpl implements ExamService {
                     .build())
                 .toList();
             dto.setOptions(optionDtos);
+            
+            List<com.example.qnuquiz.dto.media.MediaFileDto> mediaFiles = 
+                mediaFileService.getMediaFilesByQuestionId(q.getId());
+            dto.setMediaFiles(mediaFiles);
+            
+            if (!mediaFiles.isEmpty()) {
+                dto.setMediaUrl(mediaFiles.get(0).getFileUrl());
+            }
+            
             return dto;
         }).toList();
     }
@@ -325,13 +330,12 @@ public class ExamServiceImpl implements ExamService {
     @Override
     public ExamReviewDTO reviewExamAttempt(Long attemptId) {
         ExamAttempts attempt = examAttemptRepository.findById(attemptId)
-                .orElseThrow(() -> new RuntimeException("Exam attempt not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Exam attempt not found: " + attemptId));
 
         List<ExamAnswers> answers = examAnswerRepository.findByExamAttempts_Id(attemptId);
 
-        // Map từng ExamAnswers -> ExamAnswerReviewDTO
         List<ExamAnswerReviewDTO> answerDTOs = answers.stream()
-                .map(examMapper::toExamAnswerReviewDTO) // dùng mapper để convert
+                .map(examMapper::toExamAnswerReviewDTO)
                 .toList();
 
         return ExamReviewDTO.builder()
@@ -343,7 +347,41 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    @Transactional
     public void deleteExam(Long id) {
+        // Collect question ids for this exam (to clean related feedbacks if needed)
+        List<Questions> questions = questionRepository.findByExamsId(id);
+        List<Long> questionIds = questions.stream()
+                .map(Questions::getId)
+                .toList();
+
+        // 1) Remove feedbacks linked to exam and its questions (FK constraints)
+        feedbackRepository.deleteByExamId(id);
+        if (!questionIds.isEmpty()) {
+            feedbackRepository.deleteByQuestionIds(questionIds);
+        }
+
+        // 2) Remove exam answers via attempt ids (some DBs may not enforce ON DELETE CASCADE)
+        List<Long> attemptIds = examAttemptRepository.findIdsByExamId(id);
+        if (!attemptIds.isEmpty()) {
+            examAnswerRepository.deleteByAttemptIds(attemptIds);
+            examAttemptRepository.deleteByExamId(id);
+        }
+
+        // 3) Delete question options (some DBs may not have ON DELETE CASCADE)
+        if (!questionIds.isEmpty()) {
+            optionRepo.deleteAllByQuestions_IdIn(questionIds);
+            for (Long qid : questionIds) {
+                try {
+                    mediaFileService.deleteMediaFilesByQuestionId(qid);
+                } catch (Exception e) {
+                    log.warn("Failed to delete media files for question {}: {}", qid, e.getMessage());
+                }
+            }
+            questionRepository.deleteAllById(questionIds);
+        }
+
+        // 4) Finally delete exam
         examRepository.deleteById(id);
     }
 
@@ -355,9 +393,11 @@ public class ExamServiceImpl implements ExamService {
 
     private Users getCurrentAuthenticatedUser() {
         UUID userId = SecurityUtils.getCurrentUserId();
-        userId = userId == null ? null : userId;
+        if (userId == null) {
+            throw new IllegalArgumentException("User not authenticated");
+        }
         return userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userId));
     }
 
     public List<ExamCategoryDto> getAllCategories() {
@@ -380,16 +420,19 @@ public class ExamServiceImpl implements ExamService {
     public List<ExamDto> getExamsByCategory(Long categoryId) {
 
         examCategoryRepository.findById(categoryId)
-                .orElseThrow(() -> new RuntimeException("Exam category not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Exam category not found: " + categoryId));
 
         List<Exams> exams = examRepository.findByExamCategories_Id(categoryId);
 
         // Get current student
         UUID userId = SecurityUtils.getCurrentUserId();
+        if (userId == null) {
+            throw new IllegalArgumentException("User not authenticated");
+        }
         Users user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + userId));
         Students student = studentRepository.findByUsers(user)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Student not found for user: " + userId));
 
         return exams.stream()
                 .filter(exam -> !"DRAFT".equalsIgnoreCase(exam.getStatus()))
@@ -398,16 +441,13 @@ public class ExamServiceImpl implements ExamService {
                     String computedStatus = getComputedStatus(exam);
                     dto.setStatus(computedStatus);
 
-                    // Tìm tất cả attempts của student cho exam này
                     var allAttempts = examAttemptRepository
                             .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(exam.getId(), student.getId());
 
-                    // Set hasAttempt = true nếu có attempt (bất kể submitted hay không)
                     dto.setHasAttempt(!allAttempts.isEmpty());
 
                     if (!allAttempts.isEmpty()) {
                         ExamAttempts latestAttempt = allAttempts.get(0);
-                        // Set hasUnfinishedAttempt=true chỉ khi attempt gần nhất chưa submit
                         dto.setHasUnfinishedAttempt(!latestAttempt.isSubmitted());
                     } else {
                         dto.setHasUnfinishedAttempt(false);
@@ -422,13 +462,13 @@ public class ExamServiceImpl implements ExamService {
     public ExamAttemptDto getLatestAttempt(Long examId) {
         Users user = getCurrentAuthenticatedUser();
         Students student = studentRepository.findByUsers(user)
-                .orElseThrow(() -> new RuntimeException("Student not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Student not found for user: " + user.getId()));
 
         // Get all attempts ordered by createdAt DESC
         var allAttempts = examAttemptRepository.findByExamsIdAndStudentsIdOrderByCreatedAtDesc(examId, student.getId());
 
         if (allAttempts.isEmpty()) {
-            throw new RuntimeException("No attempts found for this exam");
+            throw new EntityNotFoundException("No attempts found for exam: " + examId);
         }
 
         ExamAttempts latestAttempt = allAttempts.get(0);

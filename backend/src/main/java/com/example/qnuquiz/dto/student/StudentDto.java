@@ -14,6 +14,7 @@ public class StudentDto {
     private String fullName;
     private String email;
     private String phoneNumber;
+    private String avatarUrl;
     private Long classId;
     private Long departmentId;
     private BigDecimal gpa;

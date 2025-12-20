@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:frontend/models/class_model.dart';
-import 'package:frontend/models/department_model.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/student_model.dart';
 import 'package:frontend/models/teacher_model.dart';
 import 'package:frontend/models/user_model.dart';
+import 'package:frontend/pages/update_profile_page.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/service_providers.dart';
+import 'package:frontend/providers/theme_provider.dart';
 import 'package:frontend/providers/user_provider.dart';
-import 'package:frontend/screens/home_screen.dart';
 import 'package:frontend/screens/login_screen.dart';
 import 'package:frontend/screens/feedback_list_screen.dart';
+import 'package:share_plus/share_plus.dart';
 
 class ProfilePage extends ConsumerStatefulWidget {
   const ProfilePage({super.key});
@@ -20,41 +21,43 @@ class ProfilePage extends ConsumerStatefulWidget {
 }
 
 class _ProfilePageState extends ConsumerState<ProfilePage> {
-  final _formKey = GlobalKey<FormState>();
-  final _fullNameController = TextEditingController();
-  final _usernameController = TextEditingController();
-  final _phoneNumberController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _titleController = TextEditingController();
-  final _teacherCodeController = TextEditingController();
-
-  bool _isLoading = false;
   dynamic _profileData;
 
-  List<DepartmentModel> _departments = [];
-  List<ClassModel> _classes = [];
-  int? _selectedDepartmentId;
-  int? _selectedClassId;
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    try {
+      final profile = await ref
+          .read(userServiceProvider)
+          .getCurrentUserProfile();
+      if (mounted) {
+        setState(() {
+          _profileData = profile;
+        });
+      }
+    } catch (e) {
+      // Error handling - profile data will remain null
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final userAsync = ref.watch(userProvider);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Cập nhật hồ sơ',
-          style: TextStyle(
-            color: Colors.black,
+        automaticallyImplyLeading: false,
+        title: Text(
+          'Hồ sơ của tôi',
+          style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
-            fontSize: 20,
           ),
         ),
         centerTitle: true,
@@ -66,132 +69,73 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
           if (user == null) {
             return const Center(child: Text("User not found"));
           }
+
+          String? avatarUrl;
+          if (_profileData != null) {
+            if (_profileData is StudentModel) {
+              avatarUrl = (_profileData as StudentModel).avatarUrl;
+            } else if (_profileData is TeacherModel) {
+              avatarUrl = (_profileData as TeacherModel).avatarUrl;
+            } else if (_profileData is UserModel) {
+              avatarUrl = (_profileData as UserModel).avatarUrl;
+            }
+          }
+
+          avatarUrl ??= user.avatarUrl;
+
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  // Avatar
-                  Stack(
-                    children: [
-                      CircleAvatar(
-                        radius: 60,
-                        backgroundColor: Colors.pink[300],
-                        child: const Icon(
-                          Icons.person,
-                          size: 70,
-                          color: Colors.white,
-                        ),
-                      ),
-                      Positioned(
-                        bottom: 0,
-                        right: 0,
-                        child: Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: const BoxDecoration(
-                            color: Colors.blue,
-                            shape: BoxShape.circle,
+            padding: EdgeInsets.only(left: 20.w, right: 20.w, top: 4.h),
+            child: Column(
+              children: [
+                CircleAvatar(
+                  radius: 50.r,
+                  backgroundColor: Colors.purple[200],
+                  backgroundImage: avatarUrl != null && avatarUrl.isNotEmpty
+                      ? NetworkImage(avatarUrl) as ImageProvider
+                      : null,
+                  child: avatarUrl == null || avatarUrl.isEmpty
+                      ? Icon(Icons.person, size: 70.sp, color: Colors.white)
+                      : null,
+                ),
+                SizedBox(height: 8.h),
+                Text(
+                  user.fullName ?? user.username,
+                  style: theme.textTheme.titleMedium,
+                ),
+                SizedBox(height: 4.h),
+                Text(
+                  '@${user.username}',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurface.withValues(alpha: 0.8),
+                  ),
+                ),
+                SizedBox(height: 32.h),
+                Divider(height: 1.h),
+                Column(
+                  children: [
+                    _buildMenuTile(
+                      context,
+                      icon: Icons.edit_outlined,
+                      title: 'Cập nhật hồ sơ',
+                      onTap: () async {
+                        final result = await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const UpdateProfilePage(),
                           ),
-                          child: const Icon(
-                            Icons.camera_alt,
-                            size: 20,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    user.fullName ?? user.username,
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
+                        );
+                        if (result == true) {
+                          _loadProfile();
+                        }
+                      },
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '@${user.username}',
-                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                  ),
-                  const SizedBox(height: 32),
-
-                  // Common Fields
-                  _buildTextFormField(
-                    _fullNameController,
-                    'Họ và tên',
-                    Icons.person_outline,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextFormField(
-                    _usernameController,
-                    'Tên đăng nhập',
-                    Icons.account_circle_outlined,
-                    enabled: false,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextFormField(
-                    _phoneNumberController,
-                    'Số điện thoại',
-                    Icons.phone_outlined,
-                    keyboardType: TextInputType.phone,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextFormField(
-                    _emailController,
-                    'Email',
-                    Icons.email_outlined,
-                    keyboardType: TextInputType.emailAddress,
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Role-specific fields
-                  _buildRoleSpecificFields(user),
-
-                  const SizedBox(height: 16),
-                  // Save Button
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: ElevatedButton(
-                      onPressed: _isLoading ? null : _saveProfile,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        elevation: 2,
-                      ),
-                      child: _isLoading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.white,
-                                ),
-                              ),
-                            )
-                          : const Text(
-                              'Lưu hồ sơ',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  // View Feedbacks Button (only for students)
-                  if (user.role == 'STUDENT') ...[
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton.icon(
-                        onPressed: () {
+                    // View Feedbacks Button (only for students)
+                    if (user.role == 'STUDENT')
+                      _buildMenuTile(
+                        context,
+                        icon: Icons.rate_review_outlined,
+                        title: 'Xem đánh giá',
+                        onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -199,367 +143,368 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                             ),
                           );
                         },
-                        icon: const Icon(Icons.rate_review_outlined),
-                        label: const Text('Xem đánh giá'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.orange,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
+                      ),
+                    // _buildMenuTile(
+                    //   context,
+                    //   icon: Icons.settings_outlined,
+                    //   title: 'Cài đặt',
+                    //   onTap: () {
+                    //     ScaffoldMessenger.of(context).showSnackBar(
+                    //       const SnackBar(
+                    //         content: Text('Tính năng đang phát triển'),
+                    //       ),
+                    //     );
+                    //   },
+                    // ),
+                    _buildMenuTile(
+                      context,
+                      icon: Icons.dark_mode_outlined,
+                      title: 'Hiển thị',
+                      onTap: () => _showThemeSelector(context),
+                    ),
+                    _buildMenuTile(
+                      context,
+                      icon: Icons.lock_outline,
+                      title: 'Thay đổi mật khẩu',
+                      onTap: () => _showChangePasswordDialog(context),
+                    ),
+                    _buildMenuTile(
+                      context,
+                      icon: Icons.share_outlined,
+                      title: 'Chia sẻ hồ sơ',
+                      onTap: () => _shareProfile(context, user),
+                    ),
+                    Divider(height: 1.h),
+                    _buildMenuTile(
+                      context,
+                      icon: Icons.help_outline,
+                      title: 'Hỗ trợ và giúp đỡ',
+                      onTap: () {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Tính năng đang phát triển'),
                           ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  // Logout Button
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        await ref.read(authProvider.notifier).logout();
-                        if (context.mounted) {
-                          Navigator.pushAndRemoveUntil(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
-                            ),
-                            (route) => false,
-                          );
-                        }
+                        );
                       },
-                      icon: const Icon(Icons.logout),
-                      label: const Text('Đăng xuất'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
                     ),
+                    _buildMenuTile(
+                      context,
+                      icon: Icons.logout,
+                      title: 'Đăng xuất',
+                      onTap: () => _showLogoutDialog(context),
+                      isDestructive: true,
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20.h),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildMenuTile(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    bool isDestructive = false,
+  }) {
+    final theme = Theme.of(context);
+
+    return ListTile(
+      contentPadding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 8.h),
+      leading: Icon(
+        icon,
+        color: isDestructive ? Colors.red : theme.colorScheme.onSurface,
+        size: 24.sp,
+      ),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: isDestructive ? Colors.red : theme.colorScheme.onSurface,
+          fontWeight: FontWeight.w500,
+          fontSize: 16.sp,
+        ),
+      ),
+      trailing: Icon(
+        Icons.chevron_right,
+        color: isDestructive ? Colors.red : theme.colorScheme.onSurface,
+        size: 20.sp,
+      ),
+      onTap: onTap,
+    );
+  }
+
+  void _showThemeSelector(BuildContext context) {
+    final themeMode = ref.read(themeModeProvider);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Chọn giao diện"),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              title: const Text("Theo hệ thống"),
+              trailing: themeMode == ThemeMode.system
+                  ? const Icon(Icons.check, color: Colors.blue)
+                  : null,
+              onTap: () {
+                ref.read(themeModeProvider.notifier).state = ThemeMode.system;
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: const Text("Chế độ sáng"),
+              trailing: themeMode == ThemeMode.light
+                  ? const Icon(Icons.check, color: Colors.blue)
+                  : null,
+              onTap: () {
+                ref.read(themeModeProvider.notifier).state = ThemeMode.light;
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              title: const Text("Chế độ tối"),
+              trailing: themeMode == ThemeMode.dark
+                  ? const Icon(Icons.check, color: Colors.blue)
+                  : null,
+              onTap: () {
+                ref.read(themeModeProvider.notifier).state = ThemeMode.dark;
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+      ),
+    );
+  }
+
+  void _showChangePasswordDialog(BuildContext context) {
+    final oldPasswordController = TextEditingController();
+    final newPasswordController = TextEditingController();
+    final confirmPasswordController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool isLoading = false;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('Thay đổi mật khẩu'),
+          content: Form(
+            key: formKey,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextFormField(
+                    controller: oldPasswordController,
+                    decoration: const InputDecoration(
+                      labelText: 'Mật khẩu hiện tại',
+                      prefixIcon: Icon(Icons.lock_outline),
+                      border: OutlineInputBorder(),
+                    ),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Vui lòng nhập mật khẩu hiện tại';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 16.h),
+                  TextFormField(
+                    controller: newPasswordController,
+                    decoration: const InputDecoration(
+                      labelText: 'Mật khẩu mới',
+                      prefixIcon: Icon(Icons.lock),
+                      border: OutlineInputBorder(),
+                    ),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Vui lòng nhập mật khẩu mới';
+                      }
+                      if (value.length < 6) {
+                        return 'Mật khẩu phải có ít nhất 6 ký tự';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 16.h),
+                  TextFormField(
+                    controller: confirmPasswordController,
+                    decoration: const InputDecoration(
+                      labelText: 'Xác nhận mật khẩu mới',
+                      prefixIcon: Icon(Icons.lock),
+                      border: OutlineInputBorder(),
+                    ),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Vui lòng xác nhận mật khẩu';
+                      }
+                      if (value != newPasswordController.text) {
+                        return 'Mật khẩu xác nhận không khớp';
+                      }
+                      return null;
+                    },
                   ),
                 ],
               ),
             ),
-          );
-        },
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _fullNameController.dispose();
-    _usernameController.dispose();
-    _phoneNumberController.dispose();
-    _emailController.dispose();
-    _titleController.dispose();
-    _teacherCodeController.dispose();
-    super.dispose();
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _loadInitialData();
-  }
-
-  Widget _buildClassDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: DropdownButtonFormField<int>(
-        initialValue: _selectedClassId,
-        decoration: const InputDecoration(
-          labelText: 'Lớp',
-          prefixIcon: Icon(Icons.class_outlined),
-          border: InputBorder.none,
-        ),
-        items: _classes.map((cls) {
-          return DropdownMenuItem<int>(value: cls.id, child: Text(cls.name));
-        }).toList(),
-        onChanged: _selectedDepartmentId == null
-            ? null
-            : (value) {
-                setState(() {
-                  _selectedClassId = value;
-                });
-              },
-        validator: (value) => value == null ? 'Vui lòng chọn lớp' : null,
-      ),
-    );
-  }
-
-  Widget _buildDepartmentDropdown() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[300]!),
-      ),
-      child: DropdownButtonFormField<int>(
-        initialValue: _selectedDepartmentId,
-        decoration: const InputDecoration(
-          labelText: 'Khoa',
-          prefixIcon: Icon(Icons.school_outlined),
-          border: InputBorder.none,
-        ),
-        items: _departments.map((dept) {
-          return DropdownMenuItem<int>(value: dept.id, child: Text(dept.name));
-        }).toList(),
-        onChanged: (value) {
-          setState(() {
-            _selectedDepartmentId = value;
-          });
-          final user = ref.read(userProvider).value;
-          if (value != null && user?.role == 'STUDENT') {
-            _loadClasses(value);
-          }
-        },
-        validator: (value) => value == null ? 'Vui lòng chọn khoa' : null,
-      ),
-    );
-  }
-
-  Widget _buildRoleSpecificFields(UserModel user) {
-    switch (user.role) {
-      case 'TEACHER':
-        return Column(
-          children: [
-            _buildTextFormField(
-              _teacherCodeController,
-              'Mã giảng viên',
-              Icons.qr_code_scanner_outlined,
-              enabled: false,
-            ),
-            const SizedBox(height: 16),
-            _buildTextFormField(
-              _titleController,
-              'Chức danh',
-              Icons.school_outlined,
-            ),
-            const SizedBox(height: 16),
-            _buildDepartmentDropdown(),
-          ],
-        );
-      case 'STUDENT':
-        return Column(
-          children: [
-            _buildDepartmentDropdown(),
-            const SizedBox(height: 16),
-            _buildClassDropdown(),
-          ],
-        );
-      default:
-        return const SizedBox.shrink();
-    }
-  }
-
-  Widget _buildTextFormField(
-    TextEditingController controller,
-    String label,
-    IconData icon, {
-    bool enabled = true,
-    TextInputType keyboardType = TextInputType.text,
-  }) {
-    return TextFormField(
-      controller: controller,
-      enabled: enabled,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        labelText: label,
-        prefixIcon: Icon(icon),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-        filled: true,
-        fillColor: enabled ? Colors.white : Colors.grey[200],
-      ),
-      validator: (value) {
-        if (value == null || value.trim().isEmpty) {
-          return 'Vui lòng nhập $label';
-        }
-        if (label == 'Email' && !value.contains('@')) {
-          return 'Email không hợp lệ';
-        }
-        return null;
-      },
-    );
-  }
-
-  Future<void> _loadClasses(int departmentId) async {
-    setState(() {
-      _selectedClassId = null;
-    });
-    try {
-      final classes = await ref
-          .read(classServiceProvider)
-          .getClassesByDepartment(departmentId);
-      setState(() {
-        _classes = classes;
-      });
-    } catch (e) {
-      // Handle error
-    }
-  }
-
-  Future<void> _loadDepartments() async {
-    try {
-      final departments = await ref
-          .read(departmentServiceProvider)
-          .getAllDepartments();
-      setState(() {
-        _departments = departments;
-      });
-    } catch (e) {
-      // Handle error
-    }
-  }
-
-  Future<void> _loadInitialData() async {
-    final user = ref.read(userProvider).value;
-    if (user == null) return;
-
-    await _loadDepartments();
-
-    try {
-      final profile = await ref
-          .read(userServiceProvider)
-          .getCurrentUserProfile();
-      setState(() {
-        _profileData = profile;
-      });
-
-      _fullNameController.text = _profileData.fullName ?? '';
-      _usernameController.text = _profileData.username ?? '';
-      _phoneNumberController.text = _profileData.phoneNumber ?? '';
-      _emailController.text = _profileData.email ?? '';
-
-      if (profile is StudentModel) {
-        if (profile.departmentId != null) {
-          setState(() {
-            _selectedDepartmentId = profile.departmentId;
-          });
-          await _loadClasses(profile.departmentId!);
-          if (profile.classId != null) {
-            setState(() {
-              _selectedClassId = profile.classId;
-            });
-          }
-        }
-      } else if (profile is TeacherModel) {
-        _titleController.text = profile.title ?? '';
-        _teacherCodeController.text = profile.teacherCode ?? '';
-        if (profile.departmentId != null) {
-          setState(() {
-            _selectedDepartmentId = profile.departmentId;
-          });
-        }
-      }
-    } catch (e) {
-      // Handle error if needed
-    }
-  }
-
-  Future<void> _saveProfile() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
-
-    setState(() {
-      _isLoading = true;
-    });
-
-    final user = ref.read(userProvider).value;
-    if (user == null) return;
-
-    try {
-      switch (user.role) {
-        case 'STUDENT':
-          if (_selectedDepartmentId == null || _selectedClassId == null) {
-            throw Exception('Vui lòng chọn khoa và lớp');
-          }
-          await ref
-              .read(studentServiceProvider)
-              .updateProfile(
-                fullName: _fullNameController.text.trim(),
-                email: _emailController.text.trim(),
-                phoneNumber: _phoneNumberController.text.trim(),
-                departmentId: _selectedDepartmentId,
-                classId: _selectedClassId,
-              );
-          break;
-        case 'TEACHER':
-          if (_selectedDepartmentId == null) {
-            throw Exception('Vui lòng chọn khoa');
-          }
-          await ref
-              .read(teacherServiceProvider)
-              .updateProfile(
-                fullName: _fullNameController.text.trim(),
-                email: _emailController.text.trim(),
-                phoneNumber: _phoneNumberController.text.trim(),
-                departmentId: _selectedDepartmentId,
-                title: _titleController.text.trim(),
-              );
-          break;
-        case 'ADMIN':
-          await ref
-              .read(userServiceProvider)
-              .updateProfile(
-                fullName: _fullNameController.text.trim(),
-                email: _emailController.text.trim(),
-                phoneNumber: _phoneNumberController.text.trim(),
-              );
-          break;
-      }
-
-      final updatedUser = user.copyWith(
-        fullName: _fullNameController.text.trim(),
-        email: _emailController.text.trim(),
-        phoneNumber: _phoneNumberController.text.trim(),
-      );
-      ref.read(userProvider.notifier).setUser(updatedUser);
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Cập nhật hồ sơ thành công'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
           ),
-        );
-        await Future.delayed(const Duration(milliseconds: 500));
-        if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (_) => const HomeScreen()),
-            (route) => false,
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
-            backgroundColor: Colors.red,
-            duration: const Duration(seconds: 3),
+          actions: [
+            TextButton(
+              onPressed: isLoading ? null : () => Navigator.pop(context),
+              child: const Text('Hủy'),
+            ),
+            ElevatedButton(
+              onPressed: isLoading
+                  ? null
+                  : () async {
+                      if (formKey.currentState!.validate()) {
+                        setState(() => isLoading = true);
+                        try {
+                          final user = ref.read(userProvider).value;
+                          if (user == null) {
+                            throw Exception(
+                              'Không tìm thấy thông tin người dùng',
+                            );
+                          }
+
+                          switch (user.role) {
+                            case 'STUDENT':
+                              await ref
+                                  .read(studentServiceProvider)
+                                  .changePassword(
+                                    oldPassword: oldPasswordController.text,
+                                    newPassword: newPasswordController.text,
+                                  );
+                              break;
+                            case 'TEACHER':
+                              await ref
+                                  .read(teacherServiceProvider)
+                                  .changePassword(
+                                    oldPassword: oldPasswordController.text,
+                                    newPassword: newPasswordController.text,
+                                  );
+                              break;
+                            case 'ADMIN':
+                              await ref
+                                  .read(userServiceProvider)
+                                  .changePassword(
+                                    oldPassword: oldPasswordController.text,
+                                    newPassword: newPasswordController.text,
+                                  );
+                              break;
+                          }
+
+                          if (context.mounted) {
+                            Navigator.pop(context);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Đổi mật khẩu thành công'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (context.mounted) {
+                            String errorMessage = 'Lỗi đổi mật khẩu';
+                            if (e is Exception) {
+                              final message = e.toString().replaceAll(
+                                'Exception: ',
+                                '',
+                              );
+                              if (message.isNotEmpty) {
+                                errorMessage = message;
+                              }
+                            }
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(errorMessage),
+                                backgroundColor: Colors.red,
+                                duration: const Duration(seconds: 3),
+                              ),
+                            );
+                          }
+                        } finally {
+                          if (context.mounted) {
+                            setState(() => isLoading = false);
+                          }
+                        }
+                      }
+                    },
+              child: isLoading
+                  ? SizedBox(
+                      width: 20.w,
+                      height: 20.h,
+                      child: const CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('Đổi mật khẩu'),
+            ),
+          ],
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16.r),
           ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-    }
+        ),
+      ),
+    );
+  }
+
+  void _shareProfile(BuildContext context, UserModel user) {
+    final profileText =
+        '''
+Hồ sơ của tôi trên QnuQuiz:
+Tên: ${user.fullName ?? user.username}
+Username: @${user.username}
+Email: ${user.email}
+''';
+    SharePlus.instance.share(ShareParams(text: profileText));
+  }
+
+  void _showLogoutDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Đăng xuất'),
+        content: const Text('Bạn có chắc chắn muốn đăng xuất?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Hủy'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              await ref.read(authProvider.notifier).logout();
+              if (context.mounted) {
+                Navigator.pushAndRemoveUntil(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                  (route) => false,
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Đăng xuất'),
+          ),
+        ],
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16.r),
+        ),
+      ),
+    );
   }
 }

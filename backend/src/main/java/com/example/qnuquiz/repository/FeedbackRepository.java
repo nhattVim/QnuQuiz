@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -28,4 +29,12 @@ public interface FeedbackRepository extends JpaRepository<Feedbacks, Long> {
 
     @Query("SELECT f FROM Feedbacks f WHERE f.questions.id IN :questionIds ORDER BY f.createdAt DESC")
     List<Feedbacks> findByQuestionIds(@Param("questionIds") List<Long> questionIds);
+
+    @Modifying
+    @Query("DELETE FROM Feedbacks f WHERE f.exams.id = :examId")
+    void deleteByExamId(@Param("examId") Long examId);
+
+    @Modifying
+    @Query("DELETE FROM Feedbacks f WHERE f.questions.id IN :questionIds")
+    void deleteByQuestionIds(@Param("questionIds") List<Long> questionIds);
 }

@@ -148,12 +148,13 @@ void main() {
 
     test('logout deletes the token', () async {
       when(
-        () => mockStorage.delete(key: 'auth_token'),
-      ).thenAnswer((_) async => {});
+        () => mockStorage.delete(key: any(named: 'key')),
+      ).thenAnswer((_) async {});
 
       await authService.logout();
 
       verify(() => mockStorage.delete(key: 'auth_token')).called(1);
+      verify(() => mockStorage.delete(key: 'user')).called(1);
     });
   });
 }

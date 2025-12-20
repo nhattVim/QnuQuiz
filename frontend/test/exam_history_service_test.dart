@@ -1,64 +1,28 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/exam_history_model.dart';
+import 'package:frontend/services/api_service.dart';
+import 'package:frontend/services/exam_history_service.dart';
 import 'package:mocktail/mocktail.dart';
+
+class MockApiService extends Mock implements ApiService {}
 
 class MockDio extends Mock implements Dio {}
 
 void main() {
+  late ExamHistoryService examHistoryService;
   late MockDio mockDio;
+  late MockApiService mockApiService;
 
   setUp(() {
     mockDio = MockDio();
+    mockApiService = MockApiService();
+    when(() => mockApiService.dio).thenReturn(mockDio);
+    examHistoryService = ExamHistoryService(mockApiService);
   });
 
-  group('ExamHistoryService - Model Validation', () {
-    test('ExamHistoryModel serialization/deserialization', () {
-      // Arrange
-      final history = ExamHistoryModel(
-        attemptId: 1,
-        examId: 100,
-        examTitle: 'Quiz 1',
-        examDescription: 'Test Quiz 1',
-        score: 80,
-        completionDate: DateTime(2025, 11, 26, 10, 30),
-        durationMinutes: 30,
-      );
-      final json = history.toJson();
-
-      // Act
-      final deserialized = ExamHistoryModel.fromJson(json);
-
-      // Assert
-      expect(deserialized.attemptId, history.attemptId);
-      expect(deserialized.examId, history.examId);
-      expect(deserialized.score, history.score);
-      expect(deserialized.durationMinutes, history.durationMinutes);
-    });
-
-    test('ExamHistoryModel calculate pass/fail from score', () {
-      // Arrange
-      const passingScore = 50;
-      final history = ExamHistoryModel(
-        attemptId: 1,
-        examId: 100,
-        examTitle: 'Quiz 1',
-        examDescription: 'Test Quiz 1',
-        score: 80,
-        completionDate: DateTime(2025, 11, 26),
-        durationMinutes: 30,
-      );
-
-      // Act
-      final isPassed = (history.score ?? 0) >= passingScore;
-
-      // Assert
-      expect(isPassed, true);
-    });
-  });
-
-  group('ExamHistoryService - API Mocking', () {
-    final mockHistoryItem1 = ExamHistoryModel(
+  group('ExamHistoryService', () {
+    final historyModel1 = ExamHistoryModel(
       attemptId: 1,
       examId: 100,
       examTitle: 'Quiz 1',
@@ -68,7 +32,7 @@ void main() {
       durationMinutes: 30,
     );
 
-    final mockHistoryItem2 = ExamHistoryModel(
+    final historyModel2 = ExamHistoryModel(
       attemptId: 2,
       examId: 101,
       examTitle: 'Quiz 2',
@@ -78,115 +42,134 @@ void main() {
       durationMinutes: 45,
     );
 
-    test('getExamHistory returns list of history', () async {
-      // Arrange
-      when(() => mockDio.get(any())).thenAnswer(
-        (_) async => Response(
-          requestOptions: RequestOptions(path: ''),
-          data: [mockHistoryItem1.toJson(), mockHistoryItem2.toJson()],
-          statusCode: 200,
-        ),
-      );
+    group('getExamHistory', () {
+      test('returns list of exam history on success', () async {
+        when(() => mockDio.get(any())).thenAnswer(
+          (_) async => Response(
+            requestOptions: RequestOptions(path: ''),
+            data: [historyModel1.toJson(), historyModel2.toJson()],
+            statusCode: 200,
+          ),
+        );
 
-      // Act
-      final response = await mockDio.get('test');
+        final result = await examHistoryService.getExamHistory();
 
-      // Assert
-      expect(response.statusCode, 200);
-      final histories = (response.data as List)
-          .map((e) => ExamHistoryModel.fromJson(e))
-          .toList();
-      expect(histories.length, 2);
-      expect(histories[0].score, 80);
+        expect(result, isA<List<ExamHistoryModel>>());
+        expect(result.length, 2);
+        expect(result[0].score, historyModel1.score);
+        expect(result[1].score, historyModel2.score);
+      });
+
+      test('throws exception on DioException', () async {
+        when(() => mockDio.get(any())).thenThrow(
+          DioException(
+            requestOptions: RequestOptions(path: ''),
+            response: Response(
+              requestOptions: RequestOptions(path: ''),
+              data: {'message': 'Fetch failed'},
+              statusCode: 500,
+            ),
+          ),
+        );
+
+        expect(() => examHistoryService.getExamHistory(), throwsException);
+      });
     });
 
-    test('history list sorted by date descending', () {
-      // Arrange
-      final historyList = [mockHistoryItem1, mockHistoryItem2];
+    group('ExamHistoryModel validation', () {
+      test('serialization/deserialization', () {
+        final json = historyModel1.toJson();
+        final deserialized = ExamHistoryModel.fromJson(json);
 
-      // Act
-      final sorted = List.from(historyList)
-        ..sort((a, b) => b.completionDate!.compareTo(a.completionDate!));
+        expect(deserialized.attemptId, historyModel1.attemptId);
+        expect(deserialized.examId, historyModel1.examId);
+        expect(deserialized.score, historyModel1.score);
+        expect(deserialized.durationMinutes, historyModel1.durationMinutes);
+      });
 
-      // Assert
-      expect(sorted[0].attemptId, 1); // Nov 26
-      expect(sorted[1].attemptId, 2); // Nov 25
-    });
+      test('calculate pass/fail from score', () {
+        const passingScore = 50;
+        final isPassed = (historyModel1.score ?? 0) >= passingScore;
 
-    test('calculate highest score for exam', () {
-      // Arrange
-      final historyList = [
-        mockHistoryItem1, // score 80
-        ExamHistoryModel(
-          attemptId: 3,
-          examId: 100,
-          examTitle: 'Quiz 1',
-          examDescription: 'Test',
-          score: 95,
-          completionDate: DateTime(2025, 11, 24),
-          durationMinutes: 30,
-        ),
-      ];
+        expect(isPassed, true);
+        expect(historyModel1.score, greaterThanOrEqualTo(passingScore));
+      });
 
-      // Act
-      final scores = historyList
-          .where((h) => h.examId == 100)
-          .map((h) => h.score ?? 0)
-          .toList();
-      final maxScore = scores.isNotEmpty
-          ? scores.reduce((a, b) => a > b ? a : b)
-          : 0;
+      test('sorting by date descending', () {
+        final historyList = [historyModel1, historyModel2];
+        final sorted = List.from(historyList)
+          ..sort((a, b) => b.completionDate!.compareTo(a.completionDate!));
 
-      // Assert
-      expect(maxScore, 95);
-    });
+        expect(sorted[0].attemptId, 1); // Nov 26
+        expect(sorted[1].attemptId, 2); // Nov 25
+      });
 
-    test('calculate average score for exam', () {
-      // Arrange
-      final historyList = [
-        mockHistoryItem1, // score 80
-        ExamHistoryModel(
-          attemptId: 3,
-          examId: 100,
-          examTitle: 'Quiz 1',
-          examDescription: 'Test',
-          score: 90,
-          completionDate: DateTime(2025, 11, 24),
-          durationMinutes: 30,
-        ),
-      ];
+      test('calculate highest score for exam', () {
+        final historyList = [
+          historyModel1, // score 80
+          ExamHistoryModel(
+            attemptId: 3,
+            examId: 100,
+            examTitle: 'Quiz 1',
+            examDescription: 'Test',
+            score: 95,
+            completionDate: DateTime(2025, 11, 24),
+            durationMinutes: 30,
+          ),
+        ];
 
-      // Act
-      final attempts = historyList.where((h) => h.examId == 100).toList();
-      final scores = attempts.map((h) => h.score ?? 0).toList();
-      final avgScore = attempts.isNotEmpty
-          ? scores.reduce((a, b) => a + b) / attempts.length
-          : 0;
+        final scores = historyList
+            .where((h) => h.examId == 100)
+            .map((h) => h.score ?? 0)
+            .toList();
+        final maxScore = scores.isNotEmpty
+            ? scores.reduce((a, b) => a > b ? a : b)
+            : 0;
 
-      // Assert
-      expect(avgScore, 85);
-    });
+        expect(maxScore, 95);
+      });
 
-    test('count attempts for specific exam', () {
-      // Arrange
-      final historyList = [
-        mockHistoryItem1,
-        ExamHistoryModel(
-          attemptId: 3,
-          examId: 100, // Same exam
-          examTitle: 'Quiz 1',
-          examDescription: 'Test',
-          score: 85,
-          completionDate: DateTime(2025, 11, 24),
-          durationMinutes: 35,
-        ),
-      ];
+      test('calculate average score for exam', () {
+        final historyList = [
+          historyModel1, // score 80
+          ExamHistoryModel(
+            attemptId: 3,
+            examId: 100,
+            examTitle: 'Quiz 1',
+            examDescription: 'Test',
+            score: 90,
+            completionDate: DateTime(2025, 11, 24),
+            durationMinutes: 30,
+          ),
+        ];
 
-      // Act
-      final attempts = historyList.where((h) => h.examId == 100).length;
+        final attempts = historyList.where((h) => h.examId == 100).toList();
+        final scores = attempts.map((h) => h.score ?? 0).toList();
+        final avgScore = attempts.isNotEmpty
+            ? scores.reduce((a, b) => a + b) / attempts.length
+            : 0;
 
-      // Assert
-      expect(attempts, 2);
+        expect(avgScore, 85);
+      });
+
+      test('count attempts for specific exam', () {
+        final historyList = [
+          historyModel1,
+          ExamHistoryModel(
+            attemptId: 3,
+            examId: 100, // Same exam
+            examTitle: 'Quiz 1',
+            examDescription: 'Test',
+            score: 85,
+            completionDate: DateTime(2025, 11, 24),
+            durationMinutes: 35,
+          ),
+        ];
+
+        final attempts = historyList.where((h) => h.examId == 100).length;
+
+        expect(attempts, 2);
+      });
     });
   });
 }

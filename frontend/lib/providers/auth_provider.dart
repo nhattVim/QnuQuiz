@@ -16,8 +16,13 @@ class AuthNotifier extends Notifier<AuthState> {
     return AuthState.initial;
   }
 
-  Future<void> login(String username, String password) async {
+  String? _errorMessage;
+
+  String? get errorMessage => _errorMessage;
+
+  Future<bool> login(String username, String password) async {
     state = AuthState.loading;
+    _errorMessage = null;
 
     final result = await _authService.login(
       username: username,
@@ -29,8 +34,19 @@ class AuthNotifier extends Notifier<AuthState> {
       final user = result['user'];
       ref.read(userProvider.notifier).setUser(user);
       state = AuthState.authenticated;
+      return true;
     } else {
+      final statusCode = result['statusCode'];
+      final error = result['error'];
+      
+      if (statusCode == 401 || error == 'Unauthorized') {
+        _errorMessage = 'Sai tên đăng nhập hoặc mật khẩu';
+      } else {
+        _errorMessage = result['message'] ?? 'Sai tên đăng nhập hoặc mật khẩu';
+      }
+      
       state = AuthState.error;
+      return false;
     }
   }
 
