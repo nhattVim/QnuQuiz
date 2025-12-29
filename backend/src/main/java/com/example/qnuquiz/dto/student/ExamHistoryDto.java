@@ -24,6 +24,10 @@ public class ExamHistoryDto {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC")
     private Timestamp completionDate;
     
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX", timezone = "UTC")
+    private Timestamp startTime;
+    
     private Long durationMinutes;
+    private Integer examDurationMinutes; // Tổng thời gian của bài thi
     private List<ExamAnswerHistoryDto> answers;
 }

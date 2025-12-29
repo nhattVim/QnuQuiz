@@ -114,9 +114,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     final currentQuestion = quizData[currentQuestionIndex];
     final options = currentQuestion.options;
     final correctOptionIndex = options != null && options.isNotEmpty
-        ? options.indexWhere(
-            (option) => option.correct,
-          )
+        ? options.indexWhere((option) => option.correct)
         : -1;
 
     return Scaffold(
@@ -170,9 +168,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: options != null && options.isNotEmpty
                     ? QuizAnswerOptions(
-                        answers: options
-                            .map((o) => o.content)
-                            .toList(),
+                        answers: options.map((o) => o.content).toList(),
                         selectedAnswerIndex: selectedAnswerIndex,
                         correctAnswerIndex: correctOptionIndex,
                         answered: false,
@@ -337,9 +333,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     setState(() {
       currentQuestionIndex = prefs.getInt('${key}_currentQuestionIndex') ?? 0;
 
-      _remainingSeconds =
-          prefs.getInt('${key}_remainingSeconds') ??
-          (widget.durationMinutes! * 60);
+      // Load remaining seconds từ SharedPreferences
+      // Nếu không có hoặc = 0, dùng thời gian mặc định từ exam
+      final savedRemainingSeconds = prefs.getInt('${key}_remainingSeconds');
+      if (savedRemainingSeconds != null && savedRemainingSeconds > 0) {
+        _remainingSeconds = savedRemainingSeconds;
+      } else if (widget.durationMinutes != null &&
+          widget.durationMinutes! > 0) {
+        _remainingSeconds = widget.durationMinutes! * 60;
+      } else {
+        _remainingSeconds = 0; // Không giới hạn thời gian
+      }
 
       if (savedAnswers != null) {
         answeredQuestions = savedAnswers

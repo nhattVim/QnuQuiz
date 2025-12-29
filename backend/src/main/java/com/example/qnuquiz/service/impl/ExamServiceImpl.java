@@ -388,7 +388,47 @@ public class ExamServiceImpl implements ExamService {
     @Override
     public List<ExamDto> getAllExams() {
         List<Exams> exams = examRepository.findAll();
-        return examMapper.toDtoList(exams);
+        
+        // Get current student if authenticated
+        UUID userId = SecurityUtils.getCurrentUserId();
+        Students student = null;
+        
+        if (userId != null) {
+            Users user = userRepository.findById(userId).orElse(null);
+            if (user != null && "STUDENT".equalsIgnoreCase(user.getRole())) {
+                student = studentRepository.findByUsers(user).orElse(null);
+            }
+        }
+        
+        final Students finalStudent = student;
+        
+        return exams.stream()
+                .filter(exam -> !"DRAFT".equalsIgnoreCase(exam.getStatus()))
+                .map(exam -> {
+                    ExamDto dto = examMapper.toDto(exam);
+                    String computedStatus = getComputedStatus(exam);
+                    dto.setStatus(computedStatus);
+                    
+                    // Set attempt info if student is logged in
+                    if (finalStudent != null) {
+                        var allAttempts = examAttemptRepository
+                                .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(exam.getId(), finalStudent.getId());
+                        
+                        dto.setHasAttempt(!allAttempts.isEmpty());
+                        
+                        if (!allAttempts.isEmpty()) {
+                            ExamAttempts latestAttempt = allAttempts.get(0);
+                            dto.setHasUnfinishedAttempt(!latestAttempt.isSubmitted());
+                        } else {
+                            dto.setHasUnfinishedAttempt(false);
+                        }
+                    } else {
+                        dto.setHasUnfinishedAttempt(false);
+                    }
+                    
+                    return dto;
+                })
+                .toList();
     }
 
     private Users getCurrentAuthenticatedUser() {

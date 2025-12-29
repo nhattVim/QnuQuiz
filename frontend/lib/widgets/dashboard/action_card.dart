@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:frontend/screens/exam/exam_list_screen.dart';
 
 class ActionCard extends StatelessWidget {
   const ActionCard({super.key});
@@ -52,7 +53,14 @@ class ActionCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   GestureDetector(
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              const ExamListScreen(),
+                        ),
+                      );
+                    },
                     child: Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 12,

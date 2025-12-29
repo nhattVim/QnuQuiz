@@ -170,11 +170,9 @@ public class StudentServiceImpl implements StudentService {
         Students student = studentRepository.findByUsers(user)
                 .orElseThrow(() -> new RuntimeException("Student not found"));
 
+        // Lấy tất cả các lần làm bài (bao gồm cả chưa hoàn thành)
         List<ExamAttempts> attempts = examAttemptRepository
-                .findByStudents_IdOrderByEndTimeDesc(student.getId())
-                .stream()
-                .filter(a -> a.isSubmitted() || a.getEndTime() != null)
-                .collect(Collectors.toList());
+                .findByStudents_IdOrderByEndTimeDesc(student.getId());
 
         return attempts.stream().map(attempt -> {
             ExamHistoryDto.ExamHistoryDtoBuilder builder = ExamHistoryDto.builder()
@@ -183,7 +181,9 @@ public class StudentServiceImpl implements StudentService {
                     .examTitle(attempt.getExams().getTitle())
                     .examDescription(attempt.getExams().getDescription())
                     .score(attempt.getScore() != null ? attempt.getScore() : 0)
-                    .completionDate(attempt.getEndTime());
+                    .completionDate(attempt.getEndTime())
+                    .startTime(attempt.getStartTime())
+                    .examDurationMinutes(attempt.getExams().getDurationMinutes());
 
             if (attempt.getStartTime() != null && attempt.getEndTime() != null) {
                 long durationMillis = attempt.getEndTime().getTime() - attempt.getStartTime().getTime();

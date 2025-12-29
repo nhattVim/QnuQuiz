@@ -1,50 +1,202 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:frontend/models/exam_category_model.dart';
+import 'package:frontend/models/exam_history_model.dart';
+import 'package:frontend/models/student_model.dart';
+import 'package:frontend/providers/service_providers.dart';
 import 'package:frontend/widgets/dashboard/action_card.dart';
 import 'package:frontend/widgets/dashboard/category_section.dart';
 import 'package:frontend/widgets/dashboard/greeting_section.dart';
 import 'package:frontend/widgets/dashboard/recent_section.dart';
 import 'package:frontend/widgets/dashboard/search_bar.dart';
 
-class DashboardPage extends StatelessWidget {
+// Provider để lấy thông tin user hiện tại
+final currentUserProfileProvider = FutureProvider.autoDispose<dynamic>((
+  ref,
+) async {
+  final userService = ref.watch(userServiceProvider);
+  return await userService.getCurrentUserProfile();
+});
+
+// Provider để lấy danh sách categories
+final categoriesProvider = FutureProvider.autoDispose<List<ExamCategoryModel>>((
+  ref,
+) async {
+  final examService = ref.watch(examServiceProvider);
+  return await examService.getAllCategories();
+});
+
+// Provider để lấy lịch sử làm bài (tất cả để tính points)
+final allExamHistoryProvider =
+    FutureProvider.autoDispose<List<ExamHistoryModel>>((ref) async {
+      final examHistoryService = ref.watch(examHistoryServiceProvider);
+      return await examHistoryService.getExamHistory();
+    });
+
+// Provider để lấy lịch sử làm bài gần đây (5 bài)
+final recentExamHistoryProvider =
+    FutureProvider.autoDispose<List<ExamHistoryModel>>((ref) async {
+      final allHistory = await ref.watch(allExamHistoryProvider.future);
+      // Chỉ lấy 5 bài gần nhất
+      final history = List<ExamHistoryModel>.from(allHistory);
+      history.sort((a, b) {
+        if (a.completionDate == null && b.completionDate == null) return 0;
+        if (a.completionDate == null) return 1;
+        if (b.completionDate == null) return -1;
+        return b.completionDate!.compareTo(a.completionDate!);
+      });
+      return history.take(5).toList();
+    });
+
+// Provider để tính tổng points từ tất cả exam history
+final totalPointsProvider = FutureProvider.autoDispose<int>((ref) async {
+  final allHistory = await ref.watch(allExamHistoryProvider.future);
+
+  // Tính tổng score từ tất cả bài thi đã hoàn thành
+  double totalScore = 0;
+  for (var history in allHistory) {
+    if (history.score != null) {
+      totalScore += history.score!;
+    }
+  }
+
+  return totalScore.round();
+});
+
+class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final userProfileAsync = ref.watch(currentUserProfileProvider);
+    final categoriesAsync = ref.watch(categoriesProvider);
+    final recentHistoryAsync = ref.watch(recentExamHistoryProvider);
+    final totalPointsAsync = ref.watch(totalPointsProvider);
+
+    return Scaffold(
       backgroundColor: Colors.white,
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: GreetingSection(username: "Phuc"),
-              ),
-              SizedBox(height: 16),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: SearchBarWidget(),
-              ),
-              SizedBox(height: 16),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: ActionCard(),
-              ),
-              SizedBox(height: 16),
-              Padding(
-                padding: EdgeInsets.only(left: 16),
-                child: CategorySection(),
-              ),
-              SizedBox(height: 16),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16),
-                child: RecentSection(),
-              ),
-            ],
+        child: RefreshIndicator(
+          onRefresh: () async {
+            ref.invalidate(currentUserProfileProvider);
+            ref.invalidate(categoriesProvider);
+            ref.invalidate(allExamHistoryProvider);
+          },
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Greeting Section với thông tin user từ API
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: userProfileAsync.when(
+                    data: (profile) {
+                      String username = "Người dùng";
+                      String? avatarUrl;
+
+                      if (profile is StudentModel) {
+                        // Lấy tên chính (tên cuối) từ fullName
+                        String fullName =
+                            profile.fullName ??
+                            profile.username ??
+                            "Người dùng";
+                        username = _getFirstName(fullName);
+                        avatarUrl = profile.avatarUrl;
+                      } else if (profile != null) {
+                        String fullName =
+                            profile.fullName ??
+                            profile.username ??
+                            "Người dùng";
+                        username = _getFirstName(fullName);
+                        avatarUrl = profile.avatarUrl;
+                      }
+
+                      // Lấy points từ totalPointsProvider
+                      return totalPointsAsync.when(
+                        data: (points) => GreetingSection(
+                          username: username,
+                          avatarUrl: avatarUrl,
+                          points: points,
+                        ),
+                        loading: () => GreetingSection(
+                          username: username,
+                          avatarUrl: avatarUrl,
+                          points: 0,
+                        ),
+                        error: (error, stack) => GreetingSection(
+                          username: username,
+                          avatarUrl: avatarUrl,
+                          points: 0,
+                        ),
+                      );
+                    },
+                    loading: () => const GreetingSection(
+                      username: "Đang tải...",
+                      isLoading: true,
+                    ),
+                    error: (error, stack) =>
+                        const GreetingSection(username: "Người dùng"),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: SearchBarWidget(),
+                ),
+                const SizedBox(height: 16),
+                const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: ActionCard(),
+                ),
+                const SizedBox(height: 16),
+                // Category Section với dữ liệu từ API
+                Padding(
+                  padding: const EdgeInsets.only(left: 16),
+                  child: categoriesAsync.when(
+                    data: (categories) =>
+                        CategorySection(categories: categories),
+                    loading: () => const CategorySection(isLoading: true),
+                    error: (error, stack) =>
+                        CategorySection(errorMessage: error.toString()),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                // Recent Section với lịch sử làm bài từ API
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: recentHistoryAsync.when(
+                    data: (history) => RecentSection(examHistory: history),
+                    loading: () => const RecentSection(isLoading: true),
+                    error: (error, stack) =>
+                        RecentSection(errorMessage: error.toString()),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ],
+            ),
           ),
         ),
       ),
     );
+  }
+
+  // Helper function để lấy tên chính (tên cuối) từ họ tên đầy đủ
+  String _getFirstName(String fullName) {
+    // Loại bỏ khoảng trắng thừa và các ký tự đặc biệt trong ngoặc
+    String cleaned = fullName.trim();
+
+    // Loại bỏ phần trong ngoặc (SV), (GV), v.v.
+    cleaned = cleaned.replaceAll(RegExp(r'\s*\([^)]*\)\s*'), '').trim();
+
+    // Tách các từ
+    List<String> parts = cleaned.split(RegExp(r'\s+'));
+
+    // Lấy tên cuối (tên chính) - phần tử cuối cùng
+    if (parts.isNotEmpty) {
+      return parts.last;
+    }
+
+    return fullName;
   }
 }

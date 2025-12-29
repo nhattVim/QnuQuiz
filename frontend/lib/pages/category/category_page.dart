@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/models/exam_category_model.dart';
 import 'package:frontend/providers/service_providers.dart';
+import 'package:frontend/utils/vietnamese_helper.dart';
 
 import 'widgets/category_header.dart';
 import 'widgets/category_list.dart';
@@ -70,10 +71,9 @@ class _CategoryPageState extends ConsumerState<CategoryPage> {
   }
 
   void _applyFiltersAndSort() {
-    // Filter by search query
+    // Filter by search query (Vietnamese tone insensitive)
     List<ExamCategoryModel> filtered = allCategories.where((c) {
-      final q = searchQuery.toLowerCase();
-      return c.name.toLowerCase().contains(q);
+      return VietnameseHelper.containsIgnoreTones(c.name, searchQuery);
     }).toList();
 
     // Sort by creation time
