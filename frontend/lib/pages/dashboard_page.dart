@@ -68,13 +68,16 @@ class DashboardPage extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     final userProfileAsync = ref.watch(currentUserProfileProvider);
     final categoriesAsync = ref.watch(categoriesProvider);
     final recentHistoryAsync = ref.watch(recentExamHistoryProvider);
     final totalPointsAsync = ref.watch(totalPointsProvider);
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {

@@ -20,25 +20,31 @@ class RecentSection extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (errorMessage != null) {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "Làm gần đây",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
           ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.red.shade50,
+              color: colorScheme.errorContainer,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Center(
               child: Text(
                 "Không thể tải lịch sử: $errorMessage",
-                style: TextStyle(color: Colors.red.shade700),
+                style: TextStyle(color: colorScheme.onErrorContainer),
                 textAlign: TextAlign.center,
               ),
             ),
@@ -51,9 +57,13 @@ class RecentSection extends ConsumerWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "Làm gần đây",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
           ),
           const SizedBox(height: 12),
           ...List.generate(
@@ -62,7 +72,9 @@ class RecentSection extends ConsumerWidget {
               margin: const EdgeInsets.only(bottom: 16),
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.5,
+                ),
                 borderRadius: BorderRadius.circular(14),
               ),
               child: Row(
@@ -71,7 +83,7 @@ class RecentSection extends ConsumerWidget {
                     width: 40,
                     height: 40,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
@@ -84,7 +96,7 @@ class RecentSection extends ConsumerWidget {
                           width: 150,
                           height: 14,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -93,7 +105,7 @@ class RecentSection extends ConsumerWidget {
                           width: 60,
                           height: 12,
                           decoration: BoxDecoration(
-                            color: Colors.grey.shade300,
+                            color: colorScheme.surfaceContainerHighest,
                             borderRadius: BorderRadius.circular(4),
                           ),
                         ),
@@ -104,7 +116,7 @@ class RecentSection extends ConsumerWidget {
                     width: 70,
                     height: 30,
                     decoration: BoxDecoration(
-                      color: Colors.grey.shade300,
+                      color: colorScheme.surfaceContainerHighest,
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
@@ -120,30 +132,43 @@ class RecentSection extends ConsumerWidget {
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             "Làm gần đây",
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            style: TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: colorScheme.onSurface,
+            ),
           ),
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.grey.shade100,
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
               borderRadius: BorderRadius.circular(14),
             ),
-            child: const Center(
+            child: Center(
               child: Column(
                 children: [
-                  Icon(Icons.history, size: 48, color: Colors.grey),
-                  SizedBox(height: 8),
+                  Icon(
+                    Icons.history,
+                    size: 48,
+                    color: colorScheme.onSurface.withValues(alpha: 0.38),
+                  ),
+                  const SizedBox(height: 8),
                   Text(
                     "Chưa có bài thi nào",
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(
+                      color: colorScheme.onSurface.withValues(alpha: 0.6),
+                    ),
                   ),
-                  SizedBox(height: 4),
+                  const SizedBox(height: 4),
                   Text(
                     "Hãy bắt đầu làm bài thi đầu tiên!",
-                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                    style: TextStyle(
+                      color: colorScheme.onSurface.withValues(alpha: 0.38),
+                      fontSize: 12,
+                    ),
                   ),
                 ],
               ),
@@ -156,14 +181,21 @@ class RecentSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           "Làm gần đây",
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: colorScheme.onSurface,
+          ),
         ),
         const SizedBox(height: 12),
         Column(
           children: examHistory!
-              .map((history) => _buildRecentItem(context, ref, history))
+              .map(
+                (history) =>
+                    _buildRecentItem(context, ref, history, colorScheme),
+              )
               .toList(),
         ),
       ],
@@ -174,10 +206,11 @@ class RecentSection extends ConsumerWidget {
     BuildContext context,
     WidgetRef ref,
     ExamHistoryModel history,
+    ColorScheme colorScheme,
   ) {
     final bool isCompleted = history.isCompleted;
     final String status = isCompleted ? 'Xem lại' : 'Tiếp tục';
-    final Color color = isCompleted ? Colors.blue : Colors.green;
+    final Color color = isCompleted ? colorScheme.primary : Colors.green;
 
     // Tính progress nếu có
     final int totalQuestions = history.answers.length;
@@ -202,7 +235,7 @@ class RecentSection extends ConsumerWidget {
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(14),
         ),
         child: Row(
@@ -211,14 +244,16 @@ class RecentSection extends ConsumerWidget {
               width: 40,
               height: 40,
               decoration: BoxDecoration(
-                color: isCompleted ? Colors.blue.shade100 : Colors.amber,
+                color: isCompleted
+                    ? colorScheme.primary.withValues(alpha: 0.2)
+                    : Colors.amber,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 isCompleted
                     ? Icons.check_circle_rounded
                     : Icons.menu_book_rounded,
-                color: isCompleted ? Colors.blue : Colors.white,
+                color: isCompleted ? colorScheme.primary : Colors.white,
               ),
             ),
             const SizedBox(width: 12),
@@ -228,7 +263,10 @@ class RecentSection extends ConsumerWidget {
                 children: [
                   Text(
                     history.examTitle,
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: colorScheme.onSurface,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -237,20 +275,23 @@ class RecentSection extends ConsumerWidget {
                     children: [
                       Text(
                         progress,
-                        style: const TextStyle(
-                          color: Colors.grey,
+                        style: TextStyle(
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
                           fontSize: 12,
                         ),
                       ),
                       if (history.completionDate != null) ...[
-                        const Text(
+                        Text(
                           '  •  ',
-                          style: TextStyle(color: Colors.grey, fontSize: 14),
+                          style: TextStyle(
+                            color: colorScheme.onSurface.withValues(alpha: 0.6),
+                            fontSize: 14,
+                          ),
                         ),
                         Text(
                           _formatDate(history.completionDate!),
-                          style: const TextStyle(
-                            color: Colors.grey,
+                          style: TextStyle(
+                            color: colorScheme.onSurface.withValues(alpha: 0.6),
                             fontSize: 12,
                           ),
                         ),

@@ -7,12 +7,13 @@ class ActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Container(
       // give a fixed height so Stack/Positioned.fill have finite constraints
       padding: const EdgeInsets.only(right: 16),
       height: 140,
       decoration: BoxDecoration(
-        color: Colors.blue,
+        color: colorScheme.primary,
         borderRadius: BorderRadius.circular(16),
       ),
       child: Stack(
@@ -38,26 +39,27 @@ class ActionCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text(
+                  Text(
                     "Trả lời và ghi điểm",
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 20,
-                      color: Colors.white,
+                      color: colorScheme.onPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  const Text(
+                  Text(
                     "Bắt đầu với những câu hỏi thường gặp",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(
+                      color: colorScheme.onPrimary.withValues(alpha: 0.9),
+                    ),
                   ),
                   const SizedBox(height: 20),
                   GestureDetector(
                     onTap: () {
                       Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (context) =>
-                              const ExamListScreen(),
+                          builder: (context) => const ExamListScreen(),
                         ),
                       );
                     },
@@ -67,14 +69,14 @@ class ActionCard extends StatelessWidget {
                         vertical: 6,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: colorScheme.onPrimary,
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      child: const Text(
+                      child: Text(
                         "Xem ngay",
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: colorScheme.primary,
                         ),
                       ),
                     ),

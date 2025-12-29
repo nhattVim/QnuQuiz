@@ -20,6 +20,7 @@ class ExamCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final statusColor = ExamStatusUI.getColor(exam);
     final statusText = ExamStatusUI.getText(exam);
     final buttonText = ExamStatusUI.getButtonText(exam);
@@ -30,7 +31,7 @@ class ExamCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF2F3F2),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(16),
       ),
       child: Row(
@@ -42,17 +43,27 @@ class ExamCard extends StatelessWidget {
               children: [
                 Text(
                   exam.title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
+                    color: colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    const Icon(Icons.timer_outlined, size: 16),
+                    Icon(
+                      Icons.timer_outlined,
+                      size: 16,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
                     const SizedBox(width: 4),
-                    Text("${exam.durationMinutes ?? 0} phút"),
+                    Text(
+                      "${exam.durationMinutes ?? 0} phút",
+                      style: TextStyle(
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
+                    ),
                   ],
                 ),
                 const SizedBox(height: 6),
@@ -61,32 +72,51 @@ class ExamCard extends StatelessWidget {
                     const SizedBox(width: 2),
                     Icon(Boxicons.bxs_circle, size: 12, color: statusColor),
                     const SizedBox(width: 6),
-                    Text(statusText),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Row(
-                  children: [
-                    const Icon(Boxicons.bx_door_open, size: 16),
-                    const SizedBox(width: 4),
                     Text(
-                      exam.startTime != null
-                          ? exam.startTime!.toFullString()
-                          : "Mở: Chưa xác định",
-                      style: const TextStyle(fontSize: 13),
+                      statusText,
+                      style: TextStyle(
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    const Icon(Icons.hourglass_bottom, size: 16),
+                    Icon(
+                      Boxicons.bx_door_open,
+                      size: 16,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      exam.startTime != null
+                          ? exam.startTime!.toFullString()
+                          : "Mở: Chưa xác định",
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.hourglass_bottom,
+                      size: 16,
+                      color: colorScheme.onSurface.withValues(alpha: 0.7),
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       exam.endTime != null
                           ? exam.endTime!.toFullString()
                           : "Kết thúc: Chưa xác định",
-                      style: const TextStyle(fontSize: 13),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
+                      ),
                     ),
                   ],
                 ),
@@ -126,9 +156,10 @@ class ExamCard extends StatelessWidget {
                       horizontal: 12,
                     ),
                     backgroundColor: buttonBgColor,
-                    disabledBackgroundColor: Colors.grey.shade400,
+                    disabledBackgroundColor:
+                        colorScheme.surfaceContainerHighest,
                     side: buttonEnabled
-                        ? const BorderSide(color: Colors.blue)
+                        ? BorderSide(color: colorScheme.primary)
                         : null,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),

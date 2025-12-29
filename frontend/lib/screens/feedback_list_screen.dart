@@ -53,19 +53,21 @@ class _FeedbackListScreenState extends ConsumerState<FeedbackListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Đánh giá của tôi',
           style: TextStyle(
-            color: Colors.black,
+            color: colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -83,20 +85,26 @@ class _FeedbackListScreenState extends ConsumerState<FeedbackListScreen> {
   }
 
   Widget _buildErrorWidget() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 64, color: Colors.red.shade300),
+          Icon(Icons.error_outline, size: 64, color: colorScheme.error),
           const SizedBox(height: 16),
           Text(
             _error!,
             textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.red.shade700, fontSize: 14),
+            style: TextStyle(color: colorScheme.error, fontSize: 14),
           ),
           const SizedBox(height: 24),
           ElevatedButton(
             onPressed: _loadFeedbacks,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorScheme.primary,
+              foregroundColor: colorScheme.onPrimary,
+            ),
             child: const Text('Thử lại'),
           ),
         ],
@@ -105,16 +113,18 @@ class _FeedbackListScreenState extends ConsumerState<FeedbackListScreen> {
   }
 
   Widget _buildEmptyWidget() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.feedback_outlined, size: 64, color: Colors.grey.shade300),
+          Icon(Icons.feedback_outlined, size: 64, color: colorScheme.outline),
           const SizedBox(height: 16),
           Text(
             'Chưa có đánh giá nào',
             style: TextStyle(
-              color: Colors.grey.shade600,
+              color: colorScheme.onSurface.withValues(alpha: 0.6),
               fontSize: 16,
               fontWeight: FontWeight.w500,
             ),
@@ -167,11 +177,13 @@ class _ExamFeedbackSectionState extends State<_ExamFeedbackSection> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: colorScheme.outline.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(12),
-        color: Colors.grey.shade50,
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
       ),
       child: Column(
         children: [
@@ -190,10 +202,10 @@ class _ExamFeedbackSectionState extends State<_ExamFeedbackSection> {
                       children: [
                         Text(
                           widget.examTitle,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: colorScheme.onSurface,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -203,7 +215,7 @@ class _ExamFeedbackSectionState extends State<_ExamFeedbackSection> {
                           '${widget.feedbacks.length} đánh giá',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: colorScheme.onSurface.withValues(alpha: 0.6),
                           ),
                         ),
                       ],
@@ -213,11 +225,11 @@ class _ExamFeedbackSectionState extends State<_ExamFeedbackSection> {
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.blue.shade50,
+                      color: colorScheme.primary.withValues(alpha: 0.1),
                     ),
                     child: Icon(
                       _isExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: Colors.blue,
+                      color: colorScheme.primary,
                       size: 24,
                     ),
                   ),
@@ -230,14 +242,18 @@ class _ExamFeedbackSectionState extends State<_ExamFeedbackSection> {
           if (_isExpanded)
             Container(
               decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                border: Border(
+                  top: BorderSide(
+                    color: colorScheme.outline.withValues(alpha: 0.3),
+                  ),
+                ),
               ),
               child: ListView.separated(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: widget.feedbacks.length,
                 separatorBuilder: (context, index) => Divider(
-                  color: Colors.grey.shade200,
+                  color: colorScheme.outline.withValues(alpha: 0.3),
                   height: 1,
                   indent: 16,
                   endIndent: 16,
@@ -260,6 +276,7 @@ class _FeedbackItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final isQuestionFeedback =
         feedback.questionContent != null &&
         feedback.questionContent != feedback.examContent;
@@ -275,25 +292,25 @@ class _FeedbackItem extends StatelessWidget {
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.purple.shade50,
+                color: Colors.purple.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.purple.shade200),
+                border: Border.all(color: Colors.purple.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.help_outline_rounded,
                     size: 20,
-                    color: Colors.purple.shade700,
+                    color: Colors.purple,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       'Câu hỏi: ${feedback.questionContent}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: Colors.purple.shade700,
+                        color: Colors.purple,
                       ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
@@ -313,10 +330,10 @@ class _FeedbackItem extends StatelessWidget {
                   children: [
                     Text(
                       feedback.userName ?? 'Ẩn danh',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black87,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -324,7 +341,7 @@ class _FeedbackItem extends StatelessWidget {
                       _formatDate(feedback.createdAt),
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade600,
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -346,7 +363,7 @@ class _FeedbackItem extends StatelessWidget {
                     size: 16,
                     color: index < (feedback.rating ?? 0)
                         ? Colors.amber
-                        : Colors.grey.shade300,
+                        : colorScheme.outline.withValues(alpha: 0.5),
                   );
                 }),
                 const SizedBox(width: 8),
@@ -358,9 +375,9 @@ class _FeedbackItem extends StatelessWidget {
           // Content
           Text(
             feedback.content,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 13,
-              color: Colors.black87,
+              color: colorScheme.onSurface,
               height: 1.5,
             ),
           ),
@@ -371,23 +388,25 @@ class _FeedbackItem extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.reply, size: 16, color: Colors.blue.shade700),
+                      Icon(Icons.reply, size: 16, color: colorScheme.primary),
                       const SizedBox(width: 8),
                       Text(
                         'Phản hồi từ ${feedback.reviewedBy ?? 'Giáo viên'}',
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: Colors.blue.shade700,
+                          color: colorScheme.primary,
                         ),
                       ),
                     ],
@@ -397,7 +416,7 @@ class _FeedbackItem extends StatelessWidget {
                     feedback.teacherReply ?? '',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.blue.shade900,
+                      color: colorScheme.onSurface,
                       height: 1.4,
                     ),
                   ),

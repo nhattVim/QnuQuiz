@@ -134,20 +134,25 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Boxicons.bx_arrow_back),
+          icon: Icon(Boxicons.bx_arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Bộ trắc nghiệm",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: colorScheme.onSurface,
+          ),
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: colorScheme.surface,
       ),
       body: FutureBuilder<List<ExamModel>>(
         key: _futureBuilderKey,
@@ -156,9 +161,21 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text("Lỗi: ${snapshot.error}"));
+            return Center(
+              child: Text(
+                "Lỗi: ${snapshot.error}",
+                style: TextStyle(color: colorScheme.error),
+              ),
+            );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("Không có bài kiểm tra"));
+            return Center(
+              child: Text(
+                "Không có bài kiểm tra",
+                style: TextStyle(
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+            );
           }
 
           final exams = snapshot.data!;
@@ -172,11 +189,12 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Text(
+                    Text(
                       "Sau đây",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const Spacer(),
@@ -189,10 +207,10 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
                           ),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         "Lịch sử",
                         style: TextStyle(
-                          color: Colors.blue,
+                          color: colorScheme.primary,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),

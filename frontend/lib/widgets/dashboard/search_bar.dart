@@ -24,11 +24,12 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
   }
 
   void _openFullscreenSearch() {
+    final colorScheme = Theme.of(context).colorScheme;
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       isDismissible: true,
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
@@ -39,22 +40,29 @@ class _SearchBarWidgetState extends State<SearchBarWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: _openFullscreenSearch,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.grey.shade100,
+          color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
           borderRadius: BorderRadius.circular(12),
         ),
-        child: const Row(
+        child: Row(
           children: [
-            Icon(Boxicons.bx_search, color: Colors.black54),
-            SizedBox(width: 8),
+            Icon(
+              Boxicons.bx_search,
+              color: colorScheme.onSurface.withValues(alpha: 0.54),
+            ),
+            const SizedBox(width: 8),
             Expanded(
               child: Text(
                 'Tìm kiếm bài thi',
-                style: TextStyle(color: Colors.black54, fontSize: 16),
+                style: TextStyle(
+                  color: colorScheme.onSurface.withValues(alpha: 0.54),
+                  fontSize: 16,
+                ),
               ),
             ),
           ],
@@ -138,6 +146,8 @@ class _FullscreenSearchOverlayState
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return DraggableScrollableSheet(
       initialChildSize: 0.95,
       minChildSize: 0.5,
@@ -151,7 +161,10 @@ class _FullscreenSearchOverlayState
               children: [
                 GestureDetector(
                   onTap: widget.onClose,
-                  child: const Icon(Boxicons.bx_arrow_back),
+                  child: Icon(
+                    Boxicons.bx_arrow_back,
+                    color: colorScheme.onSurface,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -159,12 +172,24 @@ class _FullscreenSearchOverlayState
                     controller: _controller,
                     onChanged: _performSearch,
                     autofocus: true,
+                    style: TextStyle(color: colorScheme.onSurface),
                     decoration: InputDecoration(
                       hintText: 'Tìm kiếm bài thi',
-                      prefixIcon: const Icon(Boxicons.bx_search),
+                      hintStyle: TextStyle(
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      ),
+                      prefixIcon: Icon(
+                        Boxicons.bx_search,
+                        color: colorScheme.onSurface.withValues(alpha: 0.5),
+                      ),
                       suffixIcon: _controller.text.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear),
+                              icon: Icon(
+                                Icons.clear,
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
+                              ),
                               onPressed: () {
                                 _controller.clear();
                                 _performSearch('');
@@ -173,7 +198,9 @@ class _FullscreenSearchOverlayState
                           : null,
                       contentPadding: const EdgeInsets.symmetric(vertical: 8),
                       filled: true,
-                      fillColor: Colors.grey.shade100,
+                      fillColor: colorScheme.surfaceContainerHighest.withValues(
+                        alpha: 0.5,
+                      ),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide.none,
@@ -199,10 +226,10 @@ class _FullscreenSearchOverlayState
                       );
                     }
                   },
-                  child: const Text(
+                  child: Text(
                     'Tìm kiếm',
                     style: TextStyle(
-                      color: Colors.blue,
+                      color: colorScheme.primary,
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
@@ -223,12 +250,12 @@ class _FullscreenSearchOverlayState
                     Icon(
                       Icons.error_outline,
                       size: 48,
-                      color: Colors.red.shade300,
+                      color: colorScheme.error.withValues(alpha: 0.7),
                     ),
                     const SizedBox(height: 16),
                     Text(
                       'Không thể tải dữ liệu',
-                      style: TextStyle(color: Colors.red.shade700),
+                      style: TextStyle(color: colorScheme.error),
                     ),
                     const SizedBox(height: 8),
                     ElevatedButton(
@@ -252,15 +279,17 @@ class _FullscreenSearchOverlayState
                                 ? Boxicons.bx_search
                                 : Icons.search_off,
                             size: 48,
-                            color: Colors.grey.shade400,
+                            color: colorScheme.onSurface.withValues(alpha: 0.4),
                           ),
                           const SizedBox(height: 16),
                           Text(
                             _controller.text.isEmpty
                                 ? 'Nhập để tìm kiếm bài thi'
                                 : 'Không tìm thấy kết quả',
-                            style: const TextStyle(
-                              color: Colors.grey,
+                            style: TextStyle(
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
                               fontSize: 14,
                             ),
                           ),
@@ -270,7 +299,9 @@ class _FullscreenSearchOverlayState
                             Text(
                               'Có ${_allExams.length} bài thi sẵn sàng',
                               style: TextStyle(
-                                color: Colors.grey.shade500,
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.5,
+                                ),
                                 fontSize: 12,
                               ),
                             ),
@@ -284,7 +315,7 @@ class _FullscreenSearchOverlayState
                       itemCount: _searchResults.length,
                       itemBuilder: (context, index) {
                         final exam = _searchResults[index];
-                        return _buildExamSearchItem(exam, index);
+                        return _buildExamSearchItem(exam, index, colorScheme);
                       },
                     ),
             ),
@@ -293,7 +324,11 @@ class _FullscreenSearchOverlayState
     );
   }
 
-  Widget _buildExamSearchItem(ExamModel exam, int index) {
+  Widget _buildExamSearchItem(
+    ExamModel exam,
+    int index,
+    ColorScheme colorScheme,
+  ) {
     return GestureDetector(
       onTap: () {
         // Đóng search overlay
@@ -336,9 +371,10 @@ class _FullscreenSearchOverlayState
                     children: [
                       Text(
                         exam.title,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
+                          color: colorScheme.onSurface,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -348,7 +384,7 @@ class _FullscreenSearchOverlayState
                         exam.description,
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -382,7 +418,10 @@ class _FullscreenSearchOverlayState
             if (index < _searchResults.length - 1)
               Padding(
                 padding: const EdgeInsets.only(top: 12),
-                child: Divider(color: Colors.grey.shade200, height: 1),
+                child: Divider(
+                  color: colorScheme.outline.withValues(alpha: 0.2),
+                  height: 1,
+                ),
               ),
           ],
         ),

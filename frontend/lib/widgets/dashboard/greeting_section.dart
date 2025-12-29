@@ -17,23 +17,21 @@ class GreetingSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       children: [
         // Avatar với hỗ trợ URL từ API
         isLoading
-            ? const CircleAvatar(
+            ? CircleAvatar(
                 radius: 20,
-                backgroundColor: Colors.grey,
-                child: SizedBox(
+                backgroundColor: colorScheme.surfaceContainerHighest,
+                child: const SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                    color: Colors.white,
-                  ),
+                  child: CircularProgressIndicator(strokeWidth: 2),
                 ),
               )
-            : _buildAvatar(),
+            : _buildAvatar(colorScheme),
 
         const SizedBox(width: 12),
         Expanded(
@@ -45,23 +43,27 @@ class GreetingSection extends StatelessWidget {
                       width: 120,
                       height: 14,
                       decoration: BoxDecoration(
-                        color: Colors.grey.shade300,
+                        color: colorScheme.surfaceContainerHighest,
                         borderRadius: BorderRadius.circular(4),
                       ),
                     )
                   : Text(
                       "Xin chào, $username 👋",
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
+                        color: colorScheme.onSurface,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 "Hãy bắt đầu câu đố nào!",
-                style: TextStyle(color: Colors.black54, fontSize: 12),
+                style: TextStyle(
+                  color: colorScheme.onSurface.withValues(alpha: 0.54),
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -72,7 +74,9 @@ class GreetingSection extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.grey.shade100,
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.5,
+                ),
                 borderRadius: BorderRadius.circular(50),
               ),
               child: Row(
@@ -86,9 +90,10 @@ class GreetingSection extends StatelessWidget {
                   const SizedBox(width: 4),
                   Text(
                     points.toString(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 14,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                 ],
@@ -97,7 +102,9 @@ class GreetingSection extends StatelessWidget {
             const SizedBox(width: 8),
             CircleAvatar(
               radius: 18,
-              backgroundColor: Colors.grey.shade100,
+              backgroundColor: colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.5,
+              ),
               child: IconButton(
                 icon: const Icon(Boxicons.bx_bell, size: 20),
                 onPressed: () {},
@@ -109,20 +116,20 @@ class GreetingSection extends StatelessWidget {
     );
   }
 
-  Widget _buildAvatar() {
+  Widget _buildAvatar(ColorScheme colorScheme) {
     // Nếu không có avatar URL, hiển thị icon mặc định
     if (avatarUrl == null || avatarUrl!.isEmpty) {
-      return const CircleAvatar(
+      return CircleAvatar(
         radius: 20,
-        backgroundColor: Colors.brown,
-        child: Icon(Icons.person, color: Colors.white),
+        backgroundColor: colorScheme.primaryContainer,
+        child: Icon(Icons.person, color: colorScheme.onPrimaryContainer),
       );
     }
 
     // Nếu có avatar URL, sử dụng Image.network với error handling
     return CircleAvatar(
       radius: 20,
-      backgroundColor: Colors.brown,
+      backgroundColor: colorScheme.primaryContainer,
       child: ClipOval(
         child: Image.network(
           avatarUrl!,
@@ -131,7 +138,7 @@ class GreetingSection extends StatelessWidget {
           fit: BoxFit.cover,
           loadingBuilder: (context, child, loadingProgress) {
             if (loadingProgress == null) return child;
-            return const SizedBox(
+            return SizedBox(
               width: 40,
               height: 40,
               child: Center(
@@ -140,7 +147,7 @@ class GreetingSection extends StatelessWidget {
                   height: 20,
                   child: CircularProgressIndicator(
                     strokeWidth: 2,
-                    color: Colors.white,
+                    color: colorScheme.onPrimaryContainer,
                   ),
                 ),
               ),
@@ -148,7 +155,11 @@ class GreetingSection extends StatelessWidget {
           },
           errorBuilder: (context, error, stackTrace) {
             // Khi load ảnh lỗi, hiển thị icon mặc định
-            return const Icon(Icons.person, color: Colors.white, size: 24);
+            return Icon(
+              Icons.person,
+              color: colorScheme.onPrimaryContainer,
+              size: 24,
+            );
           },
         ),
       ),
