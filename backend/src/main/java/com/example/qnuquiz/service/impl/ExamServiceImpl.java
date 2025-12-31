@@ -199,6 +199,12 @@ public class ExamServiceImpl implements ExamService {
         Users user = getCurrentAuthenticatedUser();
         Exams exam = examMapper.toEntity(dto);
 
+        if (exam.getStartTime() != null && exam.getEndTime() != null) {
+            if (!exam.getEndTime().after(exam.getStartTime())) {
+                throw new IllegalArgumentException("End time must be after start time");
+            }
+        }
+
         ExamCategories category = examCategoryRepository
                 .findById(dto.getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException("Category not found: " + dto.getCategoryId()));
@@ -207,6 +213,9 @@ public class ExamServiceImpl implements ExamService {
         exam.setUsers(user);
         exam.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         exam.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        if (exam.getStatus() == null) {
+            exam.setStatus("DRAFT");
+        }
 
         Exams saved = examRepository.save(exam);
         return examMapper.toDto(saved);
@@ -238,6 +247,13 @@ public class ExamServiceImpl implements ExamService {
 
         Exams exam = examRepository.findById(dto.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Exam not found: " + dto.getId()));
+
+        // Validate that endTime is after startTime
+        if (dto.getStartTime() != null && dto.getEndTime() != null) {
+            if (!dto.getEndTime().after(dto.getStartTime())) {
+                throw new IllegalArgumentException("End time must be after start time");
+            }
+        }
 
         exam.setTitle(dto.getTitle());
         exam.setDescription(dto.getDescription());
@@ -314,15 +330,15 @@ public class ExamServiceImpl implements ExamService {
                     .build())
                 .toList();
             dto.setOptions(optionDtos);
-            
-            List<com.example.qnuquiz.dto.media.MediaFileDto> mediaFiles = 
+
+            List<com.example.qnuquiz.dto.media.MediaFileDto> mediaFiles =
                 mediaFileService.getMediaFilesByQuestionId(q.getId());
             dto.setMediaFiles(mediaFiles);
-            
+
             if (!mediaFiles.isEmpty()) {
                 dto.setMediaUrl(mediaFiles.get(0).getFileUrl());
             }
-            
+
             return dto;
         }).toList();
     }
