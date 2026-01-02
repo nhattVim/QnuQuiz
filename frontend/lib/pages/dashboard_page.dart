@@ -10,7 +10,6 @@ import 'package:frontend/widgets/dashboard/greeting_section.dart';
 import 'package:frontend/widgets/dashboard/recent_section.dart';
 import 'package:frontend/widgets/dashboard/search_bar.dart';
 
-// Provider để lấy thông tin user hiện tại
 final currentUserProfileProvider = FutureProvider.autoDispose<dynamic>((
   ref,
 ) async {
@@ -18,7 +17,6 @@ final currentUserProfileProvider = FutureProvider.autoDispose<dynamic>((
   return await userService.getCurrentUserProfile();
 });
 
-// Provider để lấy danh sách categories
 final categoriesProvider = FutureProvider.autoDispose<List<ExamCategoryModel>>((
   ref,
 ) async {
@@ -26,18 +24,15 @@ final categoriesProvider = FutureProvider.autoDispose<List<ExamCategoryModel>>((
   return await examService.getAllCategories();
 });
 
-// Provider để lấy lịch sử làm bài (tất cả để tính points)
 final allExamHistoryProvider =
     FutureProvider.autoDispose<List<ExamHistoryModel>>((ref) async {
       final examHistoryService = ref.watch(examHistoryServiceProvider);
       return await examHistoryService.getExamHistory();
     });
 
-// Provider để lấy lịch sử làm bài gần đây (5 bài)
 final recentExamHistoryProvider =
     FutureProvider.autoDispose<List<ExamHistoryModel>>((ref) async {
       final allHistory = await ref.watch(allExamHistoryProvider.future);
-      // Chỉ lấy 5 bài gần nhất
       final history = List<ExamHistoryModel>.from(allHistory);
       history.sort((a, b) {
         if (a.completionDate == null && b.completionDate == null) return 0;
@@ -48,11 +43,9 @@ final recentExamHistoryProvider =
       return history.take(5).toList();
     });
 
-// Provider để tính tổng points từ tất cả exam history
 final totalPointsProvider = FutureProvider.autoDispose<int>((ref) async {
   final allHistory = await ref.watch(allExamHistoryProvider.future);
 
-  // Tính tổng score từ tất cả bài thi đã hoàn thành
   double totalScore = 0;
   for (var history in allHistory) {
     if (history.score != null) {
@@ -99,7 +92,6 @@ class DashboardPage extends ConsumerWidget {
                       String? avatarUrl;
 
                       if (profile is StudentModel) {
-                        // Lấy tên chính (tên cuối) từ fullName
                         String fullName =
                             profile.fullName ??
                             profile.username ??
@@ -149,7 +141,7 @@ class DashboardPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  padding: EdgeInsets.symmetric(horizontal: 8),
                   child: ActionCard(),
                 ),
                 const SizedBox(height: 16),
