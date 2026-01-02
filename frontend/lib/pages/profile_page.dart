@@ -4,6 +4,7 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:frontend/models/student_model.dart';
 import 'package:frontend/models/teacher_model.dart';
 import 'package:frontend/models/user_model.dart';
+import 'package:frontend/pages/faq_page.dart';
 import 'package:frontend/pages/update_profile_page.dart';
 import 'package:frontend/providers/auth_provider.dart';
 import 'package:frontend/providers/service_providers.dart';
@@ -175,18 +176,19 @@ class _ProfilePageState extends ConsumerState<ProfilePage> {
                       onTap: () => _shareProfile(context, user),
                     ),
                     Divider(height: 1.h),
-                    _buildMenuTile(
-                      context,
-                      icon: Icons.help_outline,
-                      title: 'Hỗ trợ và giúp đỡ',
-                      onTap: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Tính năng đang phát triển'),
-                          ),
-                        );
-                      },
-                    ),
+                      _buildMenuTile(
+                        context,
+                        icon: Icons.help_outline,
+                        title: 'Hỗ trợ và giúp đỡ',
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const FaqPage(),
+                            ),
+                          );
+                        },
+                      ),
                     _buildMenuTile(
                       context,
                       icon: Icons.logout,
