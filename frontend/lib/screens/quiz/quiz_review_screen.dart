@@ -171,15 +171,21 @@ class QuizReviewScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.amber.withValues(alpha: 0.2),
+                      color: Colors.amber.withValues(
+                        alpha: Theme.of(context).brightness == Brightness.dark
+                            ? 0.15
+                            : 0.2,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Boxicons.bx_bolt_circle,
-                          color: Colors.amber,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.amber.shade300
+                              : Colors.amber,
                         ),
                         const SizedBox(width: 8),
                         Text(
@@ -240,7 +246,15 @@ class QuizReviewScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: isCorrect ? Colors.green : Colors.red,
+                                color: isCorrect
+                                    ? (Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.green.shade300
+                                          : Colors.green)
+                                    : (Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.red.shade300
+                                          : Colors.red),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -276,11 +290,20 @@ class QuizReviewScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.amber.withValues(alpha: 0.2),
+                            color: Colors.amber.withValues(
+                              alpha:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? 0.15
+                                  : 0.2,
+                            ),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.star_border,
-                            color: Colors.amber,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? Colors.amber.shade300
+                                : Colors.amber,
                           ),
                         ),
                       ),
@@ -323,16 +346,28 @@ class QuizReviewScreen extends StatelessWidget {
                       );
                       Color textColor = colorScheme.onSurface;
                       IconData? icon;
+                      final isDark =
+                          Theme.of(context).brightness == Brightness.dark;
 
                       if (isCorrectOption) {
-                        backgroundColor = Colors.green.shade100;
-                        borderColor = Colors.green;
-                        textColor = Colors.green.shade800;
+                        backgroundColor = isDark
+                            ? Colors.green.withValues(alpha: 0.2)
+                            : Colors.green.shade100;
+                        borderColor = isDark
+                            ? Colors.green.shade700
+                            : Colors.green;
+                        textColor = isDark
+                            ? Colors.green.shade300
+                            : Colors.green.shade800;
                         icon = Icons.check_circle;
                       } else if (isStudentAnswer && !isCorrect) {
-                        backgroundColor = Colors.red.shade100;
-                        borderColor = Colors.red;
-                        textColor = Colors.red.shade800;
+                        backgroundColor = isDark
+                            ? Colors.red.withValues(alpha: 0.2)
+                            : Colors.red.shade100;
+                        borderColor = isDark ? Colors.red.shade700 : Colors.red;
+                        textColor = isDark
+                            ? Colors.red.shade300
+                            : Colors.red.shade800;
                         icon = Icons.cancel;
                       }
 
@@ -550,7 +585,15 @@ class QuizReviewScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: isCorrect ? Colors.green : Colors.red,
+                                color: isCorrect
+                                    ? (Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.green.shade300
+                                          : Colors.green)
+                                    : (Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.red.shade300
+                                          : Colors.red),
                               ),
                             ),
                           ],
@@ -590,15 +633,29 @@ class QuizReviewScreen extends StatelessWidget {
                           alpha: 0.5,
                         );
                         Color textColor = colorScheme.onSurface;
+                        final isDark =
+                            Theme.of(context).brightness == Brightness.dark;
 
                         if (isCorrectAnswer) {
-                          backgroundColor = Colors.green.shade100;
-                          borderColor = Colors.green;
-                          textColor = Colors.green.shade800;
+                          backgroundColor = isDark
+                              ? Colors.green.withValues(alpha: 0.2)
+                              : Colors.green.shade100;
+                          borderColor = isDark
+                              ? Colors.green.shade700
+                              : Colors.green;
+                          textColor = isDark
+                              ? Colors.green.shade300
+                              : Colors.green.shade800;
                         } else if (isUserAnswer && !isCorrect) {
-                          backgroundColor = Colors.red.shade100;
-                          borderColor = Colors.red;
-                          textColor = Colors.red.shade800;
+                          backgroundColor = isDark
+                              ? Colors.red.withValues(alpha: 0.2)
+                              : Colors.red.shade100;
+                          borderColor = isDark
+                              ? Colors.red.shade700
+                              : Colors.red;
+                          textColor = isDark
+                              ? Colors.red.shade300
+                              : Colors.red.shade800;
                         }
 
                         return Padding(

@@ -660,7 +660,7 @@ class _QuestionFeedbackGroup extends ConsumerWidget {
             width: double.infinity,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.deepPurple.shade50,
+              color: colorScheme.primaryContainer.withValues(alpha: 0.3),
               borderRadius: const BorderRadius.vertical(
                 top: Radius.circular(16),
               ),
@@ -671,13 +671,13 @@ class _QuestionFeedbackGroup extends ConsumerWidget {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.deepPurple.shade100,
+                    color: colorScheme.primaryContainer.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Icon(
                     Icons.quiz_rounded,
                     size: 20,
-                    color: Colors.deepPurple.shade700,
+                    color: colorScheme.primary,
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -690,7 +690,7 @@ class _QuestionFeedbackGroup extends ConsumerWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
-                          color: Colors.deepPurple.shade700,
+                          color: colorScheme.onSurface,
                           height: 1.4,
                         ),
                       ),
@@ -699,7 +699,7 @@ class _QuestionFeedbackGroup extends ConsumerWidget {
                         '${feedbacks.length} đánh giá',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.deepPurple.shade400,
+                          color: colorScheme.onSurfaceVariant,
                         ),
                       ),
                     ],
@@ -848,16 +848,6 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
                   ),
                 );
               }),
-              if (widget.feedback.rating != null) ...[
-                const SizedBox(width: 6),
-                Text(
-                  '${widget.feedback.rating}/5',
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: colorScheme.onSurfaceVariant,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
             ],
           ),
 
@@ -907,9 +897,11 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
               width: double.infinity,
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: colorScheme.tertiaryContainer.withValues(alpha: 0.4),
                 borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.blue.shade100),
+                border: Border.all(
+                  color: colorScheme.tertiary.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -919,13 +911,15 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
                       Container(
                         padding: const EdgeInsets.all(4),
                         decoration: BoxDecoration(
-                          color: Colors.blue.shade100,
+                          color: colorScheme.tertiaryContainer.withValues(
+                            alpha: 0.7,
+                          ),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Icon(
                           Icons.school_rounded,
                           size: 12,
-                          color: Colors.blue.shade700,
+                          color: colorScheme.tertiary,
                         ),
                       ),
                       const SizedBox(width: 6),
@@ -934,7 +928,7 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w600,
-                          color: Colors.blue.shade700,
+                          color: colorScheme.onTertiaryContainer,
                         ),
                       ),
                       const Spacer(),
@@ -943,7 +937,7 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
                           _formatDate(widget.feedback.reviewedAt!),
                           style: TextStyle(
                             fontSize: 10,
-                            color: Colors.blue.shade400,
+                            color: colorScheme.onSurfaceVariant,
                           ),
                         ),
                     ],
@@ -953,7 +947,7 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
                     widget.feedback.teacherReply!,
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.blue.shade900,
+                      color: colorScheme.onTertiaryContainer,
                       height: 1.5,
                     ),
                   ),
@@ -990,7 +984,7 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
               width: double.infinity,
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: Colors.deepPurple.shade50,
+                color: colorScheme.primaryContainer.withValues(alpha: 0.3),
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(16),
                 ),
@@ -1001,13 +995,15 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
                   Container(
                     padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
-                      color: Colors.deepPurple.shade100,
+                      color: colorScheme.primaryContainer.withValues(
+                        alpha: 0.6,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       Icons.quiz_rounded,
                       size: 16,
-                      color: Colors.deepPurple.shade700,
+                      color: colorScheme.primary,
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -1017,7 +1013,7 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w500,
-                        color: Colors.deepPurple.shade700,
+                        color: colorScheme.onSurface,
                         height: 1.4,
                       ),
                       maxLines: 3,
@@ -1227,6 +1223,8 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
   }
 
   Widget _buildStatusBadge(String status) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final brightness = Theme.of(context).brightness;
     Color bgColor;
     Color textColor;
     String statusText;
@@ -1234,26 +1232,38 @@ class _FeedbackItemState extends ConsumerState<_FeedbackItem> {
 
     switch (status.toUpperCase()) {
       case 'PENDING':
-        bgColor = Colors.orange.shade50;
-        textColor = Colors.orange.shade700;
+        bgColor = brightness == Brightness.dark
+            ? Colors.orange.withValues(alpha: 0.2)
+            : Colors.orange.shade50;
+        textColor = brightness == Brightness.dark
+            ? Colors.orange.shade300
+            : Colors.orange.shade700;
         statusText = 'Chờ xử lý';
         icon = Icons.schedule_rounded;
         break;
       case 'REVIEWED':
-        bgColor = Colors.blue.shade50;
-        textColor = Colors.blue.shade700;
+        bgColor = brightness == Brightness.dark
+            ? Colors.blue.withValues(alpha: 0.2)
+            : Colors.blue.shade50;
+        textColor = brightness == Brightness.dark
+            ? Colors.blue.shade300
+            : Colors.blue.shade700;
         statusText = 'Đã xem';
         icon = Icons.visibility_rounded;
         break;
       case 'RESOLVED':
-        bgColor = Colors.green.shade50;
-        textColor = Colors.green.shade700;
+        bgColor = brightness == Brightness.dark
+            ? Colors.green.withValues(alpha: 0.2)
+            : Colors.green.shade50;
+        textColor = brightness == Brightness.dark
+            ? Colors.green.shade300
+            : Colors.green.shade700;
         statusText = 'Đã giải quyết';
         icon = Icons.check_circle_rounded;
         break;
       default:
-        bgColor = Colors.grey.shade100;
-        textColor = Colors.grey.shade700;
+        bgColor = colorScheme.surfaceContainerHighest.withValues(alpha: 0.5);
+        textColor = colorScheme.onSurfaceVariant;
         statusText = status;
         icon = Icons.info_outline_rounded;
     }

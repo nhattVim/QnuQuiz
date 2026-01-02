@@ -75,7 +75,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
           commentController.text = template.content;
         } else {
           commentController.text =
-              '${commentController.text}\n\n${template.content}';
+              '${commentController.text}\n${template.content}';
         }
       }
     });
