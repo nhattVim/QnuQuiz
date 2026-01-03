@@ -12,6 +12,7 @@ class QuizProgress extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final progressPercentage = currentQuestion / totalQuestions;
 
     return Padding(
@@ -24,7 +25,7 @@ class QuizProgress extends StatelessWidget {
             child: LinearProgressIndicator(
               value: progressPercentage,
               minHeight: 6,
-              backgroundColor: Colors.grey.shade200,
+              backgroundColor: colorScheme.surfaceContainerHighest,
               valueColor: const AlwaysStoppedAnimation<Color>(Colors.green),
             ),
           ),

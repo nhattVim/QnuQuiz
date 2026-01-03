@@ -17,7 +17,7 @@ class QuizReviewScreen extends StatelessWidget {
     this.quizData,
     this.answeredQuestions,
     this.totalQuestions,
-    this.examId
+    this.examId,
   });
 
   @override
@@ -41,6 +41,8 @@ class QuizReviewScreen extends StatelessWidget {
 
   // Build UI từ API Review Data
   Widget _buildFromApiReview(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     int correctCount = 0;
     for (var answer in examReview!.answers) {
       final ans = answer as ExamAnswerReviewModel;
@@ -50,18 +52,18 @@ class QuizReviewScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Boxicons.bx_arrow_back, color: Colors.black),
+          icon: Icon(Boxicons.bx_arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Xem lại đáp án',
           style: TextStyle(
-            color: Colors.black,
+            color: colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -77,18 +79,20 @@ class QuizReviewScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
+                ),
               ),
               child: Column(
                 children: [
                   Text(
                     examReview!.examTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -97,26 +101,36 @@ class QuizReviewScreen extends StatelessWidget {
                     children: [
                       Column(
                         children: [
-                          const Text(
+                          Text(
                             'Tổng câu',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${totalQuestions ?? examReview!.answers.length}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                              color: colorScheme.primary,
                             ),
                           ),
                         ],
                       ),
                       Column(
                         children: [
-                          const Text(
+                          Text(
                             'Câu đúng',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -131,17 +145,22 @@ class QuizReviewScreen extends StatelessWidget {
                       ),
                       Column(
                         children: [
-                          const Text(
+                          Text(
                             'Câu sai',
-                            style: TextStyle(fontSize: 12, color: Colors.grey),
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: colorScheme.onSurface.withValues(
+                                alpha: 0.6,
+                              ),
+                            ),
                           ),
                           const SizedBox(height: 4),
                           Text(
                             '${(totalQuestions ?? examReview!.answers.length) - correctCount}',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: Colors.red,
+                              color: colorScheme.error,
                             ),
                           ),
                         ],
@@ -152,23 +171,29 @@ class QuizReviewScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.amber.shade100,
+                      color: Colors.amber.withValues(
+                        alpha: Theme.of(context).brightness == Brightness.dark
+                            ? 0.15
+                            : 0.2,
+                      ),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        const Icon(
+                        Icon(
                           Boxicons.bx_bolt_circle,
-                          color: Colors.amber,
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.amber.shade300
+                              : Colors.amber,
                         ),
                         const SizedBox(width: 8),
                         Text(
                           '${examReview!.score} điểm',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Colors.black87,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                       ],
@@ -221,7 +246,15 @@ class QuizReviewScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: isCorrect ? Colors.green : Colors.red,
+                                color: isCorrect
+                                    ? (Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.green.shade300
+                                          : Colors.green)
+                                    : (Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.red.shade300
+                                          : Colors.red),
                               ),
                             ),
                             const SizedBox(height: 4),
@@ -229,9 +262,11 @@ class QuizReviewScreen extends StatelessWidget {
                               answer.type == 'MULTIPLE_CHOICE'
                                   ? 'Trắc nghiệm'
                                   : 'Đúng/Sai',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 11,
-                                color: Colors.grey,
+                                color: colorScheme.onSurface.withValues(
+                                  alpha: 0.6,
+                                ),
                               ),
                             ),
                           ],
@@ -255,11 +290,20 @@ class QuizReviewScreen extends StatelessWidget {
                           padding: const EdgeInsets.all(6),
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: Colors.yellow.shade100,
+                            color: Colors.amber.withValues(
+                              alpha:
+                                  Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? 0.15
+                                  : 0.2,
+                            ),
                           ),
-                          child: const Icon(
+                          child: Icon(
                             Icons.star_border,
-                            color: Colors.amber,
+                            color:
+                                Theme.of(context).brightness == Brightness.dark
+                                ? Colors.amber.shade300
+                                : Colors.amber,
                           ),
                         ),
                       ),
@@ -271,10 +315,10 @@ class QuizReviewScreen extends StatelessWidget {
                   // Question text
                   Text(
                     answer.questionText,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+                      color: colorScheme.onSurface,
                     ),
                   ),
 
@@ -294,20 +338,36 @@ class QuizReviewScreen extends StatelessWidget {
                       final isStudentAnswer =
                           answer.selectedOptionId == option.id;
 
-                      Color backgroundColor = Colors.grey.shade100;
-                      Color borderColor = Colors.grey.shade300;
-                      Color textColor = Colors.black;
+                      Color backgroundColor = colorScheme
+                          .surfaceContainerHighest
+                          .withValues(alpha: 0.5);
+                      Color borderColor = colorScheme.outline.withValues(
+                        alpha: 0.5,
+                      );
+                      Color textColor = colorScheme.onSurface;
                       IconData? icon;
+                      final isDark =
+                          Theme.of(context).brightness == Brightness.dark;
 
                       if (isCorrectOption) {
-                        backgroundColor = Colors.green.shade100;
-                        borderColor = Colors.green;
-                        textColor = Colors.green.shade800;
+                        backgroundColor = isDark
+                            ? Colors.green.withValues(alpha: 0.2)
+                            : Colors.green.shade100;
+                        borderColor = isDark
+                            ? Colors.green.shade700
+                            : Colors.green;
+                        textColor = isDark
+                            ? Colors.green.shade300
+                            : Colors.green.shade800;
                         icon = Icons.check_circle;
                       } else if (isStudentAnswer && !isCorrect) {
-                        backgroundColor = Colors.red.shade100;
-                        borderColor = Colors.red;
-                        textColor = Colors.red.shade800;
+                        backgroundColor = isDark
+                            ? Colors.red.withValues(alpha: 0.2)
+                            : Colors.red.shade100;
+                        borderColor = isDark ? Colors.red.shade700 : Colors.red;
+                        textColor = isDark
+                            ? Colors.red.shade300
+                            : Colors.red.shade800;
                         icon = Icons.cancel;
                       }
 
@@ -333,7 +393,7 @@ class QuizReviewScreen extends StatelessWidget {
                               else
                                 Icon(
                                   Icons.circle_outlined,
-                                  color: Colors.grey.shade400,
+                                  color: colorScheme.outline,
                                   size: 20,
                                 ),
                               const SizedBox(width: 12),
@@ -356,7 +416,7 @@ class QuizReviewScreen extends StatelessWidget {
                   // Divider
                   if (index < examReview!.answers.length - 1)
                     Divider(
-                      color: Colors.grey.shade300,
+                      color: colorScheme.outline.withValues(alpha: 0.3),
                       thickness: 1,
                       height: 32,
                     ),
@@ -371,6 +431,8 @@ class QuizReviewScreen extends StatelessWidget {
 
   // Build UI từ Local Data (backward compatible)
   Widget _buildFromLocalData(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     int correctCount = 0;
     for (int i = 0; i < quizData!.length; i++) {
       if (answeredQuestions![i] == quizData![i]['correctAnswerIndex']) {
@@ -379,18 +441,18 @@ class QuizReviewScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Boxicons.bx_arrow_back, color: Colors.black),
+          icon: Icon(Boxicons.bx_arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Xem lại đáp án',
           style: TextStyle(
-            color: Colors.black,
+            color: colorScheme.onSurface,
             fontSize: 18,
             fontWeight: FontWeight.bold,
           ),
@@ -406,35 +468,43 @@ class QuizReviewScreen extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.blue.shade50,
+                color: colorScheme.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blue.shade200),
+                border: Border.all(
+                  color: colorScheme.primary.withValues(alpha: 0.3),
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   Column(
                     children: [
-                      const Text(
+                      Text(
                         'Tổng câu',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${quizData!.length}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: colorScheme.primary,
                         ),
                       ),
                     ],
                   ),
                   Column(
                     children: [
-                      const Text(
+                      Text(
                         'Câu đúng',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -449,17 +519,20 @@ class QuizReviewScreen extends StatelessWidget {
                   ),
                   Column(
                     children: [
-                      const Text(
+                      Text(
                         'Câu sai',
-                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         '${quizData!.length - correctCount}',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Colors.red,
+                          color: colorScheme.error,
                         ),
                       ),
                     ],
@@ -512,7 +585,15 @@ class QuizReviewScreen extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: isCorrect ? Colors.green : Colors.red,
+                                color: isCorrect
+                                    ? (Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.green.shade300
+                                          : Colors.green)
+                                    : (Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? Colors.red.shade300
+                                          : Colors.red),
                               ),
                             ),
                           ],
@@ -526,10 +607,10 @@ class QuizReviewScreen extends StatelessWidget {
                   // Question text
                   Text(
                     question['question'],
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w500,
-                      color: Colors.black87,
+                      color: colorScheme.onSurface,
                     ),
                   ),
 
@@ -545,18 +626,36 @@ class QuizReviewScreen extends StatelessWidget {
                         final isCorrectAnswer =
                             correctAnswerIndex == answerIndex;
 
-                        Color backgroundColor = Colors.grey.shade100;
-                        Color borderColor = Colors.grey.shade300;
-                        Color textColor = Colors.black;
+                        Color backgroundColor = colorScheme
+                            .surfaceContainerHighest
+                            .withValues(alpha: 0.5);
+                        Color borderColor = colorScheme.outline.withValues(
+                          alpha: 0.5,
+                        );
+                        Color textColor = colorScheme.onSurface;
+                        final isDark =
+                            Theme.of(context).brightness == Brightness.dark;
 
                         if (isCorrectAnswer) {
-                          backgroundColor = Colors.green.shade100;
-                          borderColor = Colors.green;
-                          textColor = Colors.green.shade800;
+                          backgroundColor = isDark
+                              ? Colors.green.withValues(alpha: 0.2)
+                              : Colors.green.shade100;
+                          borderColor = isDark
+                              ? Colors.green.shade700
+                              : Colors.green;
+                          textColor = isDark
+                              ? Colors.green.shade300
+                              : Colors.green.shade800;
                         } else if (isUserAnswer && !isCorrect) {
-                          backgroundColor = Colors.red.shade100;
-                          borderColor = Colors.red;
-                          textColor = Colors.red.shade800;
+                          backgroundColor = isDark
+                              ? Colors.red.withValues(alpha: 0.2)
+                              : Colors.red.shade100;
+                          borderColor = isDark
+                              ? Colors.red.shade700
+                              : Colors.red;
+                          textColor = isDark
+                              ? Colors.red.shade300
+                              : Colors.red.shade800;
                         }
 
                         return Padding(
@@ -585,7 +684,7 @@ class QuizReviewScreen extends StatelessWidget {
                                 else
                                   Icon(
                                     Icons.circle_outlined,
-                                    color: Colors.grey.shade400,
+                                    color: colorScheme.outline,
                                     size: 20,
                                   ),
                                 const SizedBox(width: 12),
@@ -611,7 +710,7 @@ class QuizReviewScreen extends StatelessWidget {
                   // Divider
                   if (index < quizData!.length - 1)
                     Divider(
-                      color: Colors.grey.shade300,
+                      color: colorScheme.outline.withValues(alpha: 0.3),
                       thickness: 1,
                       height: 32,
                     ),

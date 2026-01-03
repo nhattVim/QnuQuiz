@@ -53,14 +53,16 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (isLoading) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: colorScheme.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -70,12 +72,12 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
     if (errorMessage != null) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: colorScheme.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -83,12 +85,12 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, color: Colors.red, size: 48),
+              Icon(Icons.error_outline, color: colorScheme.error, size: 48),
               const SizedBox(height: 16),
               Text(
                 'Lỗi: $errorMessage',
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.red),
+                style: TextStyle(color: colorScheme.error),
               ),
             ],
           ),
@@ -98,29 +100,32 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
     if (quizData.isEmpty) {
       return Scaffold(
-        backgroundColor: Colors.white,
+        backgroundColor: colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: Colors.white,
+          backgroundColor: colorScheme.surface,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
             onPressed: () => Navigator.pop(context),
           ),
         ),
-        body: const Center(child: Text('Không có câu hỏi')),
+        body: Center(
+          child: Text(
+            'Không có câu hỏi',
+            style: TextStyle(color: colorScheme.onSurface),
+          ),
+        ),
       );
     }
 
     final currentQuestion = quizData[currentQuestionIndex];
     final options = currentQuestion.options;
     final correctOptionIndex = options != null && options.isNotEmpty
-        ? options.indexWhere(
-            (option) => option.correct,
-          )
+        ? options.indexWhere((option) => option.correct)
         : -1;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: QuizHeader(
@@ -139,93 +144,99 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         ),
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                child: QuizProgress(
-                  currentQuestion: currentQuestionIndex + 1,
-                  totalQuestions: quizData.length,
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: QuizQuestion(
-                  questionText: currentQuestion.content ?? '',
-                  imageUrl: currentQuestion.mediaUrl,
-                  mediaFiles: currentQuestion.mediaFiles,
-                ),
-              ),
-
-              const SizedBox(height: 16),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: options != null && options.isNotEmpty
-                    ? QuizAnswerOptions(
-                        answers: options
-                            .map((o) => o.content)
-                            .toList(),
-                        selectedAnswerIndex: selectedAnswerIndex,
-                        correctAnswerIndex: correctOptionIndex,
-                        answered: false,
-                        onSelectAnswer: _selectAnswer,
-                      )
-                    : const Center(
-                        child: Text('Không có đáp án cho câu hỏi này'),
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
                       ),
-              ),
-
-              const SizedBox(height: 16),
-
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: ElevatedButton(
-                    onPressed: (!_isTimeUp && selectedAnswerIndex != -1)
-                        ? () {
-                            if (_areAllQuestionsAnswered()) {
-                              _handleCompleteQuiz();
-                            } else {
-                              _nextQuestion();
-                            }
-                          }
-                        : null,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: (!_isTimeUp && selectedAnswerIndex != -1)
-                          ? Colors.blue
-                          : Colors.grey.shade300,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                      child: QuizProgress(
+                        currentQuestion: currentQuestionIndex + 1,
+                        totalQuestions: quizData.length,
                       ),
-                      disabledBackgroundColor: Colors.grey.shade300,
                     ),
-                    child: Text(
-                      _isTimeUp
-                          ? 'Hết thời gian'
-                          : (_areAllQuestionsAnswered()
-                                ? 'Hoàn thành'
-                                : 'Tiếp tục'),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+
+                    const SizedBox(height: 16),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: QuizQuestion(
+                        questionText: currentQuestion.content ?? '',
+                        imageUrl: currentQuestion.mediaUrl,
+                        mediaFiles: currentQuestion.mediaFiles,
                       ),
+                    ),
+
+                    const SizedBox(height: 16),
+
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: options != null && options.isNotEmpty
+                          ? QuizAnswerOptions(
+                              answers: options.map((o) => o.content).toList(),
+                              selectedAnswerIndex: selectedAnswerIndex,
+                              correctAnswerIndex: correctOptionIndex,
+                              answered: false,
+                              onSelectAnswer: _selectAnswer,
+                            )
+                          : const Center(
+                              child: Text('Không có đáp án cho câu hỏi này'),
+                            ),
+                    ),
+
+                    const SizedBox(height: 16),
+                  ],
+                ),
+              ),
+            ),
+
+            // Button fixed at bottom
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: (!_isTimeUp && selectedAnswerIndex != -1)
+                      ? () {
+                          if (_areAllQuestionsAnswered()) {
+                            _handleCompleteQuiz();
+                          } else {
+                            _nextQuestion();
+                          }
+                        }
+                      : null,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: (!_isTimeUp && selectedAnswerIndex != -1)
+                        ? colorScheme.primary
+                        : colorScheme.surfaceContainerHighest,
+                    foregroundColor: colorScheme.onPrimary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    disabledBackgroundColor:
+                        colorScheme.surfaceContainerHighest,
+                  ),
+                  child: Text(
+                    _isTimeUp
+                        ? 'Hết thời gian'
+                        : (_areAllQuestionsAnswered()
+                              ? 'Hoàn thành'
+                              : 'Tiếp tục'),
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
@@ -337,9 +348,17 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
     setState(() {
       currentQuestionIndex = prefs.getInt('${key}_currentQuestionIndex') ?? 0;
 
-      _remainingSeconds =
-          prefs.getInt('${key}_remainingSeconds') ??
-          (widget.durationMinutes! * 60);
+      // Load remaining seconds từ SharedPreferences
+      // Nếu không có hoặc = 0, dùng thời gian mặc định từ exam
+      final savedRemainingSeconds = prefs.getInt('${key}_remainingSeconds');
+      if (savedRemainingSeconds != null && savedRemainingSeconds > 0) {
+        _remainingSeconds = savedRemainingSeconds;
+      } else if (widget.durationMinutes != null &&
+          widget.durationMinutes! > 0) {
+        _remainingSeconds = widget.durationMinutes! * 60;
+      } else {
+        _remainingSeconds = 0; // Không giới hạn thời gian
+      }
 
       if (savedAnswers != null) {
         answeredQuestions = savedAnswers
@@ -454,8 +473,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
               }
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
             child: const Text('Nộp bài'),
           ),
@@ -530,8 +549,8 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
               _autoSubmitExam();
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.blue,
-              foregroundColor: Colors.white,
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              foregroundColor: Theme.of(context).colorScheme.onPrimary,
             ),
             child: const Text('Nộp bài ngay'),
           ),

@@ -18,6 +18,7 @@ class CategoryItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -28,10 +29,12 @@ class CategoryItem extends StatelessWidget {
               width: 80,
               height: 80,
               decoration: BoxDecoration(
-                color: Colors.grey.shade200,
+                color: colorScheme.surfaceContainerHighest.withValues(
+                  alpha: 0.5,
+                ),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.folder, size: 40, color: Colors.blue),
+              child: Icon(Icons.folder, size: 40, color: colorScheme.primary),
             ),
 
             const SizedBox(width: 12),
@@ -44,9 +47,10 @@ class CategoryItem extends StatelessWidget {
                     title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
+                      color: colorScheme.onSurface,
                     ),
                   ),
 
@@ -54,24 +58,28 @@ class CategoryItem extends StatelessWidget {
 
                   Text(
                     subtitle,
-                    style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: colorScheme.onSurface.withValues(alpha: 0.5),
+                    ),
                   ),
 
                   const SizedBox(height: 8),
 
                   Row(
                     children: [
-                      const Icon(
+                      Icon(
                         Icons.book_outlined,
                         size: 16,
-                        color: Colors.blue,
+                        color: colorScheme.primary,
                       ),
                       const SizedBox(width: 6),
                       Text(
                         '$examCount kỳ thi',
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
+                          color: colorScheme.onSurface,
                         ),
                       ),
                     ],

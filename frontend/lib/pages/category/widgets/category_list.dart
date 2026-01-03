@@ -10,8 +10,15 @@ class CategoryList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     if (categories.isEmpty) {
-      return const Center(child: Text("Không tìm thấy chủ đề"));
+      return Center(
+        child: Text(
+          "Không tìm thấy chủ đề",
+          style: TextStyle(color: colorScheme.onSurface.withValues(alpha: 0.6)),
+        ),
+      );
     }
 
     return Padding(
@@ -39,7 +46,10 @@ class CategoryList extends StatelessWidget {
                 },
               ),
               if (index < categories.length - 1)
-                Divider(height: 16, color: Colors.grey.shade200),
+                Divider(
+                  height: 16,
+                  color: colorScheme.outline.withValues(alpha: 0.2),
+                ),
             ],
           );
         },

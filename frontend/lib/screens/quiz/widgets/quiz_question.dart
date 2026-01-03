@@ -23,6 +23,7 @@ class _QuizQuestionState extends State<QuizQuestion> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
     final mediaList = widget.mediaFiles ?? [];
     final hasMedia = mediaList.isNotEmpty || widget.imageUrl != null;
     final hasMultipleMedia = mediaList.length > 1;
@@ -32,10 +33,11 @@ class _QuizQuestionState extends State<QuizQuestion> {
       children: [
         Text(
           widget.questionText,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
             height: 1.5,
+            color: colorScheme.onSurface,
           ),
         ),
 
@@ -49,7 +51,7 @@ class _QuizQuestionState extends State<QuizQuestion> {
             height: 200,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(12),
-              color: Colors.grey.shade100,
+              color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
             ),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(12),
@@ -68,7 +70,10 @@ class _QuizQuestionState extends State<QuizQuestion> {
     );
   }
 
-  Widget _buildMediaCarousel(List<MediaFileModel> mediaList, bool hasMultipleMedia) {
+  Widget _buildMediaCarousel(
+    List<MediaFileModel> mediaList,
+    bool hasMultipleMedia,
+  ) {
     return Stack(
       children: [
         MediaViewer(
@@ -76,7 +81,7 @@ class _QuizQuestionState extends State<QuizQuestion> {
           width: double.infinity,
           height: 200,
         ),
-        
+
         if (hasMultipleMedia)
           Positioned.fill(
             child: Row(
@@ -108,7 +113,7 @@ class _QuizQuestionState extends State<QuizQuestion> {
                   )
                 else
                   const SizedBox(width: 40),
-                
+
                 if (_currentMediaIndex < mediaList.length - 1)
                   Material(
                     color: Colors.transparent,
@@ -138,7 +143,7 @@ class _QuizQuestionState extends State<QuizQuestion> {
               ],
             ),
           ),
-        
+
         if (hasMultipleMedia)
           Positioned(
             bottom: 8,
@@ -167,21 +172,16 @@ class _QuizQuestionState extends State<QuizQuestion> {
   }
 
   Widget _buildDefaultImage() {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Container(
       width: double.infinity,
       height: 200,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.blue.shade50,
-            Colors.purple.shade50,
-          ],
-        ),
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.grey.shade200,
+          color: colorScheme.outline.withValues(alpha: 0.2),
           width: 1,
         ),
       ),
@@ -192,13 +192,13 @@ class _QuizQuestionState extends State<QuizQuestion> {
             Icon(
               Icons.quiz_outlined,
               size: 64,
-              color: Colors.blue.shade300,
+              color: colorScheme.primary.withValues(alpha: 0.5),
             ),
             const SizedBox(height: 8),
             Text(
               'Câu hỏi không có media',
               style: TextStyle(
-                color: Colors.grey.shade600,
+                color: colorScheme.onSurface.withValues(alpha: 0.6),
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
