@@ -34,18 +34,16 @@ void main() {
     );
 
     group('S6.1 - getAnnouncements', () {
-      test('returns list of announcements on success', () async {
+      test('returns list of announcements on success (STUDENT)', () async {
         when(() => mockDio.get(any())).thenAnswer(
           (_) async => Response(
             requestOptions: RequestOptions(path: ''),
-            data: {
-              'examAnnouncements': [announcementModel.toJson()],
-            },
+            data: [announcementModel.toJson()],
             statusCode: 200,
           ),
         );
 
-        final result = await announcementService.getAnnouncements();
+        final result = await announcementService.getAnnouncements(role: 'STUDENT');
 
         expect(result, isA<List<AnnouncementModel>>());
         expect(result.length, 1);
@@ -53,24 +51,22 @@ void main() {
         expect(result[0].content, announcementModel.content);
       });
 
-      test('returns empty list when no announcements', () async {
+      test('returns empty list when no announcements (STUDENT)', () async {
         when(() => mockDio.get(any())).thenAnswer(
           (_) async => Response(
             requestOptions: RequestOptions(path: ''),
-            data: {
-              'examAnnouncements': [],
-            },
+            data: [],
             statusCode: 200,
           ),
         );
 
-        final result = await announcementService.getAnnouncements();
+        final result = await announcementService.getAnnouncements(role: 'STUDENT');
 
         expect(result, isA<List<AnnouncementModel>>());
         expect(result.length, 0);
       });
 
-      test('returns empty list when data does not contain examAnnouncements', () async {
+      test('returns empty list when data is not a list (STUDENT)', () async {
         when(() => mockDio.get(any())).thenAnswer(
           (_) async => Response(
             requestOptions: RequestOptions(path: ''),
@@ -79,7 +75,7 @@ void main() {
           ),
         );
 
-        final result = await announcementService.getAnnouncements();
+        final result = await announcementService.getAnnouncements(role: 'STUDENT');
 
         expect(result, isA<List<AnnouncementModel>>());
         expect(result.length, 0);
@@ -97,7 +93,7 @@ void main() {
           ),
         );
 
-        expect(() => announcementService.getAnnouncements(), throwsException);
+        expect(() => announcementService.getAnnouncements(role: 'STUDENT'), throwsException);
       });
     });
 
