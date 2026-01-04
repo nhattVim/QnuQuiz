@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_boxicons/flutter_boxicons.dart';
+import 'package:frontend/pages/notification_page.dart';
 
 class GreetingSection extends StatelessWidget {
   final String username;
@@ -107,7 +108,14 @@ class GreetingSection extends StatelessWidget {
               ),
               child: IconButton(
                 icon: const Icon(Boxicons.bx_bell, size: 20),
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationPage(),
+                    ),
+                  );
+                },
               ),
             ),
           ],
