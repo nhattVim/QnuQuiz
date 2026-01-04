@@ -3,6 +3,7 @@ package com.example.qnuquiz.service.impl;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -18,10 +19,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.qnuquiz.dto.announcement.AnnouncementDto;
 import com.example.qnuquiz.dto.student.ExamAnswerHistoryDto;
 import com.example.qnuquiz.dto.student.ExamHistoryDto;
 import com.example.qnuquiz.dto.student.StudentDto;
 import com.example.qnuquiz.dto.user.ChangePasswordRequest;
+import com.example.qnuquiz.entity.Announcements;
 import com.example.qnuquiz.entity.Classes;
 import com.example.qnuquiz.entity.Departments;
 import com.example.qnuquiz.entity.ExamAnswers;
@@ -29,6 +32,7 @@ import com.example.qnuquiz.entity.ExamAttempts;
 import com.example.qnuquiz.entity.Students;
 import com.example.qnuquiz.entity.Users;
 import com.example.qnuquiz.mapper.StudentMapper;
+import com.example.qnuquiz.repository.AnnouncementRepository;
 import com.example.qnuquiz.repository.ClassesRepository;
 import com.example.qnuquiz.repository.DepartmentRepository;
 import com.example.qnuquiz.repository.ExamAnswerRepository;
@@ -51,6 +55,7 @@ public class StudentServiceImpl implements StudentService {
     private final ClassesRepository classesRepository;
     private final ExamAttemptRepository examAttemptRepository;
     private final ExamAnswerRepository examAnswerRepository;
+    private final AnnouncementRepository announcementRepository;
     private final PasswordEncoder passwordEncoder;
 
     @Override
@@ -212,6 +217,69 @@ public class StudentServiceImpl implements StudentService {
             builder.answers(answerDtos);
 
             return builder.build();
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AnnouncementDto> getAnnouncementsForCurrentStudent() {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new RuntimeException("Không xác định được người dùng hiện tại");
+        }
+
+        Users user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (!"STUDENT".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Chỉ sinh viên mới có thể xem thông báo");
+        }
+
+        Students student = studentRepository.findByUsers(user)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin sinh viên"));
+
+        List<Announcements> allAnnouncements = new ArrayList<>();
+
+        // Lấy thông báo cho tất cả (ALL)
+        allAnnouncements.addAll(announcementRepository.findAllForAll());
+
+        // Lấy thông báo cho khoa của sinh viên
+        if (student.getDepartments() != null) {
+            allAnnouncements.addAll(announcementRepository.findByDepartmentId(student.getDepartments().getId()));
+        }
+
+        // Lấy thông báo cho lớp của sinh viên
+        if (student.getClasses() != null) {
+            allAnnouncements.addAll(announcementRepository.findByClassId(student.getClasses().getId()));
+        }
+
+        // Loại bỏ trùng lặp (theo ID) và sắp xếp theo thời gian
+        List<Announcements> uniqueAnnouncements = allAnnouncements.stream()
+                .collect(Collectors.toMap(
+                    Announcements::getId,
+                    announcement -> announcement,
+                    (existing, replacement) -> existing
+                ))
+                .values()
+                .stream()
+                .sorted((a, b) -> b.getPublishedAt().compareTo(a.getPublishedAt()))
+                .collect(Collectors.toList());
+
+        // Map to DTO
+        return uniqueAnnouncements.stream().map(announcement -> {
+            return AnnouncementDto.builder()
+                    .id(announcement.getId())
+                    .title(announcement.getTitle())
+                    .content(announcement.getContent())
+                    .target(announcement.getTarget())
+                    .classId(announcement.getClasses() != null ? announcement.getClasses().getId() : null)
+                    .className(announcement.getClasses() != null ? announcement.getClasses().getName() : null)
+                    .departmentId(announcement.getDepartments() != null ? announcement.getDepartments().getId() : null)
+                    .departmentName(announcement.getDepartments() != null ? announcement.getDepartments().getName() : null)
+                    .authorName(announcement.getUsers() != null ? announcement.getUsers().getFullName() : null)
+                    .publishedAt(announcement.getPublishedAt())
+                    .createdAt(announcement.getCreatedAt())
+                    .build();
         }).collect(Collectors.toList());
     }
     

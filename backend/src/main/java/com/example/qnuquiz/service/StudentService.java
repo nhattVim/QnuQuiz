@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.qnuquiz.dto.announcement.AnnouncementDto;
 import com.example.qnuquiz.dto.student.ExamHistoryDto;
 import com.example.qnuquiz.dto.student.StudentDto;
 import com.example.qnuquiz.dto.user.ChangePasswordRequest;
@@ -17,6 +18,8 @@ public interface StudentService {
     void changePassword(ChangePasswordRequest request);
 
     List<ExamHistoryDto> getExamHistory();
+
+    List<AnnouncementDto> getAnnouncementsForCurrentStudent();
 
     /**
      * Import students from an Excel file (.xlsx).

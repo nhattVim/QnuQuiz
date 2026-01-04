@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.example.qnuquiz.dto.announcement.AnnouncementDto;
 import com.example.qnuquiz.dto.student.ExamHistoryDto;
 import com.example.qnuquiz.dto.student.StudentDto;
 import com.example.qnuquiz.dto.user.ChangePasswordRequest;
@@ -54,6 +55,12 @@ public class StudentController {
     @PreAuthorize("hasRole('STUDENT')")
     public ResponseEntity<List<ExamHistoryDto>> getExamHistory() {
         return ResponseEntity.ok(studentService.getExamHistory());
+    }
+
+    @GetMapping("/me/announcements")
+    @PreAuthorize("hasRole('STUDENT')")
+    public ResponseEntity<List<AnnouncementDto>> getAnnouncements() {
+        return ResponseEntity.ok(studentService.getAnnouncementsForCurrentStudent());
     }
 
     @PostMapping("/import")
