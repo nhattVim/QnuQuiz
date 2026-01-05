@@ -141,7 +141,7 @@ class DashboardPage extends ConsumerWidget {
                 ),
                 const SizedBox(height: 16),
                 const Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 8),
+                  padding: EdgeInsets.symmetric(horizontal: 0),
                   child: ActionCard(),
                 ),
                 const SizedBox(height: 16),

@@ -167,10 +167,15 @@ class ExamCard extends StatelessWidget {
           ),
           // Absolute positioned menu button
           Positioned(
-            top: -8,
+            top: -14,
             right: -8,
             child: PopupMenuButton<String>(
               padding: EdgeInsets.zero,
+              position: PopupMenuPosition.under,
+              offset: const Offset(0, 4),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
               icon: Icon(Icons.more_horiz, color: colorScheme.onSurface),
               onSelected: (value) {
                 if (value == 'ranking') {
