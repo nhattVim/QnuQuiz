@@ -5,13 +5,15 @@ import 'package:frontend/models/feedbacks/feedback_template_model.dart';
 import 'package:frontend/providers/service_providers.dart';
 
 class FeedbackScreen extends ConsumerStatefulWidget {
-  final int examId;
+  final int? examId;
   final String examTitle;
+  final int? questionId;
 
   const FeedbackScreen({
     super.key,
-    required this.examId,
+    this.examId,
     required this.examTitle,
+    this.questionId,
   });
 
   @override
@@ -73,7 +75,7 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
           commentController.text = template.content;
         } else {
           commentController.text =
-              '${commentController.text}\n\n${template.content}';
+              '${commentController.text}\n${template.content}';
         }
       }
     });
@@ -107,9 +109,10 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
     });
 
     try {
-      // Tạo model feedback
+      // Tạo model feedback với questionId nếu có
       final createFeedbackModel = CreateFeedbackModel(
         examId: widget.examId,
+        questionId: widget.questionId,
         rating: rating,
         content: commentController.text.trim(),
       );
@@ -149,8 +152,10 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -160,21 +165,23 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  const Text(
-                    'Đánh giá bài kiểm tra',
+                  Text(
+                    widget.questionId != null
+                        ? 'Đánh giá chi tiết câu hỏi'
+                        : 'Đánh giá bài kiểm tra',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.black,
+                      color: colorScheme.onSurface,
                     ),
                   ),
                   Align(
                     alignment: Alignment.centerLeft,
                     child: GestureDetector(
                       onTap: () => Navigator.of(context).pop(),
-                      child: const Icon(
+                      child: Icon(
                         Icons.arrow_back,
-                        color: Colors.black,
+                        color: colorScheme.onSurface,
                         size: 28,
                       ),
                     ),
@@ -191,12 +198,12 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                     const SizedBox(height: 16),
 
                     // Rating section
-                    const Text(
+                    Text(
                       'Trải nghiệm của bạn:',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -217,7 +224,9 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                                   size: 32,
                                   color: index < rating
                                       ? Colors.amber
-                                      : Colors.grey.shade300,
+                                      : colorScheme.outline.withValues(
+                                          alpha: 0.5,
+                                        ),
                                 ),
                               ),
                             );
@@ -226,10 +235,10 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                         const SizedBox(width: 12),
                         Text(
                           '$rating/5 sao',
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Colors.black,
+                            color: colorScheme.onSurface,
                           ),
                         ),
                       ],
@@ -237,12 +246,12 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                     const SizedBox(height: 24),
 
                     // Feedback tags section
-                    const Text(
+                    Text(
                       'Mẫu trả lời nhanh:',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -267,20 +276,22 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                                   ),
                                   decoration: BoxDecoration(
                                     border: Border.all(
-                                      color: Colors.blue,
+                                      color: colorScheme.primary,
                                       width: 2,
                                     ),
                                     borderRadius: BorderRadius.circular(20),
                                     color: isSelected
-                                        ? Colors.blue.withValues(alpha: 0.2)
+                                        ? colorScheme.primary.withValues(
+                                            alpha: 0.2,
+                                          )
                                         : Colors.transparent,
                                   ),
                                   child: Text(
                                     template.label,
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontSize: 13,
                                       fontWeight: FontWeight.w500,
-                                      color: Colors.blue,
+                                      color: colorScheme.primary,
                                     ),
                                   ),
                                 ),
@@ -290,12 +301,12 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                     const SizedBox(height: 24),
 
                     // Comment section
-                    const Text(
+                    Text(
                       'Bình luận',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
-                        color: Colors.black,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -303,23 +314,34 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                       controller: commentController,
                       maxLines: 6,
                       enabled: !_isSubmitting,
+                      style: TextStyle(color: colorScheme.onSurface),
                       decoration: InputDecoration(
                         hintText: 'Hãy chia sẻ nhận xét của bạn!',
                         hintStyle: TextStyle(
-                          color: Colors.grey.shade400,
+                          color: colorScheme.onSurface.withValues(alpha: 0.5),
                           fontSize: 14,
                         ),
+                        filled: true,
+                        fillColor: colorScheme.surfaceContainerHighest
+                            .withValues(alpha: 0.3),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
                           borderSide: BorderSide(
-                            color: Colors.grey.shade100,
+                            color: colorScheme.outline.withValues(alpha: 0.3),
+                            width: 1,
+                          ),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                          borderSide: BorderSide(
+                            color: colorScheme.outline.withValues(alpha: 0.3),
                             width: 1,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(8),
-                          borderSide: const BorderSide(
-                            color: Colors.blue,
+                          borderSide: BorderSide(
+                            color: colorScheme.primary,
                             width: 2,
                           ),
                         ),
@@ -341,20 +363,20 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
                 child: ElevatedButton(
                   onPressed: _isSubmitting ? null : submitFeedback,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue,
-                    foregroundColor: Colors.white,
+                    backgroundColor: colorScheme.primary,
+                    foregroundColor: colorScheme.onPrimary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
                   ),
                   child: _isSubmitting
-                      ? const SizedBox(
+                      ? SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              Colors.white,
+                              colorScheme.onPrimary,
                             ),
                           ),
                         )

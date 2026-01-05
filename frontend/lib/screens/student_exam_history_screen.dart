@@ -20,19 +20,21 @@ class _StudentExamHistoryScreenState
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           'Lịch sử làm bài thi',
           style: TextStyle(
-            color: Colors.black,
+            color: colorScheme.onSurface,
             fontWeight: FontWeight.bold,
             fontSize: 20,
           ),
@@ -56,14 +58,18 @@ class _StudentExamHistoryScreenState
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+                    Icon(
+                      Icons.error_outline,
+                      size: 64,
+                      color: colorScheme.error.withValues(alpha: 0.7),
+                    ),
                     SizedBox(height: 16.h),
                     Text(
                       'Lỗi tải dữ liệu',
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey[700],
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                     SizedBox(height: 8.h),
@@ -72,7 +78,7 @@ class _StudentExamHistoryScreenState
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: Colors.grey[600],
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                     SizedBox(height: 24.h),
@@ -81,8 +87,8 @@ class _StudentExamHistoryScreenState
                       icon: const Icon(Icons.refresh),
                       label: const Text('Thử lại'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
                         padding: EdgeInsets.symmetric(
                           horizontal: 24.w,
                           vertical: 12.h,
@@ -105,7 +111,7 @@ class _StudentExamHistoryScreenState
                     Icon(
                       Icons.assignment_outlined,
                       size: 80,
-                      color: Colors.grey[400],
+                      color: colorScheme.onSurface.withValues(alpha: 0.4),
                     ),
                     SizedBox(height: 16.h),
                     Text(
@@ -113,7 +119,7 @@ class _StudentExamHistoryScreenState
                       style: TextStyle(
                         fontSize: 18.sp,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey[700],
+                        color: colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                     SizedBox(height: 8.h),
@@ -121,7 +127,7 @@ class _StudentExamHistoryScreenState
                       'Bạn chưa hoàn thành bài thi nào',
                       style: TextStyle(
                         fontSize: 14.sp,
-                        color: Colors.grey[600],
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                     ),
                   ],
@@ -137,7 +143,7 @@ class _StudentExamHistoryScreenState
               separatorBuilder: (_, _) => SizedBox(height: 12.h),
               itemBuilder: (context, index) {
                 final history = historyList[index];
-                return _buildHistoryCard(history);
+                return _buildHistoryCard(history, colorScheme);
               },
             );
           },
@@ -152,7 +158,7 @@ class _StudentExamHistoryScreenState
     _loadHistory();
   }
 
-  Widget _buildHistoryCard(ExamHistoryModel history) {
+  Widget _buildHistoryCard(ExamHistoryModel history, ColorScheme colorScheme) {
     final score = history.score;
     final scoreColor = _getScoreColor(score);
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
@@ -162,6 +168,7 @@ class _StudentExamHistoryScreenState
 
     return Card(
       elevation: 2,
+      color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: InkWell(
         onTap: () => _handleReviewExam(context, history.attemptId),
@@ -172,7 +179,7 @@ class _StudentExamHistoryScreenState
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [Colors.white, scoreColor.withValues(alpha: 0.05)],
+              colors: [colorScheme.surface, scoreColor.withValues(alpha: 0.05)],
             ),
           ),
           child: Padding(
@@ -189,7 +196,7 @@ class _StudentExamHistoryScreenState
                         style: TextStyle(
                           fontSize: 18.sp,
                           fontWeight: FontWeight.bold,
-                          color: Colors.grey[900],
+                          color: colorScheme.onSurface,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
@@ -212,6 +219,7 @@ class _StudentExamHistoryScreenState
                             : 'Chưa chấm',
                         valueColor: scoreColor,
                         iconColor: scoreColor,
+                        colorScheme: colorScheme,
                       ),
                     ),
                     SizedBox(width: 12.w),
@@ -221,8 +229,9 @@ class _StudentExamHistoryScreenState
                         icon: Icons.timer,
                         label: 'Thời gian',
                         value: durationText,
-                        valueColor: Colors.blue,
-                        iconColor: Colors.blue,
+                        valueColor: colorScheme.primary,
+                        iconColor: colorScheme.primary,
+                        colorScheme: colorScheme,
                       ),
                     ),
                   ],
@@ -236,14 +245,14 @@ class _StudentExamHistoryScreenState
                       Icon(
                         Icons.calendar_today,
                         size: 16.sp,
-                        color: Colors.grey[600],
+                        color: colorScheme.onSurface.withValues(alpha: 0.6),
                       ),
                       SizedBox(width: 8.w),
                       Text(
                         'Hoàn thành: ${dateFormat.format(history.completionDate!)}',
                         style: TextStyle(
                           fontSize: 13.sp,
-                          color: Colors.grey[600],
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -262,11 +271,12 @@ class _StudentExamHistoryScreenState
     required String value,
     required Color valueColor,
     required Color iconColor,
+    required ColorScheme colorScheme,
   }) {
     return Container(
       padding: EdgeInsets.all(12.w),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: iconColor.withValues(alpha: 0.2), width: 1),
       ),
@@ -281,7 +291,7 @@ class _StudentExamHistoryScreenState
                 label,
                 style: TextStyle(
                   fontSize: 12.sp,
-                  color: Colors.grey[600],
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
                   fontWeight: FontWeight.w500,
                 ),
               ),

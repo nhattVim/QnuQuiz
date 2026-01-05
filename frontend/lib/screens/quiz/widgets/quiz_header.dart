@@ -38,16 +38,23 @@ class _QuizHeaderState extends State<QuizHeader> {
   }
 
   void _showQuestionSelector(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     showModalBottomSheet(
       context: context,
+      backgroundColor: colorScheme.surface,
       builder: (context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Chọn câu hỏi',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: colorScheme.onSurface,
+              ),
             ),
             const SizedBox(height: 12),
             Expanded(
@@ -65,14 +72,14 @@ class _QuizHeaderState extends State<QuizHeader> {
                   final isAnswered =
                       widget.answeredQuestions != null &&
                       widget.answeredQuestions![index] != null;
-                  Color bgColor = Colors.grey.shade200;
-                  Color textColor = Colors.black;
+                  Color bgColor = colorScheme.surfaceContainerHighest;
+                  Color textColor = colorScheme.onSurface;
                   if (isCurrentQuestion) {
-                    bgColor = Colors.blue;
-                    textColor = Colors.white;
+                    bgColor = colorScheme.primary;
+                    textColor = colorScheme.onPrimary;
                   } else if (!isAnswered) {
-                    bgColor = Colors.amber.shade200;
-                    textColor = Colors.black87;
+                    bgColor = Colors.amber.withValues(alpha: 0.3);
+                    textColor = colorScheme.onSurface;
                   }
                   return GestureDetector(
                     onTap: () {
@@ -84,7 +91,7 @@ class _QuizHeaderState extends State<QuizHeader> {
                         color: bgColor,
                         borderRadius: BorderRadius.circular(8),
                         border: isCurrentQuestion
-                            ? Border.all(color: Colors.blue, width: 2)
+                            ? Border.all(color: colorScheme.primary, width: 2)
                             : null,
                       ),
                       child: Center(
@@ -109,11 +116,13 @@ class _QuizHeaderState extends State<QuizHeader> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return AppBar(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Boxicons.bx_arrow_back, color: Colors.black),
+        icon: Icon(Boxicons.bx_arrow_back, color: colorScheme.onSurface),
         onPressed: widget.onBackPressed,
       ),
       title: GestureDetector(
@@ -123,14 +132,18 @@ class _QuizHeaderState extends State<QuizHeader> {
           children: [
             Text(
               'Quiz ${widget.currentQuestion}',
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: Colors.black,
+                color: colorScheme.onSurface,
               ),
             ),
             const SizedBox(width: 4),
-            const Icon(Boxicons.bx_chevron_down, size: 20, color: Colors.black),
+            Icon(
+              Boxicons.bx_chevron_down,
+              size: 20,
+              color: colorScheme.onSurface,
+            ),
           ],
         ),
       ),
@@ -146,17 +159,21 @@ class _QuizHeaderState extends State<QuizHeader> {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: Colors.blue,
+                  color: colorScheme.primary,
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.schedule, color: Colors.white, size: 18),
+                    Icon(
+                      Icons.schedule,
+                      color: colorScheme.onPrimary,
+                      size: 18,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       formattedTime,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: colorScheme.onPrimary,
                         fontSize: 14,
                         fontWeight: FontWeight.bold,
                       ),

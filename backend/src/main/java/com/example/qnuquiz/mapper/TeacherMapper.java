@@ -16,6 +16,7 @@ public interface TeacherMapper {
     @Mapping(source = "users.fullName", target = "fullName")
     @Mapping(source = "users.email", target = "email")
     @Mapping(source = "users.phoneNumber", target = "phoneNumber")
+    @Mapping(source = "users.avatarUrl", target = "avatarUrl")
     @Mapping(source = "departments.id", target = "departmentId")
     TeacherDto toDto(Teachers teacher);
 

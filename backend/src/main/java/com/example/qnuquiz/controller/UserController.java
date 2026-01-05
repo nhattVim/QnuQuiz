@@ -1,5 +1,6 @@
 package com.example.qnuquiz.controller;
 
+import com.example.qnuquiz.dto.user.ChangePasswordRequest;
 import com.example.qnuquiz.dto.user.UserDto;
 import com.example.qnuquiz.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @EnableMethodSecurity
@@ -48,5 +50,18 @@ public class UserController {
     @GetMapping("/me")
     public ResponseEntity<Object> getCurrentUser() {
         return ResponseEntity.ok(userService.getCurrentUserProfile());
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/me/profile")
+    public ResponseEntity<UserDto> updateCurrentUserProfile(@RequestBody UserDto userDto) {
+        return ResponseEntity.ok(userService.updateCurrentUserProfile(userDto));
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/me/password")
+    public ResponseEntity<Map<String, String>> changePassword(@RequestBody ChangePasswordRequest request) {
+        userService.changePassword(request);
+        return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công"));
     }
 }

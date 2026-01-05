@@ -7,11 +7,14 @@ import 'package:frontend/screens/quiz/quiz_screen.dart';
 import 'package:frontend/screens/quiz/quiz_review_screen.dart';
 import 'package:frontend/screens/student_exam_history_screen.dart';
 import 'package:frontend/providers/service_providers.dart'; // Import service providers
+import 'package:frontend/utils/vietnamese_helper.dart';
 
-class ExamListScreen extends ConsumerStatefulWidget { // Changed to ConsumerStatefulWidget
-  final int categoryId;
+class ExamListScreen extends ConsumerStatefulWidget {
+  // Changed to ConsumerStatefulWidget
+  final int? categoryId; // Made optional
+  final String? searchQuery; // Query tìm kiếm
 
-  const ExamListScreen({super.key, required this.categoryId});
+  const ExamListScreen({super.key, this.categoryId, this.searchQuery});
 
   @override
   ConsumerState<ExamListScreen> createState() => _ExamListScreenState();
@@ -29,16 +32,43 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
     _loadExams();
   }
 
-  void _loadExams() {
-    final examService = ref.read(examServiceProvider); // Get service from provider
+  void _loadExams() async {
+    final examService = ref.read(
+      examServiceProvider,
+    ); // Get service from provider
+
     setState(() {
-      futureExams = examService.getExamsByCategory(widget.categoryId);
+      // Nếu có searchQuery, lấy tất cả và filter
+      if (widget.searchQuery != null && widget.searchQuery!.isNotEmpty) {
+        futureExams = examService.getAllExams().then((exams) {
+          return exams.where((exam) {
+            return VietnameseHelper.containsIgnoreTones(
+                  exam.title,
+                  widget.searchQuery!,
+                ) ||
+                VietnameseHelper.containsIgnoreTones(
+                  exam.description,
+                  widget.searchQuery!,
+                );
+          }).toList();
+        });
+      }
+      // Nếu có categoryId, lấy theo category
+      else if (widget.categoryId != null) {
+        futureExams = examService.getExamsByCategory(widget.categoryId!);
+      }
+      // Ngược lại lấy tất cả
+      else {
+        futureExams = examService.getAllExams();
+      }
       _futureBuilderKey = UniqueKey();
     });
   }
 
   Future<void> _handleExamPressed(ExamModel exam) async {
-    final examService = ref.read(examServiceProvider); // Get service from provider
+    final examService = ref.read(
+      examServiceProvider,
+    ); // Get service from provider
     try {
       final attempt = await examService.startExam(exam.id);
 
@@ -68,7 +98,9 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
   }
 
   Future<void> _handleReviewPressed(ExamModel exam) async {
-    final examService = ref.read(examServiceProvider); // Get service from provider
+    final examService = ref.read(
+      examServiceProvider,
+    ); // Get service from provider
     try {
       // 1. Lấy lượt thi mới nhất
       final attempt = await examService.getLatestAttempt(exam.id);
@@ -82,7 +114,8 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
       await Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (_) => QuizReviewScreen(examReview: reviewData),
+          builder: (_) =>
+              QuizReviewScreen(examReview: reviewData, examId: exam.id),
         ),
       );
 
@@ -101,20 +134,25 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Boxicons.bx_arrow_back),
+          icon: Icon(Boxicons.bx_arrow_back, color: colorScheme.onSurface),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
+        title: Text(
           "Bộ trắc nghiệm",
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: colorScheme.onSurface,
+          ),
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: colorScheme.surface,
       ),
       body: FutureBuilder<List<ExamModel>>(
         key: _futureBuilderKey,
@@ -123,9 +161,21 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text("Lỗi: ${snapshot.error}"));
+            return Center(
+              child: Text(
+                "Lỗi: ${snapshot.error}",
+                style: TextStyle(color: colorScheme.error),
+              ),
+            );
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text("Không có bài kiểm tra"));
+            return Center(
+              child: Text(
+                "Không có bài kiểm tra",
+                style: TextStyle(
+                  color: colorScheme.onSurface.withValues(alpha: 0.6),
+                ),
+              ),
+            );
           }
 
           final exams = snapshot.data!;
@@ -139,11 +189,12 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
                 ),
                 child: Row(
                   children: [
-                    const Text(
+                    Text(
                       "Sau đây",
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
+                        color: colorScheme.onSurface,
                       ),
                     ),
                     const Spacer(),
@@ -156,10 +207,10 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
                           ),
                         );
                       },
-                      child: const Text(
+                      child: Text(
                         "Lịch sử",
                         style: TextStyle(
-                          color: Colors.blue,
+                          color: colorScheme.primary,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),

@@ -4,7 +4,9 @@ import java.sql.Timestamp;
 import java.util.List;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.example.qnuquiz.dto.analytics.RankingDto;
@@ -22,6 +24,13 @@ public interface ExamAttemptRepository extends JpaRepository<ExamAttempts, Long>
 	List<ExamAttempts> findByExamsIdAndStudentsIdOrderByCreatedAtDesc(Long examId, Long studentId);
 
 	List<ExamAttempts> findByStudents_IdOrderByEndTimeDesc(Long studentId);
+
+	@Modifying
+	@Query("DELETE FROM ExamAttempts ea WHERE ea.exams.id = :examId")
+	void deleteByExamId(@Param("examId") Long examId);
+
+	@Query("SELECT ea.id FROM ExamAttempts ea WHERE ea.exams.id = :examId")
+	List<Long> findIdsByExamId(@Param("examId") Long examId);
 
 	@Query("""
 			    SELECT new com.example.qnuquiz.dto.analytics.RankingDto(

@@ -72,12 +72,12 @@ class ExamStatusUI {
     }
   }
 
-  static Color getButtonBgColor(ExamModel exam) {
+  static Color getButtonBgColor(ExamModel exam, BuildContext context) {
     switch (exam.computedStatus) {
       case "active":
         return Colors.blue;
       case "closed":
-        return const Color(0xFFF2F3F2);
+        return Theme.of(context).colorScheme.surface;
       default:
         return Colors.grey.shade400;
     }

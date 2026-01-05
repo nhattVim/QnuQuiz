@@ -20,14 +20,16 @@ class QuizAnswerOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Color bgColor = Colors.grey.shade50;
-    Color borderColor = Colors.grey.shade200;
-    Color textColor = Colors.black;
+    final colorScheme = Theme.of(context).colorScheme;
+
+    Color bgColor = colorScheme.surfaceContainerHighest.withValues(alpha: 0.3);
+    Color borderColor = colorScheme.outline.withValues(alpha: 0.3);
+    Color textColor = colorScheme.onSurface;
 
     // Khi chọn (showResult = false) → blue highlight
     if (isSelected && !showResult) {
-      bgColor = Colors.blue.shade50;
-      borderColor = Colors.blue;
+      bgColor = colorScheme.primary.withValues(alpha: 0.1);
+      borderColor = colorScheme.primary;
     }
 
     // Khi show result

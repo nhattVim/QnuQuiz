@@ -1,5 +1,6 @@
 package com.example.qnuquiz.service.impl;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -7,11 +8,15 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import com.example.qnuquiz.dto.teacher.TeacherDto;
 import com.example.qnuquiz.dto.teacher.TeacherNotificationDto;
+import com.example.qnuquiz.dto.teacher.TeacherStatsDTO;
+import com.example.qnuquiz.dto.user.ChangePasswordRequest;
 import com.example.qnuquiz.entity.Announcements;
 import com.example.qnuquiz.entity.Classes;
 import com.example.qnuquiz.entity.ExamAttempts;
@@ -48,10 +53,91 @@ public class TeacherServiceImpl implements TeacherService {
     private final FeedbackRepository feedbackRepository;
     private final QuestionRepository questionRepository;
     private final StudentRepository studentRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Override
     public List<TeacherDto> getAllTeachers() {
         return teacherMapper.toDtoList(teacherRepository.findAll());
+    }
+
+    @Override
+    @Transactional
+    public TeacherDto updateCurrentTeacherProfile(TeacherDto request) {
+        if (request == null) {
+            throw new RuntimeException("Dữ liệu cập nhật không hợp lệ");
+        }
+
+        if (!StringUtils.hasText(request.getFullName()) || !StringUtils.hasText(request.getEmail())
+                || !StringUtils.hasText(request.getPhoneNumber())) {
+            throw new RuntimeException("Vui lòng điền đầy đủ thông tin họ tên, email và số điện thoại");
+        }
+
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+
+        if (currentUserId == null) {
+            throw new RuntimeException("Không xác định được người dùng hiện tại");
+        }
+
+        Users user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (!"TEACHER".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Chỉ giáo viên mới có thể cập nhật thông tin cá nhân");
+        }
+
+        Teachers teacher = teacherRepository.findByUsers(user)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin giáo viên"));
+
+        user.setFullName(request.getFullName());
+        user.setEmail(request.getEmail());
+        user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getAvatarUrl() != null) {
+            user.setAvatarUrl(request.getAvatarUrl());
+        }
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+
+        if (request.getTitle() != null) {
+            teacher.setTitle(request.getTitle());
+        }
+
+        teacherRepository.save(teacher);
+        userRepository.save(user);
+
+        return teacherMapper.toDto(teacher);
+    }
+
+    @Override
+    @Transactional
+    public void changePassword(ChangePasswordRequest request) {
+        if (request == null || request.getOldPassword() == null || request.getNewPassword() == null) {
+            throw new RuntimeException("Vui lòng điền đầy đủ thông tin mật khẩu");
+        }
+
+        if (request.getNewPassword().length() < 6) {
+            throw new RuntimeException("Mật khẩu mới phải có ít nhất 6 ký tự");
+        }
+
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new RuntimeException("Không xác định được người dùng hiện tại");
+        }
+
+        Users user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (!"TEACHER".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Chỉ giáo viên mới có thể đổi mật khẩu");
+        }
+
+        // Verify old password
+        if (!passwordEncoder.matches(request.getOldPassword(), user.getPasswordHash())) {
+            throw new RuntimeException("Mật khẩu hiện tại không đúng");
+        }
+
+        // Update password
+        user.setPasswordHash(passwordEncoder.encode(request.getNewPassword()));
+        user.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        userRepository.save(user);
     }
 
     @Override
@@ -145,8 +231,8 @@ public class TeacherServiceImpl implements TeacherService {
         }
 
         // Lấy feedbacks cho các câu hỏi đó
-        List<Feedbacks> relevantFeedbacks = questionIds.isEmpty() 
-                ? new ArrayList<>() 
+        List<Feedbacks> relevantFeedbacks = questionIds.isEmpty()
+                ? new ArrayList<>()
                 : feedbackRepository.findByQuestionIds(new ArrayList<>(questionIds));
 
         // Map feedbacks thành ClassIssueDto
@@ -203,6 +289,90 @@ public class TeacherServiceImpl implements TeacherService {
                 .status(feedback.getStatus())
                 .createdAt(feedback.getCreatedAt())
                 .reviewedAt(feedback.getReviewedAt())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TeacherStatsDTO getTeacherStats() {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new RuntimeException("Không xác định được người dùng hiện tại");
+        }
+
+        Users user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (!"TEACHER".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Chỉ giáo viên mới có thể xem thống kê");
+        }
+
+        Teachers teacher = teacherRepository.findByUsers(user)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin giáo viên"));
+
+        // Lấy tất cả bài thi của giáo viên
+        List<Exams> teacherExams = examRepository.findByUsers_Id(currentUserId);
+
+        // Đếm tổng bài thi
+        long totalExams = teacherExams.size();
+
+        // Đếm tổng câu hỏi
+        long totalQuestions = 0;
+        Set<Long> studentIds = new HashSet<>();
+        long totalExamAttempts = 0;
+        double totalScore = 0;
+        long scoreCount = 0;
+
+        for (Exams exam : teacherExams) {
+            // Đếm câu hỏi
+            List<Questions> questions = questionRepository.findByExamsId(exam.getId());
+            totalQuestions += questions.size();
+
+            // Lấy exam attempts và điểm
+            List<ExamAttempts> attempts = examAttemptRepository.findByExamsId(exam.getId());
+            totalExamAttempts += attempts.size();
+
+            for (ExamAttempts attempt : attempts) {
+                // Thu thập studentIds
+                if (attempt.getStudents() != null) {
+                    studentIds.add(attempt.getStudents().getId());
+                }
+
+                // Tính điểm trung bình
+                if (attempt.getScore() != null) {
+                    totalScore += attempt.getScore();
+                    scoreCount++;
+                }
+            }
+        }
+
+        // Tính điểm trung bình
+        double averageScore = scoreCount > 0 ? totalScore / scoreCount : 0;
+
+        // Đếm tổng số sinh viên duy nhất
+        long totalStudents = studentIds.size();
+
+        // Đếm tổng feedbacks cho các câu hỏi của giáo viên
+        Set<Long> questionIds = new HashSet<>();
+        for (Exams exam : teacherExams) {
+            List<Questions> questions = questionRepository.findByExamsId(exam.getId());
+            questionIds.addAll(questions.stream().map(Questions::getId).collect(Collectors.toSet()));
+        }
+
+        long totalFeedbacks = questionIds.isEmpty()
+                ? 0
+                : feedbackRepository.findByQuestionIds(new ArrayList<>(questionIds)).size();
+
+        return TeacherStatsDTO.builder()
+                .teacherId(teacher.getId())
+                .teacherCode(teacher.getTeacherCode())
+                .fullName(user.getFullName())
+                .totalExams(totalExams)
+                .totalQuestions(totalQuestions)
+                .totalStudents(totalStudents)
+                .totalExamAttempts(totalExamAttempts)
+                .averageScore(Math.round(averageScore * 100.0) / 100.0)
+                .totalFeedbacks(totalFeedbacks)
                 .build();
     }
 

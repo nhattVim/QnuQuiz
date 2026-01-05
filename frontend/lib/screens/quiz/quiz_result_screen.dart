@@ -20,13 +20,14 @@ class QuizResultScreen extends ConsumerWidget {
     required this.attemptId,
     required this.onBackHome,
     required this.examTitle,
-    required this.examId
+    required this.examId,
   });
 
   Future<void> handleReviewExam(
     BuildContext context,
     WidgetRef ref,
     int attemptId,
+    int examId,
   ) async {
     try {
       showDialog(
@@ -61,6 +62,7 @@ class QuizResultScreen extends ConsumerWidget {
         Navigator.of(context).push(
           MaterialPageRoute(
             builder: (context) => QuizReviewScreen(
+              examId: examId,
               examReview: examReview,
               totalQuestions: totalQuestions,
             ),
@@ -94,11 +96,12 @@ class QuizResultScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final colorScheme = Theme.of(context).colorScheme;
     final score = result.score;
     final correctCount = result.correctCount;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -109,7 +112,11 @@ class QuizResultScreen extends ConsumerWidget {
                 alignment: Alignment.topLeft,
                 child: GestureDetector(
                   onTap: onBackHome,
-                  child: const Icon(Icons.close, color: Colors.black, size: 32),
+                  child: Icon(
+                    Icons.close,
+                    color: colorScheme.onSurface,
+                    size: 32,
+                  ),
                 ),
               ),
             ),
@@ -125,9 +132,9 @@ class QuizResultScreen extends ConsumerWidget {
                     Container(
                       width: 80,
                       height: 80,
-                      decoration: const BoxDecoration(
+                      decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: Color(0xFFFFF3E0),
+                        color: Colors.amber.withValues(alpha: 0.2),
                       ),
                       child: const Center(
                         child: Text('⭐', style: TextStyle(fontSize: 40)),
@@ -152,8 +159,11 @@ class QuizResultScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE3F2FD),
-                        border: Border.all(color: Colors.blue, width: 2),
+                        color: colorScheme.primary.withValues(alpha: 0.1),
+                        border: Border.all(
+                          color: colorScheme.primary,
+                          width: 2,
+                        ),
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Column(
@@ -162,14 +172,14 @@ class QuizResultScreen extends ConsumerWidget {
                           Container(
                             width: 60,
                             height: 60,
-                            decoration: const BoxDecoration(
+                            decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: Colors.blue,
+                              color: colorScheme.primary,
                             ),
-                            child: const Center(
+                            child: Center(
                               child: Icon(
                                 Icons.check,
-                                color: Colors.white,
+                                color: colorScheme.onPrimary,
                                 size: 36,
                               ),
                             ),
@@ -177,10 +187,10 @@ class QuizResultScreen extends ConsumerWidget {
                           const SizedBox(height: 12),
                           Text(
                             examTitle,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w500,
-                              color: Colors.black87,
+                              color: colorScheme.onSurface,
                             ),
                           ),
                         ],
@@ -194,7 +204,7 @@ class QuizResultScreen extends ConsumerWidget {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         border: Border.all(
-                          color: Colors.grey.shade300,
+                          color: colorScheme.outline.withValues(alpha: 0.3),
                           width: 1,
                         ),
                         borderRadius: BorderRadius.circular(12),
@@ -205,26 +215,31 @@ class QuizResultScreen extends ConsumerWidget {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Text(
+                              Text(
                                 'Điểm của bạn',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey,
+                                  color: colorScheme.onSurface.withValues(
+                                    alpha: 0.6,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 20),
                               Text(
                                 '$correctCount/$totalQuestions',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Colors.black,
+                                  color: colorScheme.onSurface,
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 16),
-                          const Divider(height: 1, color: Colors.grey),
+                          Divider(
+                            height: 1,
+                            color: colorScheme.outline.withValues(alpha: 0.3),
+                          ),
                           const SizedBox(height: 16),
                           // Points row
                           Row(
@@ -238,10 +253,10 @@ class QuizResultScreen extends ConsumerWidget {
                               const SizedBox(width: 8),
                               Text(
                                 '$score điểm',
-                                style: const TextStyle(
+                                style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w500,
-                                  color: Colors.black87,
+                                  color: colorScheme.onSurface,
                                 ),
                               ),
                             ],
@@ -267,10 +282,10 @@ class QuizResultScreen extends ConsumerWidget {
                     height: 48,
                     child: ElevatedButton(
                       onPressed: () =>
-                          handleReviewExam(context, ref, attemptId),
+                          handleReviewExam(context, ref, attemptId, examId),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
+                        backgroundColor: colorScheme.primary,
+                        foregroundColor: colorScheme.onPrimary,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
@@ -292,17 +307,17 @@ class QuizResultScreen extends ConsumerWidget {
                     child: OutlinedButton(
                       onPressed: () => handleFeedback(context),
                       style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.blue, width: 2),
+                        side: BorderSide(color: colorScheme.primary, width: 2),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),
                       ),
-                      child: const Text(
+                      child: Text(
                         'Gửi đánh giá và phản hồi',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue,
+                          color: colorScheme.primary,
                         ),
                       ),
                     ),

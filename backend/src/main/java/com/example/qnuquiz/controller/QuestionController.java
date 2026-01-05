@@ -32,16 +32,19 @@ public class QuestionController {
 
     @PostMapping("/import")
     @PreAuthorize("hasAnyRole('ADMIN', 'TEACHER')")
-    public ResponseEntity<String> importQuestions(
+    public ResponseEntity<Object> importQuestions(
             @RequestParam("file") MultipartFile file,
             @RequestParam("examId") Long examId) {
         try {
             questionService.importQuestionsFromExcel(file, SecurityUtils.getCurrentUserId(), examId);
-            return ResponseEntity.ok("Data import successfully!");
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "message", "Data import successfully!"));
         } catch (Exception e) {
             e.printStackTrace();
-            return ResponseEntity.internalServerError()
-                    .body("Failed to import data: " + e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false,
+                    "message", "Failed to import data: " + e.getMessage()));
         }
     }
 

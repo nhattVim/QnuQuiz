@@ -92,7 +92,7 @@ class QuestionService {
 
     try {
       final response = await _dio.delete(
-        '${ApiConstants.questions}/delete',
+        ApiConstants.questions,
         data: {'ids': questionIds},
       );
 

@@ -1,5 +1,6 @@
 class FeedbackDto {
   final int? id;
+  final String examContent;
   final String? questionContent;
   final String? userName;
   final String? reviewedBy;
@@ -8,9 +9,11 @@ class FeedbackDto {
   final String status;
   final DateTime createdAt;
   final DateTime? reviewedAt;
+  final String? teacherReply;
 
   FeedbackDto({
     this.id,
+    required this.examContent,
     this.questionContent,
     this.userName,
     this.reviewedBy,
@@ -19,11 +22,13 @@ class FeedbackDto {
     required this.status,
     required this.createdAt,
     this.reviewedAt,
+    this.teacherReply,
   });
 
   factory FeedbackDto.fromJson(Map<String, dynamic> json) {
     return FeedbackDto(
       id: json['id'],
+      examContent: json['examContent'],
       questionContent: json['questionContent'],
       userName: json['userName'],
       reviewedBy: json['reviewedBy'],
@@ -34,18 +39,21 @@ class FeedbackDto {
       reviewedAt: json['reviewedAt'] != null
           ? DateTime.parse(json['reviewedAt'])
           : null,
+      teacherReply: json['teacherReply'],
     );
   }
 
   Map<String, dynamic> toJson() => {
-    'id': id,
-    'questionContent': questionContent,
-    'userName': userName,
-    'reviewedBy': reviewedBy,
-    'content': content,
-    'rating': rating,
-    'status': status,
-    'createdAt': createdAt.toIso8601String(),
-    'reviewedAt': reviewedAt?.toIso8601String(),
-  };
+        'id': id,
+        'examContent': examContent,
+        'questionContent': questionContent,
+        'userName': userName,
+        'reviewedBy': reviewedBy,
+        'content': content,
+        'rating': rating,
+        'status': status,
+        'createdAt': createdAt.toIso8601String(),
+        'reviewedAt': reviewedAt?.toIso8601String(),
+        'teacherReply': teacherReply,
+      };
 }

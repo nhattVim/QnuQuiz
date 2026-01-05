@@ -10,6 +10,7 @@ import lombok.Data;
 public class FeedbackDto {
 
     private Long id;
+    private String examContent;
     private String questionContent;
     private String userName;
     private String reviewedBy;
@@ -18,4 +19,5 @@ public class FeedbackDto {
     private String status;
     private Timestamp createdAt;
     private Timestamp reviewedAt;
+    private String teacherReply;
 }

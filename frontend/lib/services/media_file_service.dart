@@ -10,8 +10,6 @@ import 'package:frontend/services/api_service.dart';
 import 'package:frontend/services/appwrite_service.dart';
 import 'package:logger/logger.dart';
 
-/// Service for managing media files (images, videos, audio)
-/// Handles file upload to Appwrite and metadata storage in backend
 class MediaFileService {
   final _log = Logger();
   final ApiService _apiService;
@@ -21,16 +19,6 @@ class MediaFileService {
 
   Dio get _dio => _apiService.dio;
 
-  /// Upload file to Appwrite and save metadata to backend
-  /// 
-  /// [file] - The file to upload
-  /// [questionId] - ID of the question this file is associated with
-  /// [description] - Optional description for the file
-  /// 
-  /// Returns the created MediaFileDto from backend
-  /// 
-  /// Throws [AppwriteException] if Appwrite upload fails
-  /// Throws [DioException] if backend save fails
   Future<Map<String, dynamic>> uploadAndSaveMediaFile({
     required File file,
     required int questionId,
@@ -95,16 +83,6 @@ class MediaFileService {
     }
   }
 
-  /// Upload file from file picker (cross-platform)
-  /// 
-  /// [questionId] - ID of the question this file is associated with
-  /// [description] - Optional description for the file
-  /// 
-  /// Returns the created MediaFileDto from backend
-  /// 
-  /// Throws [Exception] if file picker is cancelled or file is invalid
-  /// Throws [AppwriteException] if Appwrite upload fails
-  /// Throws [DioException] if backend save fails
   Future<Map<String, dynamic>> uploadMediaFileFromPicker({
     required int questionId,
     String? description,
@@ -163,13 +141,6 @@ class MediaFileService {
     }
   }
 
-  /// Get media files by question ID
-  /// 
-  /// [questionId] - ID of the question
-  /// 
-  /// Returns list of media file metadata
-  /// 
-  /// Throws [DioException] if request fails
   Future<List<Map<String, dynamic>>> getMediaFilesByQuestionId(int questionId) async {
     try {
       _log.d('Fetching media files for question: $questionId');
@@ -192,14 +163,23 @@ class MediaFileService {
     }
   }
 
-  /// Delete media file by ID
-  /// 
-  /// [mediaFileId] - ID of the media file to delete
-  /// 
-  /// Throws [DioException] if deletion fails
-  Future<void> deleteMediaFile(int mediaFileId) async {
+  Future<void> deleteMediaFile(int mediaFileId, {String? fileUrl}) async {
     try {
       _log.d('Deleting media file: $mediaFileId');
+      
+      // Step 1: Delete file from Appwrite if URL is provided
+      if (fileUrl != null && fileUrl.isNotEmpty) {
+        try {
+          _log.d('Deleting file from Appwrite: $fileUrl');
+          await _appwriteService.deleteFileByUrl(fileUrl);
+          _log.i('File deleted from Appwrite successfully');
+        } catch (e) {
+          _log.w('Failed to delete file from Appwrite (continuing with backend deletion): $e');
+          // Continue with backend deletion even if Appwrite deletion fails
+        }
+      }
+      
+      // Step 2: Delete metadata from backend
       await _dio.delete(
         '${ApiConstants.baseUrl}/api/media-files/$mediaFileId',
       );
@@ -210,11 +190,6 @@ class MediaFileService {
     }
   }
 
-  /// Delete all media files for a question
-  /// 
-  /// [questionId] - ID of the question
-  /// 
-  /// Throws [DioException] if deletion fails
   Future<void> deleteMediaFilesByQuestionId(int questionId) async {
     try {
       _log.d('Deleting all media files for question: $questionId');

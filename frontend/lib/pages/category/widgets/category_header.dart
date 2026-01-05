@@ -42,6 +42,9 @@ class _CategoryHeaderState extends State<CategoryHeader> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -53,10 +56,10 @@ class _CategoryHeaderState extends State<CategoryHeader> {
             children: [
               Text(
                 '${widget.totalCategories} chủ đề',
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
-                  color: Colors.black87,
+                  color: colorScheme.onSurface.withValues(alpha: 0.87),
                 ),
               ),
               GestureDetector(
@@ -65,9 +68,9 @@ class _CategoryHeaderState extends State<CategoryHeader> {
                   children: [
                     Text(
                       _sortOrder == 'desc' ? 'Mới nhất' : 'Cũ nhất',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 16,
-                        color: Colors.blue,
+                        color: colorScheme.primary,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -76,7 +79,7 @@ class _CategoryHeaderState extends State<CategoryHeader> {
                       _sortOrder == 'desc'
                           ? Boxicons.bx_sort_down
                           : Boxicons.bx_sort_up,
-                      color: Colors.blue,
+                      color: colorScheme.primary,
                       size: 20,
                     ),
                   ],
@@ -93,22 +96,33 @@ class _CategoryHeaderState extends State<CategoryHeader> {
             onChanged: widget.onSearchChanged,
             decoration: InputDecoration(
               hintText: 'Tìm kiếm chủ đề',
-              hintStyle: TextStyle(color: Colors.grey.shade400),
-              prefixIcon: Icon(Boxicons.bx_search, color: Colors.grey.shade400),
+              hintStyle: TextStyle(
+                color: colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
+              prefixIcon: Icon(
+                Boxicons.bx_search,
+                color: colorScheme.onSurface.withValues(alpha: 0.4),
+              ),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(
+                  color: colorScheme.outline.withValues(alpha: 0.3),
+                ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: BorderSide(color: Colors.grey.shade300),
+                borderSide: BorderSide(
+                  color: colorScheme.outline.withValues(alpha: 0.3),
+                ),
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
-                borderSide: const BorderSide(color: Colors.blue),
+                borderSide: BorderSide(color: colorScheme.primary),
               ),
               filled: true,
-              fillColor: Colors.grey.shade50,
+              fillColor: colorScheme.surfaceContainerHighest.withValues(
+                alpha: 0.3,
+              ),
               contentPadding: const EdgeInsets.symmetric(
                 horizontal: 12,
                 vertical: 12,

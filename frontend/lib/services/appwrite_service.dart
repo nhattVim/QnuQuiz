@@ -201,5 +201,61 @@ class AppwriteService {
       rethrow;
     }
   }
+
+  /// Extract file ID from Appwrite file URL
+  /// 
+  /// [fileUrl] - The full URL of the file
+  /// Format: {endpoint}/storage/buckets/{bucketId}/files/{fileId}/view?project={projectId}
+  /// 
+  /// Returns the file ID, or null if URL is invalid
+  String? extractFileIdFromUrl(String? fileUrl) {
+    if (fileUrl == null || fileUrl.isEmpty) {
+      return null;
+    }
+
+    try {
+      // URL format: {endpoint}/storage/buckets/{bucketId}/files/{fileId}/view?project={projectId}
+      final uri = Uri.parse(fileUrl);
+      final pathSegments = uri.pathSegments;
+      
+      // Find the index of 'files' in the path
+      final filesIndex = pathSegments.indexOf('files');
+      if (filesIndex != -1 && filesIndex + 1 < pathSegments.length) {
+        return pathSegments[filesIndex + 1];
+      }
+      
+      _log.w('Could not extract file ID from URL: $fileUrl');
+      return null;
+    } catch (e) {
+      _log.e('Error parsing file URL: $e');
+      return null;
+    }
+  }
+
+  /// Delete file by URL (extracts fileId and deletes)
+  /// 
+  /// [fileUrl] - The full URL of the file to delete
+  /// 
+  /// Throws [AppwriteException] if deletion fails
+  /// Returns true if file was deleted, false if URL is invalid
+  Future<bool> deleteFileByUrl(String? fileUrl) async {
+    if (fileUrl == null || fileUrl.isEmpty) {
+      return false;
+    }
+
+    final fileId = extractFileIdFromUrl(fileUrl);
+    if (fileId == null) {
+      _log.w('Could not extract file ID from URL, skipping deletion: $fileUrl');
+      return false;
+    }
+
+    try {
+      await deleteFile(fileId);
+      return true;
+    } catch (e) {
+      _log.e('Error deleting file by URL: $e');
+      rethrow;
+    }
+  }
 }
 

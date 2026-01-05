@@ -13,4 +13,5 @@ class ApiConstants {
   static const String notifications = '/api/notifications';
   static const String announcements = '/api/announcements';
   static const String mediaFiles = '/api/media-files';
+  static const String faqs = '/api/faqs';
 }

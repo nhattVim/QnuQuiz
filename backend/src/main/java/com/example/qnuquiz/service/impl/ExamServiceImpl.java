@@ -10,6 +10,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
+import jakarta.transaction.Transactional;
 
 import com.example.qnuquiz.dto.exam.ExamAnswerReviewDTO;
 import com.example.qnuquiz.dto.exam.ExamAttemptDto;
@@ -34,6 +35,7 @@ import com.example.qnuquiz.repository.ExamAnswerRepository;
 import com.example.qnuquiz.repository.ExamAttemptRepository;
 import com.example.qnuquiz.repository.ExamCategoryRepository;
 import com.example.qnuquiz.repository.ExamRepository;
+import com.example.qnuquiz.repository.FeedbackRepository;
 import com.example.qnuquiz.repository.QuestionOptionsRepository;
 import com.example.qnuquiz.repository.QuestionRepository;
 import com.example.qnuquiz.repository.StudentRepository;
@@ -63,6 +65,7 @@ public class ExamServiceImpl implements ExamService {
     private final QuestionRepository questionRepository;
     private final ExamAttemptRepository examAttemptRepository;
     private final ExamAnswerRepository examAnswerRepository;
+    private final FeedbackRepository feedbackRepository;
     private final QuestionMapper questionMapper;
     private final com.example.qnuquiz.service.MediaFileService mediaFileService;
 
@@ -196,6 +199,12 @@ public class ExamServiceImpl implements ExamService {
         Users user = getCurrentAuthenticatedUser();
         Exams exam = examMapper.toEntity(dto);
 
+        if (exam.getStartTime() != null && exam.getEndTime() != null) {
+            if (!exam.getEndTime().after(exam.getStartTime())) {
+                throw new IllegalArgumentException("End time must be after start time");
+            }
+        }
+
         ExamCategories category = examCategoryRepository
                 .findById(dto.getCategoryId())
                 .orElseThrow(() -> new EntityNotFoundException("Category not found: " + dto.getCategoryId()));
@@ -204,6 +213,9 @@ public class ExamServiceImpl implements ExamService {
         exam.setUsers(user);
         exam.setCreatedAt(new Timestamp(System.currentTimeMillis()));
         exam.setUpdatedAt(new Timestamp(System.currentTimeMillis()));
+        if (exam.getStatus() == null) {
+            exam.setStatus("DRAFT");
+        }
 
         Exams saved = examRepository.save(exam);
         return examMapper.toDto(saved);
@@ -235,6 +247,13 @@ public class ExamServiceImpl implements ExamService {
 
         Exams exam = examRepository.findById(dto.getId())
                 .orElseThrow(() -> new EntityNotFoundException("Exam not found: " + dto.getId()));
+
+        // Validate that endTime is after startTime
+        if (dto.getStartTime() != null && dto.getEndTime() != null) {
+            if (!dto.getEndTime().after(dto.getStartTime())) {
+                throw new IllegalArgumentException("End time must be after start time");
+            }
+        }
 
         exam.setTitle(dto.getTitle());
         exam.setDescription(dto.getDescription());
@@ -311,15 +330,15 @@ public class ExamServiceImpl implements ExamService {
                     .build())
                 .toList();
             dto.setOptions(optionDtos);
-            
-            List<com.example.qnuquiz.dto.media.MediaFileDto> mediaFiles = 
+
+            List<com.example.qnuquiz.dto.media.MediaFileDto> mediaFiles =
                 mediaFileService.getMediaFilesByQuestionId(q.getId());
             dto.setMediaFiles(mediaFiles);
-            
+
             if (!mediaFiles.isEmpty()) {
                 dto.setMediaUrl(mediaFiles.get(0).getFileUrl());
             }
-            
+
             return dto;
         }).toList();
     }
@@ -344,14 +363,88 @@ public class ExamServiceImpl implements ExamService {
     }
 
     @Override
+    @Transactional
     public void deleteExam(Long id) {
+        // Collect question ids for this exam (to clean related feedbacks if needed)
+        List<Questions> questions = questionRepository.findByExamsId(id);
+        List<Long> questionIds = questions.stream()
+                .map(Questions::getId)
+                .toList();
+
+        // 1) Remove feedbacks linked to exam and its questions (FK constraints)
+        feedbackRepository.deleteByExamId(id);
+        if (!questionIds.isEmpty()) {
+            feedbackRepository.deleteByQuestionIds(questionIds);
+        }
+
+        // 2) Remove exam answers via attempt ids (some DBs may not enforce ON DELETE CASCADE)
+        List<Long> attemptIds = examAttemptRepository.findIdsByExamId(id);
+        if (!attemptIds.isEmpty()) {
+            examAnswerRepository.deleteByAttemptIds(attemptIds);
+            examAttemptRepository.deleteByExamId(id);
+        }
+
+        // 3) Delete question options (some DBs may not have ON DELETE CASCADE)
+        if (!questionIds.isEmpty()) {
+            optionRepo.deleteAllByQuestions_IdIn(questionIds);
+            for (Long qid : questionIds) {
+                try {
+                    mediaFileService.deleteMediaFilesByQuestionId(qid);
+                } catch (Exception e) {
+                    log.warn("Failed to delete media files for question {}: {}", qid, e.getMessage());
+                }
+            }
+            questionRepository.deleteAllById(questionIds);
+        }
+
+        // 4) Finally delete exam
         examRepository.deleteById(id);
     }
 
     @Override
     public List<ExamDto> getAllExams() {
         List<Exams> exams = examRepository.findAll();
-        return examMapper.toDtoList(exams);
+        
+        // Get current student if authenticated
+        UUID userId = SecurityUtils.getCurrentUserId();
+        Students student = null;
+        
+        if (userId != null) {
+            Users user = userRepository.findById(userId).orElse(null);
+            if (user != null && "STUDENT".equalsIgnoreCase(user.getRole())) {
+                student = studentRepository.findByUsers(user).orElse(null);
+            }
+        }
+        
+        final Students finalStudent = student;
+        
+        return exams.stream()
+                .filter(exam -> !"DRAFT".equalsIgnoreCase(exam.getStatus()))
+                .map(exam -> {
+                    ExamDto dto = examMapper.toDto(exam);
+                    String computedStatus = getComputedStatus(exam);
+                    dto.setStatus(computedStatus);
+                    
+                    // Set attempt info if student is logged in
+                    if (finalStudent != null) {
+                        var allAttempts = examAttemptRepository
+                                .findByExamsIdAndStudentsIdOrderByCreatedAtDesc(exam.getId(), finalStudent.getId());
+                        
+                        dto.setHasAttempt(!allAttempts.isEmpty());
+                        
+                        if (!allAttempts.isEmpty()) {
+                            ExamAttempts latestAttempt = allAttempts.get(0);
+                            dto.setHasUnfinishedAttempt(!latestAttempt.isSubmitted());
+                        } else {
+                            dto.setHasUnfinishedAttempt(false);
+                        }
+                    } else {
+                        dto.setHasUnfinishedAttempt(false);
+                    }
+                    
+                    return dto;
+                })
+                .toList();
     }
 
     private Users getCurrentAuthenticatedUser() {
