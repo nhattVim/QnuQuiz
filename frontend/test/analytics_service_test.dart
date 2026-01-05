@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:frontend/models/ranking_model.dart';
 import 'package:frontend/services/analytics_service.dart';
 import 'package:frontend/services/api_service.dart';
+import 'package:frontend/models/analytics/user_analytics_model.dart';
 import 'package:mocktail/mocktail.dart';
 
 class MockApiService extends Mock implements ApiService {}
@@ -97,17 +98,10 @@ void main() {
     });
 
     test('getExamAnalytics returns a list of ExamAnalytics', () async {
-      final responseData = [
-        {
-          'examId': 1,
-          'title': 'Test Exam',
-        }
-      ];
-
       when(() => mockDio.get(any())).thenAnswer(
         (_) async => Response(
           requestOptions: RequestOptions(path: ''),
-          data: responseData,
+          data: [],
           statusCode: 200,
         ),
       );
@@ -262,18 +256,25 @@ void main() {
     group('getUserAnalytics', () {
       test('returns UserAnalyticsModel on success', () async {
         final data = {
-             'totalUsers': 10,
-             'activeUsers': 5,
+          'totalUsers': 10,
+          'newUsersThisMonth': 2,
+          'activeUsers': 5,
+          'studentsCount': 8,
+          'teachersCount': 2,
+          'adminCount': 1,
         };
-       
+
         when(() => mockDio.get(any())).thenAnswer(
           (_) async => Response(
             requestOptions: RequestOptions(path: ''),
-            data: {}, 
+            data: data,
             statusCode: 200,
           ),
         );
-       
+
+        final result = await analyticsService.getUserAnalytics();
+        expect(result, isA<UserAnalyticsModel>());
+        expect(result.totalUsers, 10);
       });
     });
 
