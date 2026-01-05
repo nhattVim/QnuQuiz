@@ -123,7 +123,7 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: windows-installer
-                  path: frontend/Output/QnuQuiz_Admin.exe
+                  path: frontend/Output/QnuQuizAdmin.exe
 
     # ============================================================
     # BUILD LINUX
