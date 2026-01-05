@@ -102,7 +102,7 @@ jobs:
                   AppVersion=${{ github.ref_name }}
                   DefaultDirName={autopf}\QnuQuiz Admin
                   DefaultGroupName=QnuQuiz Admin
-                  OutputBaseFilename=QnuQuizAdmin
+                  OutputBaseFilename=QnuQuiz_Admin
                   Compression=lzma
                   SolidCompression=yes
                   ArchitecturesInstallIn64BitMode=x64
@@ -123,7 +123,7 @@ jobs:
               uses: actions/upload-artifact@v4
               with:
                   name: windows-installer
-                  path: frontend/Output/QnuQuizAdmin.exe
+                  path: frontend/Output/QnuQuiz_Admin.exe
 
     # ============================================================
     # BUILD LINUX
