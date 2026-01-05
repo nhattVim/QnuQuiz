@@ -8,6 +8,7 @@ import 'package:frontend/pages/my_exam_page.dart';
 import 'package:frontend/pages/category/category_page.dart';
 import 'package:frontend/pages/profile_page.dart';
 import 'package:frontend/pages/ranking_page.dart';
+import 'package:frontend/pages/teacher_dashboard_page.dart';
 import '../providers/user_provider.dart';
 import 'package:frontend/pages/teacher_analytics_page.dart';
 import 'package:frontend/pages/notification_page.dart';
@@ -16,8 +17,14 @@ import 'package:frontend/pages/notification_page.dart';
 /// NAV ITEMS
 /// =======================
 
-const dashboardItem = NavItem(
+const userDashboardItem = NavItem(
   page: DashboardPage(),
+  icon: Icons.home_rounded,
+  label: "Home",
+);
+
+const teachDashboardItem = NavItem(
+  page: TeacherDashboardPage(),
   icon: Icons.home_rounded,
   label: "Home",
 );
@@ -65,7 +72,7 @@ const notificationItem = NavItem(
 );
 
 const studentNav = [
-  dashboardItem,
+  userDashboardItem,
   categoryItem,
   rankingItem,
   faqItem,
@@ -73,7 +80,7 @@ const studentNav = [
 ];
 
 const teacherNav = [
-  dashboardItem,
+  teachDashboardItem,
   examItem,
   analyticsItem,
   notificationItem,

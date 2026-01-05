@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:frontend/constants/api_constants.dart';
 import 'package:frontend/models/teacher_model.dart';
+import 'package:frontend/models/teacher_stats_model.dart';
 import 'package:frontend/services/api_service.dart';
 import 'package:logger/logger.dart';
 
@@ -11,6 +12,18 @@ class TeacherService {
   TeacherService(this._apiService);
 
   Dio get _dio => _apiService.dio;
+
+  Future<TeacherStatsModel> getTeacherStats() async {
+    try {
+      final response = await _dio.get('${ApiConstants.teachers}/stats');
+      return TeacherStatsModel.fromJson(response.data);
+    } on DioException catch (e) {
+      _log.e(e.response?.data ?? e.message);
+      throw Exception(
+        e.response?.data?['message'] ?? 'Lỗi lấy thông tin thống kê',
+      );
+    }
+  }
 
   Future<List<TeacherModel>> getAllTeachers() async {
     try {
