@@ -12,19 +12,32 @@ class AnnouncementService {
 
   Dio get _dio => _apiService.dio;
 
-  Future<List<AnnouncementModel>> getAnnouncements() async {
+  Future<List<AnnouncementModel>> getAnnouncements({required String role}) async {
     try {
-      // Lấy thông báo từ API teacher notifications
-      final response = await _dio.get('${ApiConstants.teachers}/me/notifications');
-      final data = response.data;
-      
-      if (data is Map && data.containsKey('examAnnouncements')) {
-        final announcements = data['examAnnouncements'] as List;
-        return announcements
-            .map((e) => AnnouncementModel.fromJson(e as Map<String, dynamic>))
-            .toList();
+      if (role == 'STUDENT') {
+        // Lấy thông báo từ API student announcements
+        final response = await _dio.get('${ApiConstants.students}/me/announcements');
+        final data = response.data;
+        
+        if (data is List) {
+          return data
+              .map((e) => AnnouncementModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+        return [];
+      } else {
+        // Lấy thông báo từ API teacher notifications
+        final response = await _dio.get('${ApiConstants.teachers}/me/notifications');
+        final data = response.data;
+        
+        if (data is Map && data.containsKey('examAnnouncements')) {
+          final announcements = data['examAnnouncements'] as List;
+          return announcements
+              .map((e) => AnnouncementModel.fromJson(e as Map<String, dynamic>))
+              .toList();
+        }
+        return [];
       }
-      return [];
     } on DioException catch (e) {
       _log.e(e.response?.data ?? e.message);
       throw Exception(

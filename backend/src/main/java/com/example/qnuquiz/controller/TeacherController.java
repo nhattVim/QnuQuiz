@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.qnuquiz.dto.teacher.TeacherDto;
 import com.example.qnuquiz.dto.teacher.TeacherNotificationDto;
+import com.example.qnuquiz.dto.teacher.TeacherStatsDTO;
 import com.example.qnuquiz.dto.user.ChangePasswordRequest;
 import com.example.qnuquiz.service.TeacherService;
 
@@ -51,5 +52,11 @@ public class TeacherController {
             @RequestBody ChangePasswordRequest request) {
         teacherService.changePassword(request);
         return ResponseEntity.ok(Map.of("message", "Đổi mật khẩu thành công"));
+    }
+
+    @GetMapping("/stats")
+    @PreAuthorize("hasRole('TEACHER')")
+    public ResponseEntity<TeacherStatsDTO> getTeacherStats() {
+        return ResponseEntity.ok(teacherService.getTeacherStats());
     }
 }

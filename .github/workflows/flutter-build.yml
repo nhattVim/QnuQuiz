@@ -98,10 +98,10 @@ jobs:
               run: |
                   $script = @"
                   [Setup]
-                  AppName=AdminApp
+                  AppName=QnuQuiz Admin
                   AppVersion=${{ github.ref_name }}
-                  DefaultDirName={autopf}\QnuQuizApp
-                  DefaultGroupName=QnuQuizApp
+                  DefaultDirName={autopf}\QnuQuiz Admin
+                  DefaultGroupName=QnuQuiz Admin
                   OutputBaseFilename=QnuQuiz_Admin
                   Compression=lzma
                   SolidCompression=yes
@@ -111,8 +111,8 @@ jobs:
                   Source: "build\windows\x64\runner\Release\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 
                   [Icons]
-                  Name: "{group}\QnuQuizApp"; Filename: "{app}\frontend.exe"
-                  Name: "{commondesktop}\QnuQuizApp"; Filename: "{app}\frontend.exe"
+                  Name: "{group}\QnuQuiz Admin"; Filename: "{app}\QnuQuizAdmin.exe"
+                  Name: "{commondesktop}\QnuQuiz Admin"; Filename: "{app}\QnuQuizAdmin.exe"
                   "@
                   $script | Out-File -FilePath installer.iss -Encoding UTF8
 

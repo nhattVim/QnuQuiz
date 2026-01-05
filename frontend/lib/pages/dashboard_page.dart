@@ -4,6 +4,7 @@ import 'package:frontend/models/exam_category_model.dart';
 import 'package:frontend/models/exam_history_model.dart';
 import 'package:frontend/models/student_model.dart';
 import 'package:frontend/providers/service_providers.dart';
+import 'package:frontend/providers/user_provider.dart';
 import 'package:frontend/widgets/dashboard/action_card.dart';
 import 'package:frontend/widgets/dashboard/category_section.dart';
 import 'package:frontend/widgets/dashboard/greeting_section.dart';
@@ -26,8 +27,19 @@ final categoriesProvider = FutureProvider.autoDispose<List<ExamCategoryModel>>((
 
 final allExamHistoryProvider =
     FutureProvider.autoDispose<List<ExamHistoryModel>>((ref) async {
-      final examHistoryService = ref.watch(examHistoryServiceProvider);
-      return await examHistoryService.getExamHistory();
+      // Chỉ gọi API cho sinh viên
+      final user = ref.watch(userProvider).value;
+      if (user == null || user.role != 'STUDENT') {
+        return <ExamHistoryModel>[];
+      }
+      
+      try {
+        final examHistoryService = ref.watch(examHistoryServiceProvider);
+        return await examHistoryService.getExamHistory();
+      } catch (e) {
+        // Nếu có lỗi (403, etc), return empty list thay vì throw error
+        return <ExamHistoryModel>[];
+      }
     });
 
 final recentExamHistoryProvider =

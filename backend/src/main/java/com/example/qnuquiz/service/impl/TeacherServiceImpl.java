@@ -15,6 +15,7 @@ import org.springframework.util.StringUtils;
 
 import com.example.qnuquiz.dto.teacher.TeacherDto;
 import com.example.qnuquiz.dto.teacher.TeacherNotificationDto;
+import com.example.qnuquiz.dto.teacher.TeacherStatsDTO;
 import com.example.qnuquiz.dto.user.ChangePasswordRequest;
 import com.example.qnuquiz.entity.Announcements;
 import com.example.qnuquiz.entity.Classes;
@@ -230,8 +231,8 @@ public class TeacherServiceImpl implements TeacherService {
         }
 
         // Lấy feedbacks cho các câu hỏi đó
-        List<Feedbacks> relevantFeedbacks = questionIds.isEmpty() 
-                ? new ArrayList<>() 
+        List<Feedbacks> relevantFeedbacks = questionIds.isEmpty()
+                ? new ArrayList<>()
                 : feedbackRepository.findByQuestionIds(new ArrayList<>(questionIds));
 
         // Map feedbacks thành ClassIssueDto
@@ -288,6 +289,90 @@ public class TeacherServiceImpl implements TeacherService {
                 .status(feedback.getStatus())
                 .createdAt(feedback.getCreatedAt())
                 .reviewedAt(feedback.getReviewedAt())
+                .build();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public TeacherStatsDTO getTeacherStats() {
+        UUID currentUserId = SecurityUtils.getCurrentUserId();
+        if (currentUserId == null) {
+            throw new RuntimeException("Không xác định được người dùng hiện tại");
+        }
+
+        Users user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy người dùng"));
+
+        if (!"TEACHER".equalsIgnoreCase(user.getRole())) {
+            throw new RuntimeException("Chỉ giáo viên mới có thể xem thống kê");
+        }
+
+        Teachers teacher = teacherRepository.findByUsers(user)
+                .orElseThrow(() -> new RuntimeException("Không tìm thấy thông tin giáo viên"));
+
+        // Lấy tất cả bài thi của giáo viên
+        List<Exams> teacherExams = examRepository.findByUsers_Id(currentUserId);
+
+        // Đếm tổng bài thi
+        long totalExams = teacherExams.size();
+
+        // Đếm tổng câu hỏi
+        long totalQuestions = 0;
+        Set<Long> studentIds = new HashSet<>();
+        long totalExamAttempts = 0;
+        double totalScore = 0;
+        long scoreCount = 0;
+
+        for (Exams exam : teacherExams) {
+            // Đếm câu hỏi
+            List<Questions> questions = questionRepository.findByExamsId(exam.getId());
+            totalQuestions += questions.size();
+
+            // Lấy exam attempts và điểm
+            List<ExamAttempts> attempts = examAttemptRepository.findByExamsId(exam.getId());
+            totalExamAttempts += attempts.size();
+
+            for (ExamAttempts attempt : attempts) {
+                // Thu thập studentIds
+                if (attempt.getStudents() != null) {
+                    studentIds.add(attempt.getStudents().getId());
+                }
+
+                // Tính điểm trung bình
+                if (attempt.getScore() != null) {
+                    totalScore += attempt.getScore();
+                    scoreCount++;
+                }
+            }
+        }
+
+        // Tính điểm trung bình
+        double averageScore = scoreCount > 0 ? totalScore / scoreCount : 0;
+
+        // Đếm tổng số sinh viên duy nhất
+        long totalStudents = studentIds.size();
+
+        // Đếm tổng feedbacks cho các câu hỏi của giáo viên
+        Set<Long> questionIds = new HashSet<>();
+        for (Exams exam : teacherExams) {
+            List<Questions> questions = questionRepository.findByExamsId(exam.getId());
+            questionIds.addAll(questions.stream().map(Questions::getId).collect(Collectors.toSet()));
+        }
+
+        long totalFeedbacks = questionIds.isEmpty()
+                ? 0
+                : feedbackRepository.findByQuestionIds(new ArrayList<>(questionIds)).size();
+
+        return TeacherStatsDTO.builder()
+                .teacherId(teacher.getId())
+                .teacherCode(teacher.getTeacherCode())
+                .fullName(user.getFullName())
+                .totalExams(totalExams)
+                .totalQuestions(totalQuestions)
+                .totalStudents(totalStudents)
+                .totalExamAttempts(totalExamAttempts)
+                .averageScore(Math.round(averageScore * 100.0) / 100.0)
+                .totalFeedbacks(totalFeedbacks)
                 .build();
     }
 
