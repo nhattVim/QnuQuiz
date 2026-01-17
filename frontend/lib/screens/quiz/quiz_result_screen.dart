@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_boxicons/flutter_boxicons.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:frontend/models/exam_result_model.dart';
 import 'package:frontend/screens/feedback_screen.dart';
@@ -101,7 +102,6 @@ class QuizResultScreen extends ConsumerWidget {
     final correctCount = result.correctCount;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -216,7 +216,7 @@ class QuizResultScreen extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                'Điểm của bạn',
+                                'Điểm của bạn :',
                                 style: TextStyle(
                                   fontSize: 14,
                                   color: colorScheme.onSurface.withValues(
@@ -224,7 +224,7 @@ class QuizResultScreen extends ConsumerWidget {
                                   ),
                                 ),
                               ),
-                              const SizedBox(width: 20),
+                              const SizedBox(width: 10),
                               Text(
                                 '$correctCount/$totalQuestions',
                                 style: TextStyle(
@@ -246,11 +246,11 @@ class QuizResultScreen extends ConsumerWidget {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               const Icon(
-                                Icons.star,
+                                Boxicons.bx_bolt_circle,
                                 color: Colors.amber,
                                 size: 20,
                               ),
-                              const SizedBox(width: 8),
+                              const SizedBox(width: 4),
                               Text(
                                 '$score điểm',
                                 style: TextStyle(

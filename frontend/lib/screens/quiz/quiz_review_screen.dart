@@ -52,9 +52,7 @@ class QuizReviewScreen extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
       appBar: AppBar(
-        backgroundColor: colorScheme.surface,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Boxicons.bx_arrow_back, color: colorScheme.onSurface),

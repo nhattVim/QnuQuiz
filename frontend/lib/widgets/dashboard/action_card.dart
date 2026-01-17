@@ -119,7 +119,7 @@ class _ActionCardState extends State<ActionCard> {
         : slide.backgroundColor;
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 8),
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
         color: backgroundColor,
         borderRadius: BorderRadius.circular(16),
