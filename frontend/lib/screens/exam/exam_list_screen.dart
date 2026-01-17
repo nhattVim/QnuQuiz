@@ -137,7 +137,6 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
@@ -152,7 +151,6 @@ class _ExamListScreenState extends ConsumerState<ExamListScreen> {
             color: colorScheme.onSurface,
           ),
         ),
-        backgroundColor: colorScheme.surface,
       ),
       body: FutureBuilder<List<ExamModel>>(
         key: _futureBuilderKey,

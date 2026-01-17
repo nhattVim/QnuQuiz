@@ -102,7 +102,6 @@ class QuizResultScreen extends ConsumerWidget {
     final correctCount = result.correctCount;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [

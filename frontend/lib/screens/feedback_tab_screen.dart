@@ -92,10 +92,8 @@ class _FeedbackTabScreenState extends ConsumerState<FeedbackTabScreen>
         .toList(growable: false);
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: colorScheme.surface,
         surfaceTintColor: Colors.transparent,
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
@@ -262,7 +260,6 @@ class _FeedbackTabScreenState extends ConsumerState<FeedbackTabScreen>
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(16, 10, 16, 8),
       decoration: BoxDecoration(
-        color: colorScheme.surface,
         border: Border(
           bottom: BorderSide(
             color: colorScheme.outlineVariant.withValues(alpha: 0.4),

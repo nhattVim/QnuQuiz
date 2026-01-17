@@ -155,7 +155,6 @@ class _FeedbackScreenState extends ConsumerState<FeedbackScreen> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [

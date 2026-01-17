@@ -119,7 +119,6 @@ class _QuizHeaderState extends State<QuizHeader> {
     final colorScheme = Theme.of(context).colorScheme;
 
     return AppBar(
-      backgroundColor: colorScheme.surface,
       elevation: 0,
       leading: IconButton(
         icon: Icon(Boxicons.bx_arrow_back, color: colorScheme.onSurface),

@@ -27,7 +27,6 @@ class _CategoryPageState extends ConsumerState<CategoryPage> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [

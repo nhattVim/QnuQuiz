@@ -22,7 +22,6 @@ class TeacherDashboardPage extends ConsumerWidget {
     final statsAsync = ref.watch(teacherStatsProvider);
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: () async {

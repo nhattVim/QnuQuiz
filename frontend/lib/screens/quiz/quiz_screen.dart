@@ -57,9 +57,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
     if (isLoading) {
       return Scaffold(
-        backgroundColor: colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: colorScheme.surface,
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
@@ -72,9 +70,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
     if (errorMessage != null) {
       return Scaffold(
-        backgroundColor: colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: colorScheme.surface,
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
@@ -100,9 +96,7 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
 
     if (quizData.isEmpty) {
       return Scaffold(
-        backgroundColor: colorScheme.surface,
         appBar: AppBar(
-          backgroundColor: colorScheme.surface,
           elevation: 0,
           leading: IconButton(
             icon: Icon(Icons.arrow_back, color: colorScheme.onSurface),
@@ -125,7 +119,6 @@ class _QuizScreenState extends ConsumerState<QuizScreen> {
         : -1;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: QuizHeader(
